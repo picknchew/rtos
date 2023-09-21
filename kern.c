@@ -1,4 +1,4 @@
-#include "rpi.h";
+#include "rpi.h"
 
 int kmain() {
   const int CONSOLE = 0;
