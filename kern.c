@@ -1,5 +1,11 @@
 #include "rpi.h"
 
+#define VBAR_EL1
+
+void init_vector_table() {
+
+}
+
 int kmain() {
   const int CONSOLE = 0;
 
