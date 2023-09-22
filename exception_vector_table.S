@@ -11,8 +11,8 @@ init_exception_vector_table:
 .align 11 // Table is 2048 bits in total
 exception_table:
   // Current EL with SP0
-  b handler
-  .balign exception_handler
+  b exception_handler
+  .balign 128
 //  VECTOR_ENTRY(exception_handler) // Synchronized
 //  VECTOR_ENTRY(exception_handler) // IRQ/vIRQ
 //  VECTOR_ENTRY(exception_handler) // FIQ/vFIQ
