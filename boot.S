@@ -47,6 +47,8 @@ _start:
     adr x4, el1_entry
     msr elr_el2, x4
 
+    bl init_exception_vector_table
+
     eret // -> el1_entry
 
 el1_entry:

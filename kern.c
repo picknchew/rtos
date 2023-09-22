@@ -2,9 +2,8 @@
 
 #define VBAR_EL1
 
-void init_vector_table() {
-
-}
+//https://github.com/s-matyukevich/raspberry-pi-os/blob/master/docs/lesson03/rpi-os.md
+//https://github.com/isometimes/rpi4-osdev/tree/master/part13-interrupts
 
 int kmain() {
   const int CONSOLE = 0;
