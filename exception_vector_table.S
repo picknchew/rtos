@@ -1,7 +1,3 @@
-// every entry is 128 bytes
-#define VECTOR_ENTRY1(handler) b handler \
-.balign 128
-
 .global init_exception_vector_table
 init_exception_vector_table:
   ldr x0, =exception_table
@@ -13,25 +9,36 @@ exception_table:
   // Current EL with SP0
   b exception_handler
   .balign 128
-//  VECTOR_ENTRY(exception_handler) // Synchronized
-//  VECTOR_ENTRY(exception_handler) // IRQ/vIRQ
-//  VECTOR_ENTRY(exception_handler) // FIQ/vFIQ
-//  VECTOR_ENTRY(exception_handler) // // SError/vSError
+  b exception_handler
+  .balign 128
+  b exception_handler
+  .balign 128
+  b exception_handler
+  .balign 128
 
-  // Currentl EL with SPx
-//  VECTOR_ENTRY(exception_handler) // Synchronized
-//  VECTOR_ENTRY(exception_handler) // IRQ/vIRQ
-//  VECTOR_ENTRY(exception_handler) // FIQ/vFIQ
-//  VECTOR_ENTRY(exception_handler) // // SError/vSError
+  b exception_handler
+  .balign 128
+  b exception_handler
+  .balign 128
+  b exception_handler
+  .balign 128
+  b exception_handler
+  .balign 128
 
-  // Lower EL using AArch64
-//  VECTOR_ENTRY(exception_handler) // Synchronized
-//  VECTOR_ENTRY(exception_handler) // IRQ/vIRQ
-//  VECTOR_ENTRY(exception_handler) // FIQ/vFIQ
-//  VECTOR_ENTRY(exception_handler) // // SError/vSError
+  b exception_handler
+  .balign 128
+  b exception_handler
+  .balign 128
+  b exception_handler
+  .balign 128
+  b exception_handler
+  .balign 128
 
-  // Lower EL using AArch32
-//  VECTOR_ENTRY(exception_handler) // Synchronized
-//  VECTOR_ENTRY(exception_handler) // IRQ/vIRQ
-//  VECTOR_ENTRY(exception_handler) // FIQ/vFIQ
-//  VECTOR_ENTRY(exception_handler) // // SError/vSError
+  b exception_handler
+  .balign 128
+  b exception_handler
+  .balign 128
+  b exception_handler
+  .balign 128
+  b exception_handler
+  .balign 128
