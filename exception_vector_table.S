@@ -1,6 +1,6 @@
 // every entry is 128 bytes
-#define VECTOR_ENTRY(handler) b handler \
-.balign 128
+#define VECTOR_ENTRY1(handler) (b handler \
+.balign 128)
 
 .global init_exception_vector_table
 init_exception_vector_table:
@@ -11,10 +11,10 @@ init_exception_vector_table:
 .align 11 // Table is 2048 bits in total
 exception_table:
   // Current EL with SP0
-  VECTOR_ENTRY(exception_handler) // Synchronized
-  VECTOR_ENTRY(exception_handler) // IRQ/vIRQ
-  VECTOR_ENTRY(exception_handler) // FIQ/vFIQ
-  VECTOR_ENTRY(exception_handler) // // SError/vSError
+  VECTOR_ENTRY1(exception_handler) // Synchronized
+//  VECTOR_ENTRY(exception_handler) // IRQ/vIRQ
+//  VECTOR_ENTRY(exception_handler) // FIQ/vFIQ
+//  VECTOR_ENTRY(exception_handler) // // SError/vSError
 
   // Currentl EL with SPx
 //  VECTOR_ENTRY(exception_handler) // Synchronized
