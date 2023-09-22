@@ -1,6 +1,6 @@
 // every entry is 128 bytes
-#define VECTOR_ENTRY1(handler) (b handler \
-.balign 128)
+#define VECTOR_ENTRY1(handler) b handler \
+.balign 128
 
 .global init_exception_vector_table
 init_exception_vector_table:
