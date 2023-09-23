@@ -1,19 +1,25 @@
-enum TaskStatus {
+#include<memory.h>
+typedef enum  {
   ACTIVE,
   READY,
   EXITED,
   SEND_BLOCKED,
   RECEIVE_BLOCKED,
   REPLY_BLOCKED,
-  EVENT_BLOCKED
-};
+  EVENT_BLOCKED,
+  FREE
+}TaskStatus;
 
-struct TaskDescriptor {
+
+typedef struct task_descriptor {
   int tid;
 
   TaskDescriptor *parent;
   TaskStatus status;
   int priority;
+  uint32_t sp;
+
+  struct task_descriptor *next;
   
   /**
    * missing:
@@ -21,4 +27,4 @@ struct TaskDescriptor {
    * a pointer to the TD of the next task in the task’s ready queue,
    * a point to the TD of the next task on the task’s send queue,
   */
-};
+}TaskDescriptor;
