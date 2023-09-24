@@ -1,6 +1,7 @@
 #include "exception.h"
 
 #include "rpi.h"
+#include "syscall.h"
 #include "task.h"
 
 static const int SYSCALL_TYPE_MASK = 0xFFFF;
@@ -21,16 +22,17 @@ void handle_exception(int exception_info) {
   }
 
   struct TaskDescriptor *current_task = task_get_current_task();
-  enum ExceptionType ex_type = exception_info & SYSCALL_TYPE_MASK;
+  enum SyscallType syscall_type = exception_info & SYSCALL_TYPE_MASK;
 
-  switch (ex_type) {
-    case EX_TEST:
+  switch (syscall_type) {
+    case SYSCALL_EXIT:
       uart_puts(CONSOLE, "ex_test\r\n");
       break;
     default:
       break;
   }
 
+  uart_printf(CONSOLE, "syscall type: %d\r\n", syscall_type);
   uart_puts(CONSOLE, "handle_exception - end\r\n");
 
   for (;;) {

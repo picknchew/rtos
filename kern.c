@@ -1,5 +1,8 @@
 #include "exception.h"
 #include "rpi.h"
+#include "syscall.h"
+#include "task.h"
+#include "task_queue.h"
 
 #define SVC(code) asm volatile ("svc %0" : : "I" (code) )
 
@@ -20,7 +23,10 @@ int kmain() {
   uart_puts(CONSOLE, train);
   uart_puts(CONSOLE, "Booting...\r\n");
 
-  SVC(EX_TEST);
+  tasks_init();
+  task_queues_init();
+
+  SVC(SYSCALL_EXIT);
 
   return 0;
 }

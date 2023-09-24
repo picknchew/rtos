@@ -1,12 +1,27 @@
 #include "task.h"
 
-#define MAX_TASKS 32
+static struct TaskDescriptor tasks[TASKS_MAX] = { {0} };
+struct TaskDescriptor *current_task = NULL;
 
-static unsigned int next_task_id = 0;
-static struct TaskDescriptor tasks[MAX_TASKS];
+void tasks_init() {
+  for (int i = 0; i < TASKS_MAX; ++i) {
+    struct TaskDescriptor *task = &tasks[i];
 
-struct TaskDescriptor *current_task;
+    task->tid = i;
+    task->status = TASK_EXITED;
+  }
+}
+
+// iterate over tasks to get next free task
 
 struct TaskDescriptor *task_get_current_task() {
     return current_task;
+}
+
+struct TaskDescriptor *task_get_by_tid(int tid) {
+    return &tasks[tid];
+}
+
+void task_schedule() {
+    
 }
