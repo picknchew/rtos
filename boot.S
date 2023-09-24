@@ -87,4 +87,5 @@ stack:
     .rept 0x10000
     .byte 0
     .endr
+.global stackend
 stackend:

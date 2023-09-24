@@ -1,3 +1,9 @@
+#pragma once
+
+#include "task_descriptor.h"
+
+struct TaskDescriptor *task_get_current_task();
+
 /**
  * allocates and initializes a task descriptor, using the given priority, and the given function
  * pointer as a pointer to the entry point of executable code, essentially a function with no
