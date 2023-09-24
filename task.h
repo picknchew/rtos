@@ -35,7 +35,6 @@ struct TaskDescriptor {
   struct TaskContext context;
 
   // block of memory allocated for this task
-  // when a task stops running
   uint64_t *stack;
   
   // NOTE: add extra fields below here
