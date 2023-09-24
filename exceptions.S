@@ -100,7 +100,7 @@ init_exception_vector_table:
   msr VBAR_EL1, x0
   ret
 
-.align 11 // Table is 2048 bits in total
+.align 11 // Table is 2048 bytes in total
 exception_table:
   // Current EL with SP0
   b handle_exception
