@@ -1,11 +1,16 @@
-#include "rpi.h"
 #include "task.h"
+
+#include "task_queue.h"
+#include "rpi.h"
 #include "syscall.h"
 
 void task1();
 
 static struct TaskDescriptor tasks[TASKS_MAX] = { {0} };
 struct TaskDescriptor *current_task = NULL;
+
+// tasks ready to run
+static struct PriorityTaskQueue ready_queue;
 
 void task1() {
   uart_puts(1, "task 1 running....");
@@ -26,6 +31,9 @@ void tasks_init() {
     task->status = TASK_EXITED;
   }
 
+  priority_task_queue_init(&ready_queue);
+
+  // replace with init/idle task
   current_task = task_create(0, task1);
 }
 

@@ -5,6 +5,7 @@
 // a task descriptor cannot be in two queues at the same time
 static struct TaskQueueNode task_queue_nodes[TASKS_MAX] = { {0} };
 static struct PriorityTaskQueue *priorityQueue;
+
 void task_queues_init() {
   for (int i = 0; i < TASKS_MAX; ++i) {
     task_queue_nodes[i].val = task_get_by_tid(i);
@@ -12,8 +13,8 @@ void task_queues_init() {
   }
 }
 
-static void task_queue_add(struct TaskQueue *task_queue, struct TaskDescriptor *descriptor) {
-  struct TaskQueueNode *node = &task_queue_nodes[descriptor->tid];
+static void task_queue_add(struct TaskQueue *task_queue, struct TaskDescriptor *task) {
+  struct TaskQueueNode *node = &task_queue_nodes[task->tid];
 
   node->next = NULL;
 
@@ -38,6 +39,19 @@ void priority_task_queue_init(struct PriorityTaskQueue *queue) {
   }
 }
 
+static struct TaskQueueNode *task_queue_pop(struct TaskQueue *task_queue) {
+  struct TaskQueueNode *popped = task_queue->head;
+
+  task_queue->head = popped->next;
+  --task_queue->size;
+  
+  if (task_queue->size <= 1) {
+    task_queue->tail = task_queue->head;
+  }
+
+  return popped;
+}
+
 struct TaskDescriptor *priority_task_queue_pop(struct PriorityTaskQueue *queue) {
   // find queue with highest priority with task
   struct TaskQueue *task_queue = NULL;
@@ -53,20 +67,11 @@ struct TaskDescriptor *priority_task_queue_pop(struct PriorityTaskQueue *queue) 
     return NULL;
   }
 
-  struct TaskQueueNode *popped = task_queue->head;
-
-  task_queue->head = popped->next;
-  --task_queue->size;
-  
-  if (task_queue->size <= 1) {
-    task_queue->tail = task_queue->head;
-  }
-
-  return popped->val;
+  return task_queue_pop(task_queue)->val;
 }
 
-void priority_task_queue_push(struct PriorityTaskQueue *queue, struct TaskDescriptor *descriptor) {
-  task_queue_add(&queue->queues[descriptor->priority], descriptor);
+void priority_task_queue_push(struct PriorityTaskQueue *queue, struct TaskDescriptor *task) {
+  task_queue_add(&queue->queues[task->priority], task);
 }
 
 struct PriorityTaskQueue *getPriorityQueue(){
