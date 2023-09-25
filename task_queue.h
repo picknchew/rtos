@@ -28,3 +28,6 @@ void priority_task_queue_init(struct PriorityTaskQueue *queue);
 
 struct TaskDescriptor *priority_task_queue_pop(struct PriorityTaskQueue *queue);
 void priority_task_queue_push(struct PriorityTaskQueue *queue, struct TaskDescriptor *task);
+struct PriorityTaskQueue *getPriorityQueue();
+struct TaskDescriptor *priority_task_queue_delete(struct PriorityTaskQueue *queue, struct TaskDescriptor *td);
+
