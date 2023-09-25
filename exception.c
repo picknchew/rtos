@@ -81,8 +81,7 @@ void syscall_yield(){
   // do nothing
 }
 
-void syscall_exit(){
-  struct TaskDescriptor *current = task_get_current_task();
+void syscall_exit(struct TaskDescriptor *current){
   priority_task_queue_delete(getPriorityQueue(),current);
   current->status = TASK_EXITED;
   current->tid = current->tid+TASKS_MAX;
@@ -91,4 +90,5 @@ void syscall_exit(){
   current->stack[0] = 0;
 
 }
+
 
