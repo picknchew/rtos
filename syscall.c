@@ -14,7 +14,7 @@
  * -2	kernel is out of task descriptors.
  */
 int Create(int priority, void (*function)()) {
-    register int tid asm ("r0");
+    register int tid asm ("x0");
     
     asm volatile (
         "svc %1" 
@@ -32,7 +32,7 @@ int Create(int priority, void (*function)()) {
  * tid	the positive integer task id of the task that calls it.
  */
 int MyTid() {
-    register int tid asm ("r0");
+    register int tid asm ("x0");
     
     asm volatile (
         "svc %1" 
@@ -52,7 +52,7 @@ int MyTid() {
  * tid	the task id of the task that created the calling task.
  */
 int MyParentTid() {
-    register int tid asm ("r0");
+    register int tid asm ("x0");
     
     asm volatile (
         "svc %1" 

@@ -69,10 +69,6 @@ void priority_task_queue_push(struct PriorityTaskQueue *queue, struct TaskDescri
   task_queue_add(&queue->queues[descriptor->priority], descriptor);
 }
 
-void priority_task_queue_push(struct PriorityTaskQueue *queue, struct TaskDescriptor *descriptor) {
-  task_queue_add(&queue->queues[descriptor->priority], descriptor);
-}
-
 struct PriorityTaskQueue *getPriorityQueue(){
   return priorityQueue;
 }

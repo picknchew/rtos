@@ -5,6 +5,8 @@
 #define TASKS_MAX 128
 #define NUM_REGISTERS 31
 
+#define STACK_SIZE 4096
+
 enum TaskStatus {
   TASK_ACTIVE,
   TASK_READY,
@@ -15,6 +17,7 @@ enum TaskStatus {
   TASK_EVENT_BLOCKED
 };
 
+// must update kern_exit in exceptions.S if the size of this struct changes.
 struct TaskContext {
     uint64_t registers[NUM_REGISTERS];
     // SP_EL0
@@ -29,13 +32,13 @@ struct TaskDescriptor {
   unsigned int tid;
   unsigned int priority;
 
-  struct TaskDescriptor *parent; // offset: 8
+  struct TaskContext context; // offset: 8
+
+  struct TaskDescriptor *parent;
   enum TaskStatus status;
 
-  struct TaskContext context;
-
   // block of memory allocated for this task
-  uint64_t *stack;
+  uint64_t stack[STACK_SIZE];
   
   // NOTE: add extra fields below here
 
@@ -46,5 +49,8 @@ struct TaskDescriptor {
   */
 };
 
+void tasks_init();
+
+struct TaskDescriptor *task_create(int priority, void (*function)());
 struct TaskDescriptor *task_get_current_task();
 struct TaskDescriptor *task_get_by_tid();
