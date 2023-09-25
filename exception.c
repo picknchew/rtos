@@ -1,8 +1,7 @@
-
 #include "rpi.h"
 #include "syscall.h"
 #include "task.h"
-#include "task_queue.h"ssssssssssssssssssssssssssssssss
+#include "task_queue.h"
 #include "exception.h"
 
 static const int SYSCALL_TYPE_MASK = 0xFFFF;
@@ -60,13 +59,13 @@ void handle_exception(int exception_info) {
   // for (;;) {
   //   // spin
   // }
-  return result;
+  current_task->context.registers[0] = result;
 }
 
 int syscall_create(struct TaskDescriptor *task, int priority,void (*code)()){
   // create task descriptor 
   struct TaskDescriptor *td = task_create(priority,code);
-  priority_task_queue_push(getPriorityQueue(),task);
+  priority_task_queue_push(getPriorityQueue(),td);
   td->parent = task;
   td->status = TASK_READY;
   // TODO task.tid is not defined
