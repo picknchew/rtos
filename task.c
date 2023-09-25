@@ -37,9 +37,10 @@ void tasks_init() {
   current_task = task_create(0, task1);
 }
 
-static struct TaskDescriptor *task_get_free_task() {
+static struct TaskDescriptor *task_get_free_task(int *num) {
   for (int i = 0; i < TASKS_MAX; ++i) {
     if (tasks[i].status == TASK_EXITED) {
+      *num = i;
       return &tasks[i];
     }
   }
@@ -49,12 +50,15 @@ static struct TaskDescriptor *task_get_free_task() {
 }
 
 struct TaskDescriptor *task_create(int priority, void (*function)()) {
-  struct TaskDescriptor *task = task_get_free_task();
+  int num;
+  struct TaskDescriptor *task = task_get_free_task(&num);
   struct TaskContext *context = &task->context;
 
   task->priority = priority;
-
-  for (int i = 0; i < NUM_REGISTERS; ++i) {
+  // tid
+  task->tid = num;
+  int i;
+  for (i = 0; i < NUM_REGISTERS; ++i) {
     context->registers[i] = 0;
   }
 
