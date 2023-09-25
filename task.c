@@ -76,6 +76,11 @@ struct TaskDescriptor *task_get_by_tid(int tid) {
     return &tasks[tid];
 }
 
-void task_schedule() {
-    
+void *task_yield_current_task() {
+  priority_task_queue_push(ready_queue, current_task);
+  current_task = priority_task_queue_pop(ready_queue);
+}
+
+void task_schedule(TaskDescriptor *task) {
+  priority_task_queue_push(ready_queue, task);
 }

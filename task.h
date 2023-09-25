@@ -54,3 +54,5 @@ void tasks_init();
 struct TaskDescriptor *task_create(int priority, void (*function)());
 struct TaskDescriptor *task_get_current_task();
 struct TaskDescriptor *task_get_by_tid();
+void *task_yield_current_task();
+void task_schedule(TaskDescriptor *task);
