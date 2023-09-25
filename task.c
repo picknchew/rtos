@@ -77,10 +77,15 @@ struct TaskDescriptor *task_get_by_tid(int tid) {
 }
 
 void *task_yield_current_task() {
-  priority_task_queue_push(ready_queue, current_task);
-  current_task = priority_task_queue_pop(ready_queue);
+  priority_task_queue_push(&ready_queue, current_task);
+  current_task = priority_task_queue_pop(&ready_queue);
 }
 
-void task_schedule(TaskDescriptor *task) {
-  priority_task_queue_push(ready_queue, task);
+void task_schedule(struct TaskDescriptor *task) {
+  priority_task_queue_push(&ready_queue, task);
+}
+
+void task_exit() {
+  current_task->status = TASK_EXITED;
+  current_task = priority_task_queue_pop(&ready_queue);
 }
