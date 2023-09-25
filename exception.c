@@ -1,8 +1,9 @@
-#include "exception.h"
+
 
 #include "rpi.h"
 #include "syscall.h"
 #include "task.h"
+#include "exception.h"
 
 static const int SYSCALL_TYPE_MASK = 0xFFFF;
 
