@@ -28,15 +28,17 @@ void handle_exception(int exception_info) {
   enum SyscallType syscall_type = exception_info & SYSCALL_TYPE_MASK;
 
   int result  = 0;
+  int priority;
+  void* function;
   switch (syscall_type) {
     case SYSCALL_EXIT:
       uart_puts(CONSOLE, "ex_test\r\n");
       break;
     case SYSCALL_CREATE:
     // read parameter from ...
-      int priority = current_task->context.registers[0];
-      void* function = current_task->context.registers[1];
-      result = (current_task,priority, function);
+      priority = current_task->context.registers[0];
+      function = current_task->context.registers[1];
+      result = syscall_create(current_task,priority, function);
       break;
     case SYSCALL_MY_TID:
       result = syscall_my_tid(current_task);
