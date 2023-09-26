@@ -29,8 +29,8 @@ struct TaskContext {
 };
 
 struct TaskDescriptor {
-  unsigned int tid;
-  unsigned int priority;
+  uint32_t tid;
+  uint32_t priority;
 
   struct TaskContext context; // offset: 8
 
@@ -51,9 +51,9 @@ struct TaskDescriptor {
 
 void tasks_init();
 
-struct TaskDescriptor *task_create(int priority, void (*function)());
+struct TaskDescriptor *task_create(struct TaskDescriptor *parent, int priority, void (*function)());
 struct TaskDescriptor *task_get_current_task();
 struct TaskDescriptor *task_get_by_tid();
-void *task_yield_current_task();
+void task_yield_current_task();
 void task_schedule(struct TaskDescriptor *task);
-void task_exit();
+void task_exit_current_task();

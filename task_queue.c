@@ -4,7 +4,6 @@
 // indexed by tid
 // a task descriptor cannot be in two queues at the same time
 static struct TaskQueueNode task_queue_nodes[TASKS_MAX] = { {0} };
-static struct PriorityTaskQueue *priorityQueue;
 
 void task_queues_init() {
   for (int i = 0; i < TASKS_MAX; ++i) {
@@ -74,11 +73,7 @@ void priority_task_queue_push(struct PriorityTaskQueue *queue, struct TaskDescri
   task_queue_add(&queue->queues[task->priority], task);
 }
 
-struct PriorityTaskQueue *getPriorityQueue(){
-  return priorityQueue;
-}
-
-struct TaskDescriptor *priority_task_queue_delete(struct PriorityTaskQueue *queue, struct TaskDescriptor *td){
+struct TaskDescriptor *priority_task_queue_delete(struct PriorityTaskQueue *queue, struct TaskDescriptor *td) {
   struct TaskQueue *task_queue = NULL;
   for (int i = MAX_PRIORITY - 1; i >= 0; --i) {
     if (queue->queues[i].size > 0) {

@@ -1,13 +1,6 @@
-// https://stackoverflow.com/questions/13181145/
-// get the address of address of current_task descriptor
-.text
-.global current_task
-.current_task_addr_addr:
-    .word current_task
-
 .macro set_reg_to_task_context, reg
   // set sp to current task descriptor
-  ldr \reg, .current_task_addr_addr
+  ldr \reg, =current_task // current_task is a pointer to a pointer of the current task
   ldr \reg, [\reg] // dereference
   add \reg, \reg, #8 // offset to context within task descriptor
 .endm

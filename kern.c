@@ -15,8 +15,6 @@ const char *train = "      oooOOOOOOOOOOO                                       
                     "     /oo--OO   oo  oo   oo oo      oo oo   oo oo      oo oo   oo     oo    \r\n"
                     "+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+\r\n";
 
-// NOTE TO US: for the init task we need to create a PSTATE that is at EL0
-
 int kmain() {
   uart_config_and_enable(CONSOLE, 115200, false);
   uart_init();
@@ -26,7 +24,7 @@ int kmain() {
   tasks_init();
   task_queues_init();
 
-  // SYSCALL_EXIT = 1442840581 = 0x56000005
+  // SYSCALL_EXIT = 1442840581 = 0x5600005
   // call to start first task
   handle_exception(0x56000005);
 

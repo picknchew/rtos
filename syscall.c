@@ -14,15 +14,15 @@
  * -2	kernel is out of task descriptors.
  */
 int Create(int priority, void (*function)()) {
-    register int tid asm ("x0");
-    
-    asm volatile (
-        "svc %1" 
-        : "=r" (tid)
-        : "i" (SYSCALL_CREATE), "r" (priority), "r" (function)
-    );
+  register int tid asm ("x0");
+  
+  asm volatile (
+    "svc %1" 
+    : "=r" (tid)
+    : "i" (SYSCALL_CREATE), "r" (priority), "r" (function)
+  );
 
-    return tid;
+  return tid;
 }
 
 /**
@@ -32,15 +32,15 @@ int Create(int priority, void (*function)()) {
  * tid	the positive integer task id of the task that calls it.
  */
 int MyTid() {
-    register int tid asm ("x0");
-    
-    asm volatile (
-        "svc %1" 
-        : "=r" (tid)
-        : "i" (SYSCALL_MY_TID)
-    );
+  register int tid asm ("x0");
+  
+  asm volatile (
+    "svc %1" 
+    : "=r" (tid)
+    : "i" (SYSCALL_MY_TID)
+  );
 
-    return tid;
+  return tid;
 }
 
 /**
@@ -52,15 +52,15 @@ int MyTid() {
  * tid	the task id of the task that created the calling task.
  */
 int MyParentTid() {
-    register int tid asm ("x0");
-    
-    asm volatile (
-        "svc %1" 
-        : "=r" (tid)
-        : "i" (SYSCALL_MY_PARENT_TID)
-    );
+  register int tid asm ("x0");
+  
+  asm volatile (
+    "svc %1" 
+    : "=r" (tid)
+    : "i" (SYSCALL_MY_PARENT_TID)
+  );
 
-    return tid;
+  return tid;
 }
 
 /**
@@ -68,11 +68,11 @@ int MyParentTid() {
  * resume executing when next scheduled.
  */
 void Yield() {
-    asm volatile (
-        "svc %0" 
-        : // no output operands
-        : "i" (SYSCALL_YIELD)
-    );
+  asm volatile (
+    "svc %0" 
+    : // no output operands
+    : "i" (SYSCALL_YIELD)
+  );
 }
 
 /**
@@ -81,9 +81,9 @@ void Yield() {
  * task descriptor, may be reclaimed.
  */
 void Exit() {
-    asm volatile (
-        "svc %0"
-        : // no output operands
-        : "i" (SYSCALL_EXIT)
-    );
+  asm volatile (
+    "svc %0"
+    : // no output operands
+    : "i" (SYSCALL_EXIT)
+  );
 }

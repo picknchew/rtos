@@ -173,7 +173,7 @@ void uart_puts(size_t line, const char* buf) {
 }
 
 // printf-style printing, with limited format support
-static void uart_format_print(size_t line, char* fmt, va_list va) {
+void uart_format_print(size_t line, char* fmt, va_list va) {
   char bf[12];
   char ch;
 

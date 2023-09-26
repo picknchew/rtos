@@ -3,6 +3,7 @@
 #include "task_queue.h"
 #include "rpi.h"
 #include "syscall.h"
+#include "debug.h"
 
 void task1();
 
@@ -12,14 +13,48 @@ struct TaskDescriptor *current_task = NULL;
 // tasks ready to run
 static struct PriorityTaskQueue ready_queue;
 
+void task2() {
+  for (int i = 0; i < 30; ++i) {
+    uart_printf(1, "task 2 counter: %d\r\n", i);
+    Yield();
+  }
+
+  Exit();
+}
+
 void task1() {
-  uart_puts(1, "task 1 running....");
-  Exit();
-  uart_puts(1, "second time running");
-  Exit();
-  uart_puts(1, "third time running");
-  Exit();
-  uart_puts(1, "fourth time running");
+  // debug_dump_registers();
+  // uart_puts(1, "task 1 running....\r\n");
+
+  // uart_puts(1, "after printing:\r\n");
+  // debug_dump_registers();
+  // debug_dump_context();
+  // // debug_dump_registers();
+  // // debug_dump_context();
+
+  // Exit();
+
+  // uart_puts(1, "after restoration\r\n");
+  // debug_dump_registers();
+  // debug_dump_context();
+  // uart_puts(1, "second time running\r\n");
+  // uart_puts(1, "after printing again\r\n");
+  // debug_dump_registers();
+  // debug_dump_context();
+  // // debug_dump_registers();
+  // Exit();
+  // uart_puts(1, "third time running\r\n");
+  // // debug_dump_registers();
+  // Exit();
+  // uart_puts(1, "fourth time running\r\n");
+  // // debug_dump_registers();
+
+  for (int i = 0; i < 30; ++i) {
+    // Create(0, task2);
+    uart_printf(1, "task 1 counter: %d\r\n", i);
+    Exit();
+  }
+
   Exit();
 }
 
@@ -34,13 +69,13 @@ void tasks_init() {
   priority_task_queue_init(&ready_queue);
 
   // replace with init/idle task
-  current_task = task_create(0, task1);
+  current_task = task_create(NULL, 0, task1);
 }
 
-static struct TaskDescriptor *task_get_free_task(int *num) {
+static struct TaskDescriptor *task_get_free_task() {
+  // iterate over tasks to get next free task
   for (int i = 0; i < TASKS_MAX; ++i) {
     if (tasks[i].status == TASK_EXITED) {
-      *num = i;
       return &tasks[i];
     }
   }
@@ -49,17 +84,15 @@ static struct TaskDescriptor *task_get_free_task(int *num) {
   return NULL;
 }
 
-struct TaskDescriptor *task_create(int priority, void (*function)()) {
-  int num;
-  struct TaskDescriptor *task = task_get_free_task(&num);
+struct TaskDescriptor *task_create(struct TaskDescriptor *parent, int priority, void (*function)()) {
+  struct TaskDescriptor *task = task_get_free_task();
   struct TaskContext *context = &task->context;
 
+  task->parent = parent;
   task->priority = priority;
-  // tid
-  task->tid = num;
-  int i;
-  for (i = 0; i < NUM_REGISTERS; ++i) {
-    context->registers[i] = 0;
+
+  for (int i = 0; i < NUM_REGISTERS; ++i) {
+    context->registers[i] = i;
   }
 
   // add to get end of stack since it grows up
@@ -70,8 +103,6 @@ struct TaskDescriptor *task_create(int priority, void (*function)()) {
   return task;
 }
 
-// iterate over tasks to get next free task
-
 struct TaskDescriptor *task_get_current_task() {
     return current_task;
 }
@@ -80,16 +111,17 @@ struct TaskDescriptor *task_get_by_tid(int tid) {
     return &tasks[tid];
 }
 
-void *task_yield_current_task() {
+void task_yield_current_task() {
   priority_task_queue_push(&ready_queue, current_task);
   current_task = priority_task_queue_pop(&ready_queue);
 }
 
 void task_schedule(struct TaskDescriptor *task) {
+  task->status = TASK_READY;
   priority_task_queue_push(&ready_queue, task);
 }
 
-void task_exit() {
+void task_exit_current_task() {
   current_task->status = TASK_EXITED;
   current_task = priority_task_queue_pop(&ready_queue);
 }

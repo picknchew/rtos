@@ -29,24 +29,22 @@ void handle_exception(int exception_info) {
   struct TaskDescriptor *current_task = task_get_current_task();
   enum SyscallType syscall_type = exception_info & SYSCALL_TYPE_MASK;
 
-  int result  = 0;
-  int priority;
-  void (*function)();
   switch (syscall_type) {
     case SYSCALL_EXIT:
-      uart_puts(CONSOLE, "ex_test\r\n");
+      syscall_exit(current_task);
       break;
     case SYSCALL_CREATE:
-    // read parameter from ...
-      priority = current_task->context.registers[0];
-      function = current_task->context.registers[1];
-      result = syscall_create(current_task,priority, function);
+      current_task->context.registers[0] = syscall_create(
+        current_task, 
+        (uint32_t) current_task->context.registers[0], // priority
+        (void (*)()) current_task->context.registers[1] // function
+      );
       break;
     case SYSCALL_MY_TID:
-      result = syscall_my_tid(current_task);
+      current_task->context.registers[0] = syscall_my_tid(current_task);
       break;
     case SYSCALL_MY_PARENT_TID:
-      result = syscall_my_parent_tid(current_task);
+      current_task->context.registers[0] = syscall_my_parent_tid(current_task);
       break;
     case SYSCALL_YIELD:
       syscall_yield();
@@ -54,44 +52,35 @@ void handle_exception(int exception_info) {
     default:
       break;
   }
+  
+  // always yield to switch to higher priority task or roundrobin
+  syscall_yield();
 
-  uart_printf(CONSOLE, "syscall type: %d\r\n", syscall_type);
-  uart_puts(CONSOLE, "handle_exception - end\r\n");
+  // uart_printf(CONSOLE, "syscall type: %d\r\n", exception_info);
+  // uart_puts(CONSOLE, "handle_exception - end\r\n");
 
-  // for (;;) {
-  //   // spin
-  // }
-  current_task->context.registers[0] = result;
 }
 
-int syscall_create(struct TaskDescriptor *task, int priority,void (*code)()){
-  // create task descriptor 
-  struct TaskDescriptor *td = task_create(priority,code);
-  priority_task_queue_push(getPriorityQueue(),td);
-  td->parent = task;
-  td->status = TASK_READY;
-  // TODO task.tid is not defined
+// TODO: check result and return proper return code 
+
+int syscall_create(struct TaskDescriptor *parent, int priority, void (*code)()) {
+  struct TaskDescriptor *td = task_create(parent, priority, code);
+  task_schedule(td);
   return td->tid;
 }
 
-int syscall_my_tid(struct TaskDescriptor *task){
+int syscall_my_tid(struct TaskDescriptor *task) {
   return task->tid;
 }
 
-int syscall_my_parent_tid(struct TaskDescriptor *task){
-  return  task->parent->tid;
+int syscall_my_parent_tid(struct TaskDescriptor *task) {
+  return task->parent->tid;
 }
 
-void syscall_yield(){
-  // do nothing
+void syscall_yield() {
+  task_yield_current_task();
 }
 
-void syscall_exit(struct TaskDescriptor *current){
-  priority_task_queue_delete(getPriorityQueue(),current);
-  current->status = TASK_EXITED;
-  current->tid = current->tid+TASKS_MAX;
-  current->parent = NULL;
-  current->priority = 0;
-  current->stack[0] = 0;
-
+void syscall_exit() {
+  task_exit_current_task();
 }
