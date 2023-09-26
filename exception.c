@@ -47,7 +47,6 @@ void handle_exception(int exception_info) {
       current_task->context.registers[0] = syscall_my_parent_tid(current_task);
       break;
     case SYSCALL_YIELD:
-      syscall_yield();
       break;
     default:
       break;
@@ -55,6 +54,9 @@ void handle_exception(int exception_info) {
   
   // always yield to switch to higher priority task or roundrobin
   syscall_yield();
+
+  // run task
+  kern_exit();
 
   // uart_printf(CONSOLE, "syscall type: %d\r\n", exception_info);
   // uart_puts(CONSOLE, "handle_exception - end\r\n");
