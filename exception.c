@@ -65,8 +65,6 @@ void handle_exception(uint64_t exception_info) {
   kern_exit();
 }
 
-// TODO: check result and return proper return code 
-
 int syscall_create(struct TaskDescriptor *parent, int priority, void (*code)()) {
   if (priority <= 0 || priority >= MAX_PRIORITY) {
     // invalid priority
