@@ -49,10 +49,11 @@ void task1() {
   // uart_puts(1, "fourth time running\r\n");
   // // debug_dump_registers();
 
+  Create(0, task2);
+
   for (int i = 0; i < 30; ++i) {
-    // Create(0, task2);
     uart_printf(1, "task 1 counter: %d\r\n", i);
-    Exit();
+    Yield();
   }
 
   Exit();
@@ -90,6 +91,7 @@ struct TaskDescriptor *task_create(struct TaskDescriptor *parent, int priority, 
 
   task->parent = parent;
   task->priority = priority;
+  task->status = TASK_READY;
 
   for (int i = 0; i < NUM_REGISTERS; ++i) {
     context->registers[i] = i;
@@ -112,7 +114,10 @@ struct TaskDescriptor *task_get_by_tid(int tid) {
 }
 
 void task_yield_current_task() {
-  priority_task_queue_push(&ready_queue, current_task);
+  if (current_task != NULL) {
+    priority_task_queue_push(&ready_queue, current_task);
+  }
+
   current_task = priority_task_queue_pop(&ready_queue);
 }
 

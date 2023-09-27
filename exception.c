@@ -17,8 +17,8 @@ static const int CONSOLE = 1;
 // return back to user mode
 extern void kern_exit();
 
-void handle_exception(int exception_info) {
-  uart_puts(CONSOLE, "handle_exception - start\r\n");
+void handle_exception(uint64_t exception_info) {
+  uart_printf(CONSOLE, "handle_exception - start %d\r\n", exception_info);
 
   int exception_class = (exception_info >> 26) & EC_MASK;
 
@@ -48,12 +48,25 @@ void handle_exception(int exception_info) {
       break;
     case SYSCALL_YIELD:
       break;
+    case SYSCALL_INIT:
+      uart_printf(CONSOLE, "init syscall\r\n");
+      // do not call yield and run first task.
+      return;
     default:
       break;
   }
+
+  uart_printf(CONSOLE, "before yield\r\n");
   
   // always yield to switch to higher priority task or roundrobin
   syscall_yield();
+
+  uart_printf(CONSOLE, "after yield\r\n");
+
+  if (task_get_current_task() == NULL) {
+    uart_printf(CONSOLE, "no more tasks to run...\r\n");
+    for (;;) {} // spin forever
+  }
 
   // run task
   kern_exit();

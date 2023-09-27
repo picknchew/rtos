@@ -1,8 +1,10 @@
 #pragma once
 
+#include <stdint.h>
+
 #include "task.h"
 
-void handle_exception(int exception);
+void handle_exception(uint64_t exception);
 
 int syscall_create(struct TaskDescriptor *parent, int priority, void (*code)());
 int syscall_my_tid(struct TaskDescriptor *task);

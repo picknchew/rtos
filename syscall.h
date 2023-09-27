@@ -6,7 +6,8 @@ enum SyscallType {
     SYSCALL_MY_TID,
     SYSCALL_MY_PARENT_TID,
     SYSCALL_YIELD,
-    SYSCALL_EXIT
+    SYSCALL_EXIT,
+    SYSCALL_INIT
 };
 
 /**
