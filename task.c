@@ -1,6 +1,7 @@
 #include "task.h"
 
 #include "task_queue.h"
+#include "test_tasks.h"
 #include "rpi.h"
 #include "syscall.h"
 #include "debug.h"
@@ -70,7 +71,7 @@ void tasks_init() {
   priority_task_queue_init(&ready_queue);
 
   // replace with init/idle task
-  current_task = task_create(NULL, 0, task1);
+  current_task = task_create(NULL, 1, test_task);
 }
 
 static struct TaskDescriptor *task_get_free_task() {
@@ -101,6 +102,9 @@ struct TaskDescriptor *task_create(struct TaskDescriptor *parent, int priority, 
   context->sp = (uint64_t) task->stack + STACK_SIZE;
   context->lr = (uint64_t) function;
   context->pstate = 0;
+
+  // TODO set LR to EXIT(); or something
+  // AND PC TO FUNCTION
 
   return task;
 }
