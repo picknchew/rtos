@@ -93,5 +93,5 @@ void task_schedule(struct TaskDescriptor *task) {
 
 void task_exit_current_task() {
   current_task->status = TASK_EXITED;
-  current_task = priority_task_queue_pop(&ready_queue);
+  current_task = NULL;
 }
