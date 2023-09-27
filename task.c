@@ -1,10 +1,9 @@
 #include "task.h"
 
 #include "task_queue.h"
-#include "test_tasks.h"
 #include "rpi.h"
 #include "syscall.h"
-#include "debug.h"
+#include "user/init_task.h"
 
 void task1();
 
@@ -13,52 +12,6 @@ struct TaskDescriptor *current_task = NULL;
 
 // tasks ready to run
 static struct PriorityTaskQueue ready_queue;
-
-void task2() {
-  for (int i = 0; i < 30; ++i) {
-    uart_printf(1, "task 2 counter: %d\r\n", i);
-    Yield();
-  }
-
-  Exit();
-}
-
-void task1() {
-  // debug_dump_registers();
-  // uart_puts(1, "task 1 running....\r\n");
-
-  // uart_puts(1, "after printing:\r\n");
-  // debug_dump_registers();
-  // debug_dump_context();
-  // // debug_dump_registers();
-  // // debug_dump_context();
-
-  // Exit();
-
-  // uart_puts(1, "after restoration\r\n");
-  // debug_dump_registers();
-  // debug_dump_context();
-  // uart_puts(1, "second time running\r\n");
-  // uart_puts(1, "after printing again\r\n");
-  // debug_dump_registers();
-  // debug_dump_context();
-  // // debug_dump_registers();
-  // Exit();
-  // uart_puts(1, "third time running\r\n");
-  // // debug_dump_registers();
-  // Exit();
-  // uart_puts(1, "fourth time running\r\n");
-  // // debug_dump_registers();
-
-  Create(0, task2);
-
-  for (int i = 0; i < 30; ++i) {
-    uart_printf(1, "task 1 counter: %d\r\n", i);
-    Yield();
-  }
-
-  Exit();
-}
 
 void tasks_init() {
   for (int i = 0; i < TASKS_MAX; ++i) {
@@ -70,8 +23,8 @@ void tasks_init() {
 
   priority_task_queue_init(&ready_queue);
 
-  // replace with init/idle task
-  current_task = task_create(NULL, 1, test_task);
+  // run initial task with lowest priority so that it never runs if there's another task is in the queue
+  current_task = task_create(NULL, 0, init_task);
 }
 
 static struct TaskDescriptor *task_get_free_task() {
@@ -88,6 +41,12 @@ static struct TaskDescriptor *task_get_free_task() {
 
 struct TaskDescriptor *task_create(struct TaskDescriptor *parent, int priority, void (*function)()) {
   struct TaskDescriptor *task = task_get_free_task();
+
+  if (task == NULL) {
+    // out of free tasks
+    return NULL;
+  }
+
   struct TaskContext *context = &task->context;
 
   task->parent = parent;
@@ -103,9 +62,6 @@ struct TaskDescriptor *task_create(struct TaskDescriptor *parent, int priority, 
   context->lr = (uint64_t) function;
   context->pstate = 0;
 
-  // TODO set LR to EXIT(); or something
-  // AND PC TO FUNCTION
-
   return task;
 }
 
@@ -119,10 +75,15 @@ struct TaskDescriptor *task_get_by_tid(int tid) {
 
 void task_yield_current_task() {
   if (current_task != NULL) {
+    current_task->status = TASK_READY;
     priority_task_queue_push(&ready_queue, current_task);
   }
 
   current_task = priority_task_queue_pop(&ready_queue);
+
+  if (current_task != NULL) {
+    current_task->status = TASK_ACTIVE;
+  }
 }
 
 void task_schedule(struct TaskDescriptor *task) {

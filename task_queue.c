@@ -25,7 +25,6 @@ static void task_queue_add(struct TaskQueue *task_queue, struct TaskDescriptor *
   }
 
   ++task_queue->size;
-  uart_printf(1, "added task %d, new size of queue: %d\r\n", task->tid, task_queue->size);
 }
 
 void priority_task_queue_init(struct PriorityTaskQueue *queue) {
@@ -73,25 +72,4 @@ struct TaskDescriptor *priority_task_queue_pop(struct PriorityTaskQueue *queue) 
 
 void priority_task_queue_push(struct PriorityTaskQueue *queue, struct TaskDescriptor *task) {
   task_queue_add(&queue->queues[task->priority], task);
-}
-
-struct TaskDescriptor *priority_task_queue_delete(struct PriorityTaskQueue *queue, struct TaskDescriptor *td) {
-  struct TaskQueue *task_queue = NULL;
-  for (int i = MAX_PRIORITY - 1; i >= 0; --i) {
-    if (queue->queues[i].size > 0) {
-      task_queue = &queue->queues[i];
-      struct TaskQueueNode* cur = task_queue->head;
-      struct TaskQueueNode* pre;
-      while(cur->val!=td&&cur!=NULL) {
-        pre = cur;
-        cur = cur->next;
-      }
-      if (cur==NULL) continue;
-      else {
-        pre->next  = cur->next;
-        cur->next = NULL;
-        return td;
-      } 
-    }
-  }return td;
 }

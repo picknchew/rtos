@@ -28,7 +28,7 @@ int kmain() {
   tasks_init();
   task_queues_init();
 
-  // call to start first task
+  // fake exception to start first task
   handle_exception(INIT_EXCEPTION_INFO);
 
   return 0;

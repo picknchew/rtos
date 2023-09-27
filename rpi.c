@@ -215,3 +215,16 @@ void uart_printf(size_t line, char* fmt, ...) {
   uart_format_print(line, fmt, va);
   va_end(va);
 }
+
+void printf(char *fmt, ...) {
+  va_list va;
+  
+  va_start(va, fmt);
+  // line 1 for console
+  uart_format_print(1, fmt, va);
+  va_end(va);
+}
+
+void puts(char *str) {
+  uart_puts(1, str);
+}

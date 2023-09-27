@@ -18,8 +18,6 @@ static const int CONSOLE = 1;
 extern void kern_exit();
 
 void handle_exception(uint64_t exception_info) {
-  uart_printf(CONSOLE, "handle_exception - start %d\r\n", exception_info);
-
   int exception_class = (exception_info >> 26) & EC_MASK;
 
   if (exception_class != EC_SVC) {
@@ -49,37 +47,38 @@ void handle_exception(uint64_t exception_info) {
     case SYSCALL_YIELD:
       break;
     case SYSCALL_INIT:
-      uart_printf(CONSOLE, "init syscall\r\n");
       // do not call yield and run first task.
       return;
     default:
       break;
   }
 
-  uart_printf(CONSOLE, "before yield\r\n");
-  
   // always yield to switch to higher priority task or roundrobin
   syscall_yield();
 
-  uart_printf(CONSOLE, "after yield\r\n");
-
   if (task_get_current_task() == NULL) {
-    uart_printf(CONSOLE, "no more tasks to run...\r\n");
+    // no more tasks to run
     for (;;) {} // spin forever
   }
 
   // run task
   kern_exit();
-
-  // uart_printf(CONSOLE, "syscall type: %d\r\n", exception_info);
-  // uart_puts(CONSOLE, "handle_exception - end\r\n");
-
 }
 
 // TODO: check result and return proper return code 
 
 int syscall_create(struct TaskDescriptor *parent, int priority, void (*code)()) {
+  if (priority <= 0 || priority >= MAX_PRIORITY) {
+    // invalid priority
+    return -1;
+  }
+  
   struct TaskDescriptor *td = task_create(parent, priority, code);
+  
+  if (td == NULL) {
+    return -2;
+  }
+
   task_schedule(td);
   return td->tid;
 }
@@ -89,6 +88,10 @@ int syscall_my_tid(struct TaskDescriptor *task) {
 }
 
 int syscall_my_parent_tid(struct TaskDescriptor *task) {
+  if (task->parent == NULL) {
+    return -1;
+  }
+
   return task->parent->tid;
 }
 

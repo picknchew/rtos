@@ -4,7 +4,7 @@
 #include <stdarg.h>
 #include "task.h"
 
-#define DEBUG 1
+#define DEBUG 0
 
 // NOTE: completely clobbers registers
 void debug_dump_registers() {
@@ -75,7 +75,7 @@ void debug_dump_registers() {
   "x30: %d\r\n", x0, x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11, x12, x13, x14, x15, x16, x17, x18, x19, x20, x21, x22, x23, x24, x25, x26, x27, x28, x29, x30);
 
   struct TaskDescriptor *current_task = task_get_current_task();
-  uart_printf(1, "x0: %d, x1: %d, x2: %d, x3: %d x4: %d x5: %d\r\n", current_task->context.registers[0], current_task->context.registers[1], current_task->context.registers[2], current_task->context.registers[3], current_task->context.registers[4], current_task->context.registers[5]);
+  printf("x0: %d, x1: %d, x2: %d, x3: %d x4: %d x5: %d\r\n", current_task->context.registers[0], current_task->context.registers[1], current_task->context.registers[2], current_task->context.registers[3], current_task->context.registers[4], current_task->context.registers[5]);
   #endif
 }
 
@@ -115,7 +115,7 @@ void debug_dump_context() {
   uint64_t x29 = context->registers[29];
   uint64_t x30 = context->registers[30];
 
-  uart_printf(1, "CURRENT CONTEXT:\r\n"
+  printf("CURRENT CONTEXT:\r\n"
   "x0: %d\r\n"
   "x1: %d\r\n"
   "x2: %d\r\n"
