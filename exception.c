@@ -48,7 +48,7 @@ void handle_exception(uint64_t exception_info) {
       break;
     case SYSCALL_INIT:
       // do not call yield and run first task.
-      return;
+      break;
     default:
       break;
   }
