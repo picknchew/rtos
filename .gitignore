@@ -2,3 +2,6 @@
 *.o
 *.elf
 *.img
+BENCHMARK
+BENCHMARK_SIZE
+BENCHMARK_TYPE

@@ -2,9 +2,15 @@
 
 // ascii digit to integer
 int a2d(char ch) {
-  if (ch >= '0' && ch <= '9') return ch - '0';
-  if (ch >= 'a' && ch <= 'f') return ch - 'a' + 10;
-  if (ch >= 'A' && ch <= 'F') return ch - 'A' + 10;
+  if (ch >= '0' && ch <= '9') {
+    return ch - '0';
+  }
+  if (ch >= 'a' && ch <= 'f') {
+    return ch - 'a' + 10;
+  }
+  if (ch >= 'A' && ch <= 'F') {
+    return ch - 'A' + 10;
+  }
   return -1;
 }
 
@@ -14,7 +20,9 @@ void ui2a(unsigned int num, unsigned int base, char* bf) {
   int dgt;
   unsigned int d = 1;
 
-  while ((num / d) >= base) d *= base;
+  while ((num / d) >= base) {
+    d *= base;
+  }
   while (d != 0) {
     dgt = num / d;
     num %= d;
@@ -38,14 +46,35 @@ void i2a(int num, char* bf) {
 
 // define our own memset to avoid SIMD instructions emitted from the compiler
 void* memset(void* s, int c, size_t n) {
-  for (char* it = (char*)s; n > 0; --n) *it++ = c;
+  for (char* it = (char*) s; n > 0; --n) {
+    *it++ = c;
+  }
   return s;
 }
 
 // define our own memcpy to avoid SIMD instructions emitted from the compiler
 void* memcpy(void* restrict dest, const void* restrict src, size_t n) {
-  char* sit = (char*)src;
-  char* cdest = (char*)dest;
-  for (size_t i = 0; i < n; ++i) *(cdest++) = *(sit++);
+  char* sit = (char*) src;
+  char* cdest = (char*) dest;
+  for (size_t i = 0; i < n; ++i) {
+    *(cdest++) = *(sit++);
+  }
   return dest;
+}
+
+int min(int a, int b) {
+  return (a < b) ? a : b;
+}
+
+int strcmp(char *str1, char *str2) {
+  while (*str1 && *str2) {
+    if (*str1 != *str2) {
+      return 0;
+    }
+
+    ++str1;
+    ++str2;
+  }
+
+  return !(*str1) && !(*str2);
 }

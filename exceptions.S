@@ -53,6 +53,7 @@
 
   // reset kernel stack
   ldr x1, =stackend
+  mov sp, x1
   mov x1, x0
 .endm
 

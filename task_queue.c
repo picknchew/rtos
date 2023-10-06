@@ -3,7 +3,7 @@
 // one TaskQueueNode for every task
 // indexed by tid
 // a task descriptor cannot be in two queues at the same time
-static struct TaskQueueNode task_queue_nodes[TASKS_MAX] = { {0} };
+static struct TaskQueueNode task_queue_nodes[TASKS_MAX];
 
 void task_queues_init() {
   for (int i = 0; i < TASKS_MAX; ++i) {
@@ -21,9 +21,9 @@ static void task_queue_add(struct TaskQueue *task_queue, struct TaskDescriptor *
     task_queue->tail->next = node;
   } else {
     task_queue->head = node;
-    task_queue->tail = node;
   }
 
+  task_queue->tail = node;
   ++task_queue->size;
 }
 
@@ -43,7 +43,7 @@ static struct TaskQueueNode *task_queue_pop(struct TaskQueue *task_queue) {
 
   task_queue->head = popped->next;
   --task_queue->size;
-  
+
   if (task_queue->size <= 1) {
     task_queue->tail = task_queue->head;
   }

@@ -1,0 +1,16 @@
+BasedOnStyle: Google
+ColumnLimit: 100
+BinPackArguments: false
+BinPackParameters: false
+ExperimentalAutoDetectBinPacking: false
+AlignAfterOpenBracket: AlwaysBreak
+AllowAllParametersOfDeclarationOnNextLine: false
+AllowShortFunctionsOnASingleLine: Empty
+AllowShortBlocksOnASingleLine: Empty
+BreakBeforeBraces: Custom
+BraceWrapping:
+  SplitEmptyFunction: false
+SpaceAfterCStyleCast: true
+PointerAlignment: Right
+InsertBraces: true
+SeparateDefinitionBlocks: Always
