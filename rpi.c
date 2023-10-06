@@ -5,17 +5,17 @@
 
 #include "util.h"
 
-static char* const MMIO_BASE = (char*)0xFE000000;
+static char* const MMIO_BASE = (char*) 0xFE000000;
 
 /*********** GPIO CONFIGURATION ********************************/
 
-static char* const GPIO_BASE = (char*)(MMIO_BASE + 0x200000);
+static char* const GPIO_BASE = (char*) (MMIO_BASE + 0x200000);
 static const uint32_t GPFSEL_OFFSETS[6] = {0x00, 0x04, 0x08, 0x0c, 0x10, 0x14};
 static const uint32_t GPIO_PUP_PDN_CNTRL_OFFSETS[4] = {0xe4, 0xe8, 0xec, 0xf0};
 
 // GPIO Function Select
-#define GPFSEL_REG(reg) (*(uint32_t*)(GPIO_BASE + GPFSEL_OFFSETS[reg]))
-#define GPIO_PUP_PDN_CNTRL_REG(reg) (*(uint32_t*)(GPIO_BASE + GPIO_PUP_PDN_CNTRL_OFFSETS[reg]))
+#define GPFSEL_REG(reg) (*(uint32_t*) (GPIO_BASE + GPFSEL_OFFSETS[reg]))
+#define GPIO_PUP_PDN_CNTRL_REG(reg) (*(uint32_t*) (GPIO_BASE + GPIO_PUP_PDN_CNTRL_OFFSETS[reg]))
 
 // function control settings for GPIO pins
 static const uint32_t GPIO_INPUT = 0x00;
@@ -55,8 +55,8 @@ static void setup_gpio(uint32_t pin, uint32_t setting, uint32_t resistor) {
 
 /*********** UART CONTROL ************************ ************/
 
-static char* const UART0_BASE = (char*)(MMIO_BASE + 0x201000);
-static char* const UART3_BASE = (char*)(MMIO_BASE + 0x201600);
+static char* const UART0_BASE = (char*) (MMIO_BASE + 0x201000);
+static char* const UART3_BASE = (char*) (MMIO_BASE + 0x201600);
 
 // line_uarts[] maps the each serial line on the RPi hat to the UART that drives it
 // currently:
@@ -73,7 +73,7 @@ static const uint32_t UART_FBRD = 0x28;
 static const uint32_t UART_LCRH = 0x2c;
 static const uint32_t UART_CR = 0x30;
 
-#define UART_REG(line, offset) (*(volatile uint32_t*)(line_uarts[line] + offset))
+#define UART_REG(line, offset) (*(volatile uint32_t*) (line_uarts[line] + offset))
 
 // masks for specific fields in the UART registers
 static const uint32_t UART_FR_RXFE = 0x10;
@@ -107,8 +107,7 @@ void uart_init() {
   setup_gpio(7, GPIO_ALTFN4, GPIO_NONE);
   setup_gpio(14, GPIO_ALTFN0, GPIO_NONE);
   setup_gpio(15, GPIO_ALTFN0, GPIO_NONE);
-} 
-
+}
 
 static const uint32_t UARTCLK = 48000000;
 
@@ -117,14 +116,15 @@ static const uint32_t UARTCLK = 48000000;
 void uart_config_and_enable(size_t line, uint32_t baudrate, bool two_stop_bits) {
   uint32_t cr_state;
   // to avoid floating point, this computes 64 times the required baud divisor
-  uint32_t baud_divisor = (uint32_t)((((uint64_t)UARTCLK) * 4) / baudrate);
+  uint32_t baud_divisor = (uint32_t) ((((uint64_t) UARTCLK) * 4) / baudrate);
 
   // line control registers should not be changed while the UART is enabled, so disable it
   cr_state = UART_REG(line, UART_CR);
   UART_REG(line, UART_CR) = cr_state & ~UART_CR_UARTEN;
 
   if (two_stop_bits) {
-    UART_REG(line, UART_LCRH) = UART_LCRH_WLEN_HIGH | UART_LCRH_WLEN_LOW | UART_LCRH_FEN | UART_LCRH_STP2;
+    UART_REG(line, UART_LCRH) =
+        UART_LCRH_WLEN_HIGH | UART_LCRH_WLEN_LOW | UART_LCRH_FEN | UART_LCRH_STP2;
   } else {
     // set the line control registers: 8 bit, no parity, 1 stop bit, FIFOs enabled
     UART_REG(line, UART_LCRH) = UART_LCRH_WLEN_HIGH | UART_LCRH_WLEN_LOW | UART_LCRH_FEN;
@@ -138,9 +138,7 @@ void uart_config_and_enable(size_t line, uint32_t baudrate, bool two_stop_bits) 
   UART_REG(line, UART_CR) = cr_state | UART_CR_UARTEN | UART_CR_TXE | UART_CR_RXE;
 }
 
-bool uart_hasc(size_t line) {
-  return !(UART_REG(line, UART_FR) & UART_FR_RXFE);
-}
+bool uart_hasc(size_t line) { return !(UART_REG(line, UART_FR) & UART_FR_RXFE); }
 
 unsigned char uart_getc(size_t line) {
   unsigned char ch;
@@ -216,15 +214,13 @@ void uart_printf(size_t line, char* fmt, ...) {
   va_end(va);
 }
 
-void printf(char *fmt, ...) {
+void printf(char* fmt, ...) {
   va_list va;
-  
+
   va_start(va, fmt);
   // line 1 for console
   uart_format_print(1, fmt, va);
   va_end(va);
 }
 
-void puts(char *str) {
-  uart_puts(1, str);
-}
+void puts(char* str) { uart_puts(1, str); }

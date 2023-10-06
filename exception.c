@@ -1,10 +1,10 @@
-
+#include "exception.h"
 
 #include "rpi.h"
 #include "syscall.h"
 #include "task.h"
 #include "task_queue.h"
-#include "exception.h"
+#include "util.h"
 
 static const int SYSCALL_TYPE_MASK = 0xFFFF;
 
@@ -22,6 +22,7 @@ void handle_exception(uint64_t exception_info) {
 
   if (exception_class != EC_SVC) {
     uart_printf(CONSOLE, "not svc exception! %d\r\n", exception_class);
+    for (;;) {}
   }
 
   struct TaskDescriptor *current_task = task_get_current_task();
@@ -33,9 +34,9 @@ void handle_exception(uint64_t exception_info) {
       break;
     case SYSCALL_CREATE:
       current_task->context.registers[0] = syscall_create(
-        current_task, 
-        (uint32_t) current_task->context.registers[0], // priority
-        (void (*)()) current_task->context.registers[1] // function
+          current_task,
+          (uint32_t) current_task->context.registers[0],   // priority
+          (void (*)()) current_task->context.registers[1]  // function
       );
       break;
     case SYSCALL_MY_TID:
@@ -49,16 +50,40 @@ void handle_exception(uint64_t exception_info) {
     case SYSCALL_INIT:
       // do not call yield and run first task.
       break;
+    case SYSCALL_SEND:
+      current_task->context.registers[0] = syscall_send(
+          current_task,
+          (int) current_task->context.registers[0],           // tid
+          (const char *) current_task->context.registers[1],  // msg
+          (int) current_task->context.registers[2],           // msglen
+          (char *) current_task->context.registers[3],        // reply
+          (int) current_task->context.registers[4]            // rplen
+      );
+      break;
+    case SYSCALL_RECEIVE:
+      current_task->context.registers[0] = syscall_receive(
+          current_task,
+          (int *) current_task->context.registers[0],
+          (char *) current_task->context.registers[1],
+          (int) current_task->context.registers[2]);
+      break;
+    case SYSCALL_REPLY:
+      current_task->context.registers[0] = syscall_reply(
+          current_task,
+          (int) current_task->context.registers[0],
+          (const char *) current_task->context.registers[1],
+          (int) current_task->context.registers[2]);
+      break;
     default:
       break;
   }
 
-  // always yield to switch to higher priority task or roundrobin
   syscall_yield();
 
   if (task_get_current_task() == NULL) {
     // no more tasks to run
-    for (;;) {} // spin forever
+    printf("no current task\r\n");
+    for (;;) {}  // spin forever
   }
 
   // run task
@@ -70,9 +95,9 @@ int syscall_create(struct TaskDescriptor *parent, int priority, void (*code)()) 
     // invalid priority
     return -1;
   }
-  
+
   struct TaskDescriptor *td = task_create(parent, priority, code);
-  
+
   if (td == NULL) {
     return -2;
   }
@@ -99,4 +124,145 @@ void syscall_yield() {
 
 void syscall_exit() {
   task_exit_current_task();
+}
+
+// send to tid; send info - msg; length of msg - msglen; reply buffer; reply max length
+int syscall_send(
+    struct TaskDescriptor *sender,
+    int tid,
+    const char *msg,
+    int msglen,
+    char *reply,
+    int rplen) {
+  struct TaskDescriptor *receiver = task_get_by_tid(tid);
+
+  // task is not running
+  if (receiver->status == TASK_EXITED) {
+    return -1;
+  }
+  // send-receive-reply transactions could not be completed: -2
+
+  sender->outgoing_msg.sender = sender;
+  sender->outgoing_msg.msg = msg;
+  sender->outgoing_msg.msglen = msglen;
+  sender->outgoing_msg.reply = reply;
+  sender->outgoing_msg.rplen = rplen;
+
+  sender->tempnode.val = &sender->outgoing_msg;
+  sender->tempnode.next = NULL;
+
+  /*
+   * Send/Receive Scenario 1: Send first
+   * On Ts doing Send(Tr,…), kernel finds that receiver task Tr is not in ReceiveWait state
+   * kernel blocks sender (Ready -> SendWait)
+   * kernel adds Ts to list of senders blocked waiting for Tr to receive
+   */
+  if (receiver->status != TASK_SEND_BLOCKED) {
+    // move from ready queue do not push
+    sender->status = TASK_RECEIVE_BLOCKED;
+
+    // put mailNode to receiver's wait_for_receive queue
+    mail_queue_add(&receiver->wait_for_receive, &sender->tempnode);
+  } else {
+    /*
+     * Send/Receive Scenario 2: Receive first - checked
+     * On Ts doing Send(Tr,…), kernel finds that Tr is in ReceiveWait state
+     * Ts blocks (Ready->ReplyWait)
+     * Add Ts to list of tasks waiting for reply from Tr
+     * Tr becomes unblocks (ReceiveWait -> Ready)
+     * kernel copies message from Ts to Tr
+     */
+
+    // move from ready queue do not push
+    sender->status = TASK_REPLY_BLOCKED;
+
+    mail_queue_add(&receiver->wait_for_reply, &sender->tempnode);
+
+    // msg copy and overflow detection
+    *(receiver->receive_buffer.tid) = sender->tid;
+    memcpy(
+        receiver->receive_buffer.msg,
+        sender->outgoing_msg.msg,
+        min(receiver->receive_buffer.msglen, sender->outgoing_msg.msglen));
+
+    // set status to READY and push to ready_queue
+    task_schedule(receiver);
+  }
+
+  return msglen;
+}
+
+// tid - who sent; msg - save to my buffer; msglen - max i can recv
+int syscall_receive(struct TaskDescriptor *receiver, int *tid, char *msg, int msglen) {
+  /*
+   * Send/Receive Scenario 2: Receive first - checked
+   * On Tr doing Receive(), kernel finds there are no waiting Sends for Tr
+   * Tr blocks (Ready -> ReceiveWait)
+   */
+  if (receiver->wait_for_receive.head == NULL) {
+    receiver->receive_buffer.tid = tid;
+    receiver->receive_buffer.msg = msg;
+    receiver->receive_buffer.msglen = msglen;
+    receiver->status = TASK_SEND_BLOCKED;
+
+    return -1;
+  } else {
+    /*
+     * Send/Receive Scenario 1: Send first
+     * On Tr doing Receive()
+     * kernel sees that Tr has waiting sender
+     * kernel moves Ts from SendWait to ReplyWait
+     * kernel copies message from Ts to Tr
+     * Tr remains Ready
+     */
+    struct MailQueueNode *mailNode = mail_queue_pop(&receiver->wait_for_receive);
+    struct Message *mail = mailNode->val;
+
+    mail_queue_add(&receiver->wait_for_reply, mailNode);
+
+    // if the sender is exited , svc error
+    struct TaskDescriptor *sender = mail->sender;
+    sender->status = TASK_REPLY_BLOCKED;
+    *tid = sender->tid;
+
+    // copy from mail->msg to msg, the length is the minimum
+    memcpy(msg, mail->msg, min(msglen, mail->msglen));
+
+    return mail->msglen;
+  }
+}
+
+/*
+ * When Tr eventuallly does Reply(Ts,…)
+ * kernel checks that Ts is in ReplyWait state and on list of tasks waiting for reply from Tr
+ * Tr remains ready
+ * Ts unblocks (ReplyWait -> Ready)
+ * kernel copies reply from Tr to Ts
+ */
+int syscall_reply(struct TaskDescriptor *receiver, int tid, const char *reply, int rplen) {
+  struct TaskDescriptor *sender = task_get_by_tid(tid);
+  if (sender->status == TASK_EXITED) {
+    return -1;
+  }
+
+  if (sender->status != TASK_REPLY_BLOCKED) {
+    return -2;
+  }
+
+  // find the mail to reply
+  struct MailQueueNode *mail_node = mail_queue_remove(&receiver->wait_for_reply, sender);
+
+  if (!mail_node) {
+    return -2;
+  }
+
+  struct Message *mail = mail_node->val;
+
+  // reply the mail
+  int length = min(mail->rplen, rplen);
+  memcpy(mail->reply, reply, length);
+
+  // set status to READY and push to ready_queue
+  task_schedule(sender);
+  return length;
 }

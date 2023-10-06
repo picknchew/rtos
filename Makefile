@@ -1,3 +1,4 @@
+SHELL := /bin/bash
 XDIR:=/u/cs452/public/xdev
 ARCH=cortex-a72
 TRIPLE=aarch64-none-elf
@@ -6,10 +7,15 @@ CC:=$(XBINDIR)/$(TRIPLE)-gcc
 OBJCOPY:=$(XBINDIR)/$(TRIPLE)-objcopy
 OBJDUMP:=$(XBINDIR)/$(TRIPLE)-objdump
 
+BENCHMARK_SIZE ?= 4
+BENCHMARK ?= 0
+BENCHMARK_TYPE ?= 0
+
 # COMPILE OPTIONS
 # -ffunction-sections causes each function to be in a separate section (linker script relies on this)
 WARNINGS=-Wall -Wextra -Wpedantic -Wno-unused-const-variable
-CFLAGS:=-g -pipe -static $(WARNINGS) -ffreestanding -nostartfiles\
+PREPROC_VARS=-DBENCHMARK=$(BENCHMARK) -DBENCHMARK_MSG_SIZE=$(BENCHMARK_SIZE) -DBENCHMARK_TYPE=${BENCHMARK_TYPE}
+CFLAGS:=-g -pipe -static $(WARNINGS) $(PREPROC_VARS) -ffreestanding -nostartfiles\
 	-mcpu=$(ARCH) -static-pie -mstrict-align -fno-builtin -mgeneral-regs-only -O0
 
 # -Wl,option tells g++ to pass 'option' to the linker with commas replaced by spaces
@@ -22,23 +28,38 @@ SOURCES := $(wildcard *.c) $(wildcard *.S) $(wildcard user/*.c)
 OBJECTS := $(patsubst %.c, %.o, $(patsubst %.S, %.o, $(SOURCES)))
 DEPENDS := $(patsubst %.c, %.d, $(patsubst %.S, %.d, $(SOURCES)))
 
-# The first rule is the default, ie. "make", "make all" and "make kernel8.img" mean the same
-all: a0.img
+define DEPENDABLE_VAR
+
+.PHONY: phony
+$1: phony
+	@if [[ `cat $1 2>&1` != '$($1)' ]]; then \
+		echo -n $($1) > $1 ; \
+	fi
+
+endef
+
+# The first rule is the default, ie. "make", "make all" and "make kernel.img" mean the same
+all: kernel.img
 
 clean:
-	rm -f $(OBJECTS) $(DEPENDS) a0.elf a0.img
+	rm -f $(OBJECTS) $(DEPENDS) kernel.elf kernel.img
 
-a0.img: a0.elf
+kernel.img: kernel.elf
 	$(OBJCOPY) $< -O binary $@
 
-a0.elf: $(OBJECTS) linker.ld
+kernel.elf: $(OBJECTS) linker.ld
 	$(CC) $(CFLAGS) $(filter-out %.ld, $^) -o $@ $(LDFLAGS)
-	@$(OBJDUMP) -d a0.elf | fgrep -q q0 && printf "\n***** WARNING: SIMD INSTRUCTIONS DETECTED! *****\n\n" || true
+	@$(OBJDUMP) -d kernel.elf | fgrep -q q0 && printf "\n***** WARNING: SIMD INSTRUCTIONS DETECTED! *****\n\n" || true
 
-%.o: %.c Makefile
+%.o: %.c Makefile BENCHMARK BENCHMARK_SIZE BENCHMARK_TYPE
 	$(CC) $(CFLAGS) -MMD -MP -c $< -o $@
 
 %.o: %.S Makefile
 	$(CC) $(CFLAGS) -MMD -MP -c $< -o $@
+
+# declare dependable vars
+$(eval $(call DEPENDABLE_VAR,BENCHMARK))
+$(eval $(call DEPENDABLE_VAR,BENCHMARK_TYPE))
+$(eval $(call DEPENDABLE_VAR,BENCHMARK_SIZE))
 
 -include $(DEPENDS)
