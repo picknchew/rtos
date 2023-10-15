@@ -34,6 +34,10 @@ extern void kern_exit();
 
 static struct EventBlockedTaskQueue event_blocked_queue;
 
+void irq_init() {
+  event_blocked_task_queue_init(&event_blocked_queue);
+}
+
 void irq_enable(enum InterruptSource irq_id) {
   // route interrupt to IRQ on CPU 0
   // 1 = 0b00000001

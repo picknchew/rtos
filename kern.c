@@ -29,6 +29,7 @@ int kmain() {
   uart_puts(CONSOLE, train);
   uart_puts(CONSOLE, "Booting...\r\n");
 
+  irq_init();
   timer_init();
 
   tasks_init();
