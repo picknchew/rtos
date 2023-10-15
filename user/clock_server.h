@@ -1,3 +1,33 @@
+enum ClockServerRequestType {
+    CLOCK_SERVER_TIME,
+    CLOCK_SERVER_DELAY,
+    CLOCK_SERVER_DELAY_UNTIL,
+    // clock notifier msg type, notify clock server on each tick
+    CLOCK_SERVER_NOTIFT
+};
+
+struct ClockServerRequest {
+    enum ClockServerRequestType req_type;
+    int ticks;
+};
+
+
+struct DelayQueueNode {
+  uint32_t tid;
+  int delay;
+  struct MailQueueNode *next;
+};
+
+// simple linked list
+struct DelayQueue {
+  struct DelayQueueNode *head;
+  struct DelayQueueNode *tail;
+};
+
+void ClockNotifier();
+void delay_queue_init();
+void clock_server_task();
+
 /**
  * Returns the number of ticks since the clock server was created and initialized. With a 10
  * millisecond tick and a 32-bit unsigned int for the time wraparound is almost 12,000 hours, plenty
