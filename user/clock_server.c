@@ -11,7 +11,7 @@ static void ClockNotifier() {
   struct ClockServerRequest msg;
   msg.req_type = CLOCK_SERVER_NOTIFY;
   // TODO: AwaitEvent
-  while ((n = AwaitEvent(CLOCK_INTERRUPT))) {
+  while ((n = AwaitEvent(1))) {
     Send(clock_server_tid, &msg, sizeof(msg), &n, sizeof(n));
   }
 }
