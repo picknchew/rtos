@@ -9,7 +9,7 @@ static struct DelayQueue *queue;
 static void ClockNotifier() {
   int n;
   struct ClockServerRequest msg;
-  msg.req_type = CLOCK_SERVER_NOTIFT;
+  msg.req_type = CLOCK_SERVER_NOTIFY;
   // TODO: AwaitEvent
   while ((n = AwaitEvent(CLOCK_INTERRUPT))) {
     Send(clock_server_tid, &msg, sizeof(msg), &n, sizeof(n));
@@ -42,7 +42,7 @@ void clock_server_task() {
         response = timer;
         Reply(tid, &response, sizeof(response));
         break;
-      case CLOCK_SERVER_NOTIFT:
+      case CLOCK_SERVER_NOTIFY:
         // update timer
         response = 0;
         Reply(tid, &response, sizeof(response));  //unblock notifier
