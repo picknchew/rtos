@@ -1,8 +1,7 @@
-#ifndef _timer_h_
-#define _timer_h_ 1
+#pragma once
 
 #include <stdint.h>
 
+void timer_init();
 uint64_t timer_get_time();
-
-#endif /* timer.h */
+void timer_schedule_irq_c1(uint32_t delay);

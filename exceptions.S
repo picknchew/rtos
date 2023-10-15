@@ -110,6 +110,12 @@ init_exception_vector_table:
   .balign 128
 .endm
 
+.macro irq_handler
+  kern_enter
+  b handle_irq // handle_irq calls kern_exit
+  .balign 128
+.endm
+
 .align 11 // Table is 2048 bytes in total
 exception_table:
   // Current EL with SP0
@@ -124,7 +130,7 @@ exception_table:
   exception_handler
 
   exception_handler
-  exception_handler
+  irq_handler
   exception_handler
   exception_handler
 

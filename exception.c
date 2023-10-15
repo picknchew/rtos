@@ -82,7 +82,7 @@ void handle_exception(uint64_t exception_info) {
 
   if (task_get_current_task() == NULL) {
     // no more tasks to run
-    printf("no current task\r\n");
+    printf("exception_handler: no current task\r\n");
     for (;;) {}  // spin forever
   }
 

@@ -1,8 +1,10 @@
 #include "exception.h"
+#include "irq.h"
 #include "rpi.h"
 #include "syscall.h"
 #include "task.h"
 #include "task_queue.h"
+#include "timer.h"
 #include "user/init_task.h"
 
 #define SVC(code) asm volatile("svc %0" : : "I"(code))
@@ -26,6 +28,8 @@ int kmain() {
   uart_init();
   uart_puts(CONSOLE, train);
   uart_puts(CONSOLE, "Booting...\r\n");
+
+  timer_init();
 
   tasks_init();
   task_queues_init();
