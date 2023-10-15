@@ -55,12 +55,6 @@ struct TaskDescriptor {
   struct Recvbuffer receive_buffer;
   struct MailQueueNode tempnode;
   struct Message outgoing_msg;
-
-  /**
-   * missing:
-   * a pointer to the TD of the next task in the task’s ready queue,
-   * a pointer to the TD of the next task on the task’s send queue,
-   */
 };
 
 void tasks_init();

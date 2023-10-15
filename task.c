@@ -83,7 +83,7 @@ struct TaskDescriptor *task_get_by_tid(int tid) {
 }
 
 void task_yield_current_task() {
-  // don't put threads that are blocked due to message passing into
+  // don't put threads that are blocked due to message passing or events into
   // task ready queue, the initial task has a status of ready.
   if (current_task != NULL && current_task->status == TASK_ACTIVE) {
     current_task->status = TASK_READY;
@@ -102,7 +102,7 @@ void task_schedule(struct TaskDescriptor *task) {
   priority_task_queue_push(&ready_queue, task);
 }
 
-void task_exit_current_task() {  
+void task_exit_current_task() {
   current_task->wait_for_receive.head = NULL;
   current_task->wait_for_receive.tail = NULL;
   current_task->wait_for_receive.size = 0;

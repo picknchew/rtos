@@ -1,5 +1,6 @@
 #include "exception.h"
 
+#include "irq.h"
 #include "rpi.h"
 #include "syscall.h"
 #include "task.h"
@@ -74,6 +75,9 @@ void handle_exception(uint64_t exception_info) {
           (const char *) current_task->context.registers[1],
           (int) current_task->context.registers[2]);
       break;
+    case SYSCALL_AWAIT_EVENT:
+      current_task->context.registers[0] =
+          syscall_await_event((int) current_task->context.registers[0]);
     default:
       break;
   }
@@ -220,15 +224,14 @@ int syscall_receive(struct TaskDescriptor *receiver, int *tid, char *msg, int ms
 
     mail_queue_add(&receiver->wait_for_reply, mailNode);
 
-    // if the sender is exited , svc error
     struct TaskDescriptor *sender = mail->sender;
     sender->status = TASK_REPLY_BLOCKED;
     *tid = sender->tid;
 
-    // copy from mail->msg to msg, the length is the minimum
-    memcpy(msg, mail->msg, min(msglen, mail->msglen));
+    int len = min(msglen, mail->msglen);
+    memcpy(msg, mail->msg, len);
 
-    return mail->msglen;
+    return len;
   }
 }
 
@@ -258,11 +261,21 @@ int syscall_reply(struct TaskDescriptor *receiver, int tid, const char *reply, i
 
   struct Message *mail = mail_node->val;
 
-  // reply the mail
+  // reply to the sender
   int length = min(mail->rplen, rplen);
   memcpy(mail->reply, reply, length);
 
-  // set status to READY and push to ready_queue
+  // set status to READY and push to ready queue
   task_schedule(sender);
   return length;
+}
+
+int syscall_await_event(int event_id) {
+  if (event_id < 0 || event_id > EVENT_MAX) {
+    return -1;
+  }
+
+  irq_await_event(event_id);
+  // this is replaced with the correct data when the task is unblocked by the interrupt
+  return 0;
 }

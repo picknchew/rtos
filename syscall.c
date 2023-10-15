@@ -83,21 +83,22 @@ void Exit() {
  * expected to check the return value and to act accordingly. There is no guarantee that Send() will
  * return. If, for example, the task to which the message is directed never calls Receive(), Send()
  * never returns and the sending task remains blocked forever. Send() has a passing resemblance, and
- * no more, to a remote procedure call. Return Value
+ * no more, to a remote procedure call.
+ *
+ * Return Value
  * >=0	the size of the message returned by the replying task. The actual reply is less than or
- * equal to the size of the reply buffer provided for it. Longer replies are truncated. -1	tid
- * is not the task id of an existing task. -2	send-receive-reply transaction could not be
- * completed.
+ * equal to the size of the reply buffer provided for it. Longer replies are truncated.
+ * -1	tid is not the task id of an existing task.
+ * -2	send-receive-reply transaction could not be completed.
  */
 int Send(int tid, const char *msg, int msglen, char *reply, int rplen) {
-  register int message_size asm("x0");
+  register int reply_len asm("x0");
 
   asm volatile("svc %1"
-               : "=r"(message_size)
+               : "=r"(reply_len)
                : "i"(SYSCALL_SEND), "r"(tid), "r"(msg), "r"(msglen), "r"(reply), "r"(rplen));
 
-  // not sure whether *msg or *reply
-  return message_size;
+  return reply_len;
 }
 
 /*
@@ -106,37 +107,51 @@ int Send(int tid, const char *msg, int msglen, char *reply, int rplen) {
  * the task that sent the message. The argument msg must point to a buffer at least as large as
  * msglen. The kernel will not overflow the message buffer. If the size of the incoming message set
  * exceeds msglen, the message is truncated and the buffer contains the first msglen characters of
- * the message sent. The caller is expected to check the return value and to act accordingly. Return
- * Value
+ * the message sent. The caller is expected to check the return value and to act accordingly.
+ *
+ * Return Value
  * >=0	the size of the message sent by the sender (stored in tid). The actual message is less than
  * or equal to the size of the message buffer supplied. Longer messages are truncated.
  */
 int Receive(int *tid, char *msg, int msglen) {
-  register int message_size asm("x0");
+  register int msg_len asm("x0");
 
-  asm volatile("svc %1"
-               : "=r"(message_size)
-               : "i"(SYSCALL_RECEIVE), "r"(tid), "r"(msg), "r"(msglen));
+  asm volatile("svc %1" : "=r"(msg_len) : "i"(SYSCALL_RECEIVE), "r"(tid), "r"(msg), "r"(msglen));
 
-  // not sure whether *tid or *msg
-  return message_size;
+  return msg_len;
 }
 
 /*
  * sends a reply to a task that previously sent a message. When it returns without error, the reply
  * has been copied into the sender’s memory. The calling task and the sender return at the same
- * logical time, so whichever is of higher priority runs first. Return Value
+ * logical time, so whichever is of higher priority runs first.
+ *
+ * Return Value
  * >=0	the size of the reply message transmitted to the original sender task. If this is less than
- * the size of the reply message, the message has been truncated. -1	tid is not the task id of an
- * existing task. -2	tid is not the task id of a reply-blocked task.
+ * the size of the reply message, the message has been truncated.
+ * -1	tid is not the task id of an existing task.
+ * -2	tid is not the task id of a reply-blocked task.
  */
 int Reply(int tid, const char *reply, int rplen) {
-  register int message_size asm("x0");
+  register int reply_len asm("x0");
 
-  asm volatile("svc %1"
-               : "=r"(message_size)
-               : "i"(SYSCALL_REPLY), "r"(tid), "r"(reply), "r"(rplen));
+  asm volatile("svc %1" : "=r"(reply_len) : "i"(SYSCALL_REPLY), "r"(tid), "r"(reply), "r"(rplen));
 
-  // not sure whether *tid or *msg
-  return message_size;
+  return reply_len;
+}
+
+/**
+ * blocks until the event identified by eventid occurs then returns with event-specific data, if
+ * any.
+ *
+ * Return Value
+ * >=0	event-specific data, in the form of a positive integer.
+ * -1	invalid event.
+ */
+int AwaitEvent(int eventid) {
+  register int event_data asm("x0");
+
+  asm volatile("svc %1" : "=r"(event_data) : "i"(SYSCALL_AWAIT_EVENT), "r"(eventid));
+
+  return event_data;
 }

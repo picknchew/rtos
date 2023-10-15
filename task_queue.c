@@ -12,7 +12,13 @@ void task_queues_init() {
   }
 }
 
-static void task_queue_add(struct TaskQueue *task_queue, struct TaskDescriptor *task) {
+void task_queue_init(struct TaskQueue *task_queue) {
+  task_queue->head = NULL;
+  task_queue->tail = NULL;
+  task_queue->size = 0;
+}
+
+void task_queue_add(struct TaskQueue *task_queue, struct TaskDescriptor *task) {
   struct TaskQueueNode *node = &task_queue_nodes[task->tid];
 
   node->next = NULL;
@@ -27,18 +33,7 @@ static void task_queue_add(struct TaskQueue *task_queue, struct TaskDescriptor *
   ++task_queue->size;
 }
 
-void priority_task_queue_init(struct PriorityTaskQueue *queue) {
-  // init queues
-  for (int i = 0; i < MAX_PRIORITY; ++i) {
-    struct TaskQueue *task_queue = &queue->queues[i];
-
-    task_queue->head = NULL;
-    task_queue->tail = NULL;
-    task_queue->size = 0;
-  }
-}
-
-static struct TaskQueueNode *task_queue_pop(struct TaskQueue *task_queue) {
+struct TaskQueueNode *task_queue_pop(struct TaskQueue *task_queue) {
   struct TaskQueueNode *popped = task_queue->head;
 
   task_queue->head = popped->next;
@@ -49,6 +44,18 @@ static struct TaskQueueNode *task_queue_pop(struct TaskQueue *task_queue) {
   }
 
   return popped;
+}
+
+int task_queue_size(struct TaskQueue *task_queue) {
+  return task_queue->size;
+}
+
+void priority_task_queue_init(struct PriorityTaskQueue *queue) {
+  // init queues
+  for (int i = 0; i < MAX_PRIORITY; ++i) {
+    struct TaskQueue *task_queue = &queue->queues[i];
+    task_queue_init(task_queue);
+  }
 }
 
 struct TaskDescriptor *priority_task_queue_pop(struct PriorityTaskQueue *queue) {
