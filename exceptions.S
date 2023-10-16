@@ -127,21 +127,21 @@ init_exception_vector_table:
 exception_table:
   // Current EL with SP0
   invalid_exception_handler
-  irq_handler
   invalid_exception_handler
-  irq_handler
+  invalid_exception_handler
+  invalid_exception_handler
 
   invalid_exception_handler
-  irq_handler
   invalid_exception_handler
-  irq_handler
+  invalid_exception_handler
+  invalid_exception_handler
 
   exception_handler
   irq_handler
   invalid_exception_handler
-  irq_handler
+  invalid_exception_handler
 
   invalid_exception_handler
-  irq_handler
   invalid_exception_handler
-  irq_handler
+  invalid_exception_handler
+  invalid_exception_handler
