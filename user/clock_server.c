@@ -1,13 +1,15 @@
 #include "clock_server.h"
+#include "name_server.h"
 
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <stdio.h>
 
 #include "../syscall.h"
 
 static int clock_server_tid = -1;
-static struct DelayQueue *queue;
+static struct DelayQueue queue;
 
 void clock_notifier_task() {
   int n;
@@ -15,13 +17,13 @@ void clock_notifier_task() {
   msg.req_type = CLOCK_SERVER_NOTIFY;
   // TODO: AwaitEvent
   while ((n = AwaitEvent(1))) {
-    Send(clock_server_tid, &msg, sizeof(msg), &n, sizeof(n));
+    Send(clock_server_tid, (const char *)&msg, sizeof(msg), (char *)&n, sizeof(n));
   }
 }
 
 void delay_queue_init() {
-  queue->head = NULL;
-  queue->tail = NULL;
+  queue.head = NULL;
+  queue.tail = NULL;
 }
 
 void clock_server_task() {
@@ -43,28 +45,28 @@ void clock_server_task() {
     switch (req.req_type) {
       case CLOCK_SERVER_TIME:
         response = timer;
-        Reply(tid, &response, sizeof(response));
+        Reply(tid, (const char*)&response, sizeof(response));
         break;
       case CLOCK_SERVER_NOTIFY:
         // update timer
         response = 0;
-        Reply(tid, &response, sizeof(response));  // unblock notifier
+        Reply(tid, (const char*)&response, sizeof(response));  // unblock notifier
         timer++;
         // check delay queue
-        struct DelayQueueNode *temp = queue->head;
+        struct DelayQueueNode *temp = queue.head;
         struct DelayQueueNode *last = NULL;
         while (temp != NULL && temp->delay <= timer) {
-          Reply(temp->tid, &timer, sizeof(timer));
+          Reply(temp->tid, (const char*)&timer, sizeof(timer));
           last = temp;
           temp = temp->next;
         }
         if (last != NULL && temp != NULL) {
           // pop all the node before
           last->next = NULL;
-          queue->head = temp;
+          queue.head = temp;
         } else if (last != NULL && temp == NULL) {
-          queue->head = NULL;
-          queue->tail = NULL;
+          queue.head = NULL;
+          queue.tail = NULL;
         }
         break;
       case CLOCK_SERVER_DELAY:
@@ -72,33 +74,33 @@ void clock_server_task() {
         req.ticks += timer;
       case CLOCK_SERVER_DELAY_UNTIL:
         if (req.ticks <= timer) {
-          Reply(tid, &timer, sizeof(timer));
+          Reply(tid, (const char*)&timer, sizeof(timer));
         } else {
-          struct DelayQueueNode *node;
-          node->tid = tid;
-          node->delay = req.ticks;
-          if (queue->head == NULL) {
-            queue->head = node;
-            queue->tail = node;
-            node->next = NULL;
+          struct DelayQueueNode node;
+          node.tid = tid;
+          node.delay = req.ticks;
+          if (queue.head == NULL) {
+            queue.head = &node;
+            queue.tail = &node;
+            node.next = NULL;
           } else {
             // insert the node to delay queue by delay until time
-            struct DelayQueueNode *temp = queue->head;
+            struct DelayQueueNode *temp = queue.head;
             struct DelayQueueNode *last = NULL;
-            while ((temp != NULL) && (temp->delay <= node->delay)) {
+            while ((temp != NULL) && (temp->delay <= node.delay)) {
               last = temp;
               temp = temp->next;
             }
             if (last == NULL) {
-              node->next = queue->head;
-              queue->head = node;
+              node.next = queue.head;
+              queue.head = &node;
             } else if (temp == NULL) {
-              last->next = node;
-              queue->tail = node;
-              node->next = NULL;
+              last->next = &node;
+              queue.tail = &node;
+              node.next = NULL;
             } else {
-              node->next = temp;
-              last->next = node;
+              node.next = temp;
+              last->next = &node;
             }
           }
         }

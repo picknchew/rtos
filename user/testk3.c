@@ -13,9 +13,10 @@ void first_task() {
   int delay_interval[4] = {10, 23, 33, 71};
   int num_of_delays[4] = {20, 9, 6, 3};
 
+  Create(10, name_server_task);
   Create(10, clock_server_task);
 
-  for (int i = 1; i <= 4; i++) {
+  for (int i = 0; i < 4; i++) {
     Create(priority[i], clock_client);
   }
 
@@ -28,6 +29,7 @@ void first_task() {
     req[i].num_of_delays = num_of_delays[i];
     Reply(tid[i], (const char *) &req[i], sizeof(req[i]));
   }
+  // Exit();
 }
 
 void clock_client() {
@@ -46,4 +48,5 @@ void clock_client() {
     printf("num_of_delay: %d\tdelay_interval: %d\n", i, delay_interval);
     Delay(clock_server, delay_interval);
   }
+  Exit();
 }

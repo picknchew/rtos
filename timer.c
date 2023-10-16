@@ -1,6 +1,7 @@
 #include "timer.h"
 
 #include <stdint.h>
+#include <stdio.h>
 
 #include "irq.h"
 
@@ -21,7 +22,7 @@ void timer_init() {
 void timer_schedule_irq_c1(uint32_t delay) {
   *TIMER_C1 = *TIMER_CLO + delay;
   printf("timer schedule: %u\r\n", *TIMER_C1);
-  printf("timer time: %u\r\n", timer_get_time());
+  printf("timer time: %lu\r\n", timer_get_time());
 }
 
 uint64_t timer_get_time() {
