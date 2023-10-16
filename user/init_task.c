@@ -14,7 +14,7 @@ void init_task() {
 #else
   // Create(10, name_server_task);
   // Create(2, rps_test_task);
-  Create(7, first_task);
+  // Create(7, first_task);
 #endif
   for (;;) {
     printf("time: %d\r\n", timer_get_time());
