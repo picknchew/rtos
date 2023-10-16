@@ -6,6 +6,7 @@
 #include "name_server.h"
 #include "rps_test_task.h"
 #include "test_tasks.h"
+#include "testk3.h"
 
 void init_task() {
 #if BENCHMARK
@@ -13,6 +14,7 @@ void init_task() {
 #else
   // Create(10, name_server_task);
   // Create(2, rps_test_task);
+  Create(7, first_task);
 #endif
   for (;;) {
     printf("time: %d\r\n", timer_get_time());
