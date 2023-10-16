@@ -70,8 +70,8 @@ static enum Event get_event(enum InterruptSource irq_id) {
 
 void handle_irq() {
   printf("handle interrupt!\r\n");
-  uint32_t irq_info = *GICC_IAR;
-  uint32_t irq_id = irq_info & GICC_IAR_IRQ_ID_MASK;
+  uint32_t iar = *GICC_IAR;
+  uint32_t irq_id = iar & GICC_IAR_IRQ_ID_MASK;
   int retval = 0;
 
   printf("GICC_IAR: %d\r\n", *GICC_IAR);
@@ -102,13 +102,13 @@ void handle_irq() {
 
   task_yield_current_task();
 
-  *GICC_EOIR |= irq_info & GICC_IAR_ACK_MASK;
-
   if (task_get_current_task() == NULL) {
     // no more tasks to run
     printf("irq_handler: no current task\r\n");
     for (;;) {}  // spin forever
   }
+
+  *GICC_EOIR = iar;
 
   // run task
   kern_exit();
