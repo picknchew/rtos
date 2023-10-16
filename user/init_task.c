@@ -17,9 +17,7 @@ void init_task() {
 #else
   // Create(10, name_server_task);
   // Create(2, rps_test_task);
-  Create(7, first_task);
+  // Create(7, first_task);
 #endif
-  for (;;) {
-    printf("time: %ld\r\n", timer_get_time());
-  }  // spin forever when no other tasks are running
+  for (;;) {}  // spin forever when no other tasks are running
 }

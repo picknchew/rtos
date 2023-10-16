@@ -80,14 +80,13 @@ static enum Event get_event(enum InterruptSource irq_id) {
 }
 
 void handle_irq() {
-  printf("handle interrupt!\r\n");
   uint32_t iar = *GICC_IAR;
   uint32_t irq_id = iar & GICC_IAR_IRQ_ID_MASK;
   int retval = 0;
 
   switch (irq_id) {
     case IRQ_TIMER_C1:
-      timer_schedule_irq_c1(200000);
+      timer_tick();
       retval = timer_get_time();
       break;
     case IRQ_SPURIOUS:
