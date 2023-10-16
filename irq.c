@@ -24,8 +24,9 @@
 #define GICD_ITARGETSR_BASE (GICD_BASE + 0x800)
 #define GICD_ITARGETSR(n) (*(volatile uint32_t *) (GICD_ITARGETSR_BASE + (4 * n)))
 
-static const volatile uint32_t *GICC_IAR = (uint32_t *) (GICD_BASE + 0x000C);
+static const volatile uint32_t *GICC_IAR = (uint32_t *) (GICC_BASE + 0x000C);
 static const uint32_t GICC_IAR_IRQ_ID_MASK = 0x1FF;
+static const uint32_t GICC_IAR_ACK_MASK = 0xFFF;
 
 static volatile uint32_t *GICC_EOIR = (uint32_t *) (GICC_BASE + 0x0010);
 
@@ -69,19 +70,22 @@ static enum Event get_event(enum InterruptSource irq_id) {
 
 void handle_irq() {
   printf("handle interrupt!\r\n");
-  uint32_t irq_id = *GICC_IAR & GICC_IAR_IRQ_ID_MASK;
+  uint32_t irq_info = *GICC_IAR;
+  uint32_t irq_id = irq_info & GICC_IAR_IRQ_ID_MASK;
   int retval = 0;
+
+  printf("GICC_IAR: %d\r\n", *GICC_IAR);
 
   printf("interrupt %d\r\n", irq_id);
 
   switch (irq_id) {
     case IRQ_TIMER_C1:
       printf("timer tick\r\n");
-      timer_schedule_irq_c1(1e6);
+      timer_schedule_irq_c1(200000);
       retval = timer_get_time();
       break;
     default:
-      printf("irq_handler: unknown irq_id!");
+      printf("irq_handler: unknown irq_id!\r\n");
   }
 
   enum Event event = get_event(irq_id);
@@ -98,7 +102,7 @@ void handle_irq() {
 
   task_yield_current_task();
 
-  *GICC_EOIR = irq_id;
+  *GICC_EOIR |= irq_info & GICC_IAR_ACK_MASK;
 
   if (task_get_current_task() == NULL) {
     // no more tasks to run
