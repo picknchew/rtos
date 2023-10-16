@@ -1,21 +1,22 @@
+#include <stdint.h>
+
 enum ClockServerRequestType {
-    CLOCK_SERVER_TIME,
-    CLOCK_SERVER_DELAY,
-    CLOCK_SERVER_DELAY_UNTIL,
-    // clock notifier msg type, notify clock server on each tick
-    CLOCK_SERVER_NOTIFY
+  CLOCK_SERVER_TIME,
+  CLOCK_SERVER_DELAY,
+  CLOCK_SERVER_DELAY_UNTIL,
+  // clock notifier msg type, notify clock server on each tick
+  CLOCK_SERVER_NOTIFY
 };
 
 struct ClockServerRequest {
-    enum ClockServerRequestType req_type;
-    int ticks;
+  enum ClockServerRequestType req_type;
+  int ticks;
 };
-
 
 struct DelayQueueNode {
   uint32_t tid;
   int delay;
-  struct MailQueueNode *next;
+  struct DelayQueueNode *next;
 };
 
 // simple linked list
@@ -24,7 +25,7 @@ struct DelayQueue {
   struct DelayQueueNode *tail;
 };
 
-void ClockNotifier();
+void clock_notifier_task();
 void delay_queue_init();
 void clock_server_task();
 

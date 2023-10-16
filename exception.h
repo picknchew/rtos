@@ -5,6 +5,7 @@
 #include "task.h"
 
 void handle_exception(uint64_t exception);
+void handle_invalid_exception();
 
 // tasks
 int syscall_create(struct TaskDescriptor *parent, int priority, void (*code)());

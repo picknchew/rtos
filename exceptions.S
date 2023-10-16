@@ -54,7 +54,6 @@
   // reset kernel stack
   ldr x1, =stackend
   mov sp, x1
-  mov x1, x0
 .endm
 
 // restore registers and return to user mode (EL0)
@@ -104,37 +103,45 @@ init_exception_vector_table:
   ret
 
 .macro exception_handler
+  .balign 0x80
   kern_enter
   mrs x0, ESR_EL1 // ESR_EL1 as argument to handler
   b handle_exception // handle_exception calls kern_exit
-  .balign 128
 .endm
 
 .macro irq_handler
+  .balign 0x80
   kern_enter
   b handle_irq // handle_irq calls kern_exit
-  .balign 128
 .endm
 
-.align 11 // Table is 2048 bytes in total
+.macro invalid_exception_handler
+  .balign 0x80
+  b handle_invalid_exception
+.endm
+
+.global probe
+.global probe_end
+
+.balign 0x800 // Table is 2048 bytes in total
 exception_table:
   // Current EL with SP0
-  exception_handler
-  exception_handler
-  exception_handler
-  exception_handler
+  invalid_exception_handler
+  irq_handler
+  invalid_exception_handler
+  irq_handler
 
-  exception_handler
-  exception_handler
-  exception_handler
-  exception_handler
+  invalid_exception_handler
+  irq_handler
+  invalid_exception_handler
+  irq_handler
 
   exception_handler
   irq_handler
-  exception_handler
-  exception_handler
+  invalid_exception_handler
+  irq_handler
 
-  exception_handler
-  exception_handler
-  exception_handler
-  exception_handler
+  invalid_exception_handler
+  irq_handler
+  invalid_exception_handler
+  irq_handler

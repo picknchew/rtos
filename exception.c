@@ -18,11 +18,16 @@ static const int CONSOLE = 1;
 // return back to user mode
 extern void kern_exit();
 
+void handle_invalid_exception() {
+  printf("handle_invalid_exception: invalid exception!\r\n");
+  for (;;) {}
+}
+
 void handle_exception(uint64_t exception_info) {
   int exception_class = (exception_info >> 26) & EC_MASK;
 
   if (exception_class != EC_SVC) {
-    uart_printf(CONSOLE, "not svc exception! %d\r\n", exception_class);
+    uart_printf(CONSOLE, "handle_exception: not svc exception! %d\r\n", exception_class);
     for (;;) {}
   }
 
