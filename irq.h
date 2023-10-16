@@ -6,7 +6,8 @@
 #define EVENT_MAX 2
 
 enum Event { EVENT_UNKNOWN = 0, EVENT_TIMER };
-enum InterruptSource { IRQ_TIMER_C1 = 97, IRQ_TIMER_C3 = 99 };
+
+enum InterruptSource { IRQ_TIMER_C1 = 97, IRQ_TIMER_C3 = 99, IRQ_SPURIOUS = 1023 };
 
 void irq_init();
 void irq_enable(enum InterruptSource irq_id);

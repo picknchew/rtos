@@ -24,11 +24,19 @@
 #define GICD_ITARGETSR_BASE (GICD_BASE + 0x800)
 #define GICD_ITARGETSR(n) (*(volatile uint32_t *) (GICD_ITARGETSR_BASE + (4 * n)))
 
-static const volatile uint32_t *GICC_IAR = (uint32_t *) (GICC_BASE + 0x000C);
-static const uint32_t GICC_IAR_IRQ_ID_MASK = 0x1FF;
+#define GICD_ICPENDR_N(irq_id) (irq_id / 32)
+#define GICD_ICPENDR_BASE (GICD_BASE + 0x280)
+#define GICD_ICPENDR(n) (*(volatile uint32_t *) (GICD_ICPENDR_BASE + (4 * n)))
+
+#define GICD_ISPENDR_N(irq_id) (irq_id / 32)
+#define GICD_ISPENDR_BASE (GICD_BASE + 0x200)
+#define GICD_ISPENDR(n) (*(volatile uint32_t *) (GICD_ISPENDR_BASE + (4 * n)))
+
+static const volatile uint32_t *GICC_IAR = (uint32_t *) (GICC_BASE + 0xC);
+static const uint32_t GICC_IAR_IRQ_ID_MASK = 0x3FF;
 static const uint32_t GICC_IAR_ACK_MASK = 0xFFF;
 
-static volatile uint32_t *GICC_EOIR = (uint32_t *) (GICC_BASE + 0x0010);
+static volatile uint32_t *GICC_EOIR = (uint32_t *) (GICC_BASE + 0x10);
 
 // return back to user mode
 extern void kern_exit();
@@ -40,6 +48,9 @@ void irq_init() {
 }
 
 void irq_enable(enum InterruptSource irq_id) {
+  // configure to be edge-triggered
+  
+
   // route interrupt to IRQ on CPU 0
   // 1 = 0b00000001
   // each byte of register represents configures different irq_id
@@ -74,30 +85,31 @@ void handle_irq() {
   uint32_t irq_id = iar & GICC_IAR_IRQ_ID_MASK;
   int retval = 0;
 
-  printf("GICC_IAR: %d\r\n", *GICC_IAR);
-
-  printf("interrupt %d\r\n", irq_id);
-
   switch (irq_id) {
     case IRQ_TIMER_C1:
-      printf("timer tick\r\n");
       timer_schedule_irq_c1(200000);
       retval = timer_get_time();
+      break;
+    case IRQ_SPURIOUS:
       break;
     default:
       printf("irq_handler: unknown irq_id!\r\n");
   }
 
-  enum Event event = get_event(irq_id);
-  // unblock tasks waiting for this event
-  while (event_blocked_task_queue_size(&event_blocked_queue, event) > 0) {
-    struct TaskDescriptor *task = event_blocked_task_queue_pop(&event_blocked_queue, event);
+  if (irq_id != IRQ_SPURIOUS) {
+    enum Event event = get_event(irq_id);
+    // unblock tasks waiting for this event
+    while (event_blocked_task_queue_size(&event_blocked_queue, event) > 0) {
+      struct TaskDescriptor *task = event_blocked_task_queue_pop(&event_blocked_queue, event);
 
-    // set return value for AwaitEvent syscall
-    task->context.registers[0] = retval;
+      // set return value for AwaitEvent syscall
+      task->context.registers[0] = retval;
 
-    // unblock task
-    task_schedule(task);
+      // unblock task
+      task_schedule(task);
+    }
+
+    *GICC_EOIR = iar;
   }
 
   task_yield_current_task();
@@ -107,8 +119,6 @@ void handle_irq() {
     printf("irq_handler: no current task\r\n");
     for (;;) {}  // spin forever
   }
-
-  *GICC_EOIR = iar;
 
   // run task
   kern_exit();
