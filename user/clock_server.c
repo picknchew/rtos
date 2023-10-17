@@ -7,17 +7,32 @@
 #include <stdio.h>
 
 #include "../syscall.h"
+#include "../irq.h"
+#include "../task.h"
 
 static int clock_server_tid = -1;
 static struct DelayQueue queue;
+
+static struct DelayQueueNode delay_queue_nodes[TASKS_MAX];
+void delay_queues_init() {
+  for (int i = 0; i < TASKS_MAX; ++i) {
+    delay_queue_nodes[i].tid = i;
+    delay_queue_nodes[i].delay = 0;
+    delay_queue_nodes[i].next = NULL;
+  }
+}
+
 
 void clock_notifier_task() {
   int n;
   struct ClockServerRequest msg;
   msg.req_type = CLOCK_SERVER_NOTIFY;
   // TODO: AwaitEvent
-  while ((n = AwaitEvent(1))) {
+  printf("clock_notifier_before_while");
+  while ((n = AwaitEvent(EVENT_TIMER))) {
+    printf("notifier");
     Send(clock_server_tid, (const char *)&msg, sizeof(msg), (char *)&n, sizeof(n));
+    printf("notifier finished");
   }
 }
 
@@ -31,7 +46,7 @@ void clock_server_task() {
   int tid;
   struct ClockServerRequest req;
   int response;
-
+  delay_queues_init();
   clock_server_tid = MyTid();
   Create(63, clock_notifier_task);
   RegisterAs("clock_server");
@@ -41,7 +56,9 @@ void clock_server_task() {
 
   int timer = 0;
   while (true) {
+    printf("clockserver is waiting to receive\r\n"); // printed
     Receive(&tid, (char *) &req, sizeof(req));
+    printf("clockserver received notifier"); //printed
     switch (req.req_type) {
       case CLOCK_SERVER_TIME:
         response = timer;
@@ -49,6 +66,7 @@ void clock_server_task() {
         break;
       case CLOCK_SERVER_NOTIFY:
         // update timer
+        printf("1\r\n");
         response = 0;
         Reply(tid, (const char*)&response, sizeof(response));  // unblock notifier
         timer++;
@@ -68,6 +86,7 @@ void clock_server_task() {
           queue.head = NULL;
           queue.tail = NULL;
         }
+        printf("2\r\n");
         break;
       case CLOCK_SERVER_DELAY:
         // turn delay to delay until
@@ -76,8 +95,7 @@ void clock_server_task() {
         if (req.ticks <= timer) {
           Reply(tid, (const char*)&timer, sizeof(timer));
         } else {
-          struct DelayQueueNode node;
-          node.tid = tid;
+          struct DelayQueueNode node = delay_queue_nodes[tid];
           node.delay = req.ticks;
           if (queue.head == NULL) {
             queue.head = &node;
