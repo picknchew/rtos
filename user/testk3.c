@@ -2,54 +2,60 @@
 
 #include "../rpi.h"
 #include "../syscall.h"
+#include "../timer.h"
 #include "clock_server.h"
 #include "name_server.h"
 
-void first_task() {
-  int clock_server = WhoIs("clock_server");
+void test_client();
 
-  printf("before delay\r\n");
-  Delay(clock_server, 1000);
-  printf("after delay\r\n");
-  // int tid[4];
-  // struct parameter_req req[4];
-  // char dump[6];
-  // int priority[4] = {6, 5, 4, 3};  // 3,4,5,6 smaller is higher
-  // int delay_interval[4] = {10, 23, 33, 71};
-  // int num_of_delays[4] = {20, 9, 6, 3};
+struct TestResponse {
+  int delay;
+  int num_delays;
+};
 
-  // for (int i = 0; i < 4; i++) {
-  //   Create(priority[i], clock_client);
-  // }
+void test_clock_server_task() {
+  int priority[4] = {3, 4, 5, 6};
+  int delays[4] = {10, 23, 33, 71};
+  int num_delays[4] = {20, 9, 6, 3};
 
-  // for (int i = 0; i < 4; i++) {
-  //   Receive(&tid[i], dump, sizeof(6));
-  // }
+  for (int i = 0; i < 2; i++) {
+    Create(priority[i], test_client);
+  }
 
-  // for (int i = 0; i < 4; i++) {
-  //   req[i].delay_interval = delay_interval[i];
-  //   req[i].num_of_delays = num_of_delays[i];
-  //   Reply(tid[i], (const char *) &req[i], sizeof(req[i]));
-  // }
+  int my_tid = MyTid();
+  int rcv_tid;
+
+  while (true) {
+    Receive(&rcv_tid, NULL, 0);
+    struct TestResponse res = {
+        .delay = delays[rcv_tid - my_tid - 1], .num_delays = num_delays[rcv_tid - my_tid - 1]};
+    printf("receive from %d, tid: %d ", rcv_tid, rcv_tid - my_tid - 1);
+    Reply(rcv_tid, (const char *) &res, sizeof(res));
+  }
 
   Exit();
 }
 
-void clock_client() {
-  // send parameter request
+void test_client() {
   int pid = MyParentTid();
-  char dump[6];
-  struct parameter_req req;
-
-  Send(pid, dump, 6, (char *) &req, sizeof(req));
-
-  int num_of_delay = req.num_of_delays;
-  int delay_interval = req.delay_interval;
+  int task_tid = MyTid();
   int clock_server = WhoIs("clock_server");
 
-  for (int i = 1; i <= num_of_delay; i++) {
-    printf("num_of_delay: %d\tdelay_interval: %d\n", i, delay_interval);
-    Delay(clock_server, delay_interval);
+  struct TestResponse res;
+  Send(pid, NULL, 0, (char *) &res, sizeof(res));
+
+  printf("incoming res: delay: %d, num_delays: %d\r\n", res.delay, res.num_delays);
+
+  for (int i = 1; i <= res.num_delays; i++) {
+    printf("tid %d before delay %d\r\n", task_tid, timer_get_time() / TIMER_TICK_DURATION);
+    Delay(clock_server, res.delay);
+    printf(
+        "tid: %d, number of delays: %d, delay interval: %d time: %d\r\n",
+        task_tid,
+        res.num_delays,
+        res.delay,
+        timer_get_time() / TIMER_TICK_DURATION);
   }
+
   Exit();
 }

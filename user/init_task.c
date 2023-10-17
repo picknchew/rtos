@@ -24,7 +24,7 @@ void init_task() {
   Create(10, name_server_task);
   Create(9, clock_server_task);
 
-  Create(7, first_task);
+  Create(7, test_clock_server_task);
 #endif
   for (;;) {}  // spin forever when no other tasks are running
 }
