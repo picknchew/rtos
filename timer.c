@@ -16,7 +16,7 @@ static volatile uint32_t *const TIMER_C1 = (uint32_t *) ((char *) TIMER_BASE + 0
 static volatile uint32_t *const TIMER_C3 = (uint32_t *) ((char *) TIMER_BASE + 0x18);
 
 // 10ms
-static const uint32_t TIMER_TICK_DURATION = 10000;
+const uint32_t TIMER_TICK_DURATION = 10000;
 
 void timer_init() {
   irq_enable(IRQ_TIMER_C1);
