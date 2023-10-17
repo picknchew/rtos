@@ -18,7 +18,7 @@ void test_clock_server_task() {
   int delays[4] = {10, 23, 33, 71};
   int num_delays[4] = {20, 9, 6, 3};
 
-  for (int i = 0; i < 2; i++) {
+  for (int i = 0; i < 4; i++) {
     Create(priority[i], test_client);
   }
 
