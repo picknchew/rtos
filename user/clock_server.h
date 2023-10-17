@@ -23,6 +23,7 @@ struct DelayQueueNode {
 struct DelayQueue {
   struct DelayQueueNode *head;
   struct DelayQueueNode *tail;
+  unsigned int size;
 };
 
 void clock_notifier_task();
