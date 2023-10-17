@@ -29,6 +29,8 @@ void clock_notifier_task() {
   while (time = AwaitEvent(EVENT_TIMER)) {
     Send(clock_server_tid, (const char *) &msg, sizeof(msg), (char *) &time, sizeof(time));
   }
+
+  Exit();
 }
 
 void delay_queue_init() {
@@ -135,6 +137,8 @@ void clock_server_task() {
         delay_queue_insert(tid, req.ticks);
     }
   }
+
+  Exit();
 }
 
 int Time(int tid) {
