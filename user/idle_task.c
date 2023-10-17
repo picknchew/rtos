@@ -4,16 +4,17 @@
 #include <stdint.h>
 
 #include "../irq.h"
+#include "../rpi.h"
 #include "../syscall.h"
 #include "../timer.h"
 
-#define CENTISECOND_IN_MICROSECONDS 100000
+#define CENTISECOND_IN_MICROSECONDS 100000u
 #define SECOND_IN_MICROSECONDS (CENTISECOND_IN_MICROSECONDS * 10)
 #define MINUTE_IN_MICROSECONDS (SECOND_IN_MICROSECONDS * 60)
 #define HOUR_IN_MICROSECONDS (MINUTE_IN_MICROSECONDS * 60)
 
 // 2 seconds in microseconds
-static const PRINT_INTERVAL = 2e6;
+static const unsigned int PRINT_INTERVAL = 2e6;
 
 void idle_task() {
   uint64_t init_time = timer_get_time();

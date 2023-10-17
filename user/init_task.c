@@ -19,7 +19,7 @@ void init_task() {
   // Create(10, name_server_task);
   // Create(2, rps_test_task);
   Create(1, idle_task);
-  // Create(7, first_task);
+  Create(7, first_task);
 #endif
   for (;;) {}  // spin forever when no other tasks are running
 }
