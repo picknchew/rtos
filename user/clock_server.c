@@ -8,6 +8,7 @@
 #include "../irq.h"
 #include "../syscall.h"
 #include "../task.h"
+#include "name_server.h"
 
 static int clock_server_tid = -1;
 
@@ -24,12 +25,9 @@ void delay_queues_init() {
 
 void clock_notifier_task() {
   struct ClockServerRequest msg = {.req_type = CLOCK_SERVER_NOTIFY};
-  int time;
+  int time = AwaitEvent(EVENT_TIMER);
 
-  while (time = AwaitEvent(EVENT_TIMER)) {
-    Send(clock_server_tid, (const char *) &msg, sizeof(msg), (char *) &time, sizeof(time));
-  }
-
+  Send(clock_server_tid, (const char *) &msg, sizeof(msg), (char *) &time, sizeof(time));
   Exit();
 }
 
@@ -127,6 +125,7 @@ void clock_server_task() {
       case CLOCK_SERVER_DELAY:
         // turn delay to delay until
         req.ticks += time;
+        // fall through
       case CLOCK_SERVER_DELAY_UNTIL:
         if (req.ticks <= time) {
           // reply instantly
