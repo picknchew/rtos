@@ -29,7 +29,6 @@ void test_clock_server_task() {
     Receive(&rcv_tid, NULL, 0);
     struct TestResponse res = {
         .delay = delays[rcv_tid - my_tid - 1], .num_delays = num_delays[rcv_tid - my_tid - 1]};
-    printf("receive from %d, tid: %d ", rcv_tid, rcv_tid - my_tid - 1);
     Reply(rcv_tid, (const char *) &res, sizeof(res));
   }
 
@@ -44,10 +43,7 @@ void test_client() {
   struct TestResponse res;
   Send(pid, NULL, 0, (char *) &res, sizeof(res));
 
-  printf("incoming res: delay: %d, num_delays: %d\r\n", res.delay, res.num_delays);
-
   for (int i = 1; i <= res.num_delays; i++) {
-    printf("tid %d before delay %d\r\n", task_tid, timer_get_time() / TIMER_TICK_DURATION);
     Delay(clock_server, res.delay);
     printf(
         "tid: %d, number of delays: %d, delay interval: %d time: %d\r\n",

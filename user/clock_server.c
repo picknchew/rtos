@@ -41,7 +41,6 @@ void delay_queue_init() {
 }
 
 void delay_queue_insert(int tid, int time) {
-  printf("queue head before: %d\r\n", queue.head);
   struct DelayQueueNode *node = &delay_queue_nodes[tid];
 
   node->delay = time;
@@ -50,18 +49,16 @@ void delay_queue_insert(int tid, int time) {
     queue.head = node;
     queue.tail = node;
     node->next = NULL;
-    printf("add %d\r\n", node->tid);
   } else {
-    printf("begin 2nd add\r\n");
     // insert the node in sorted order by time
     struct DelayQueueNode *cur = queue.head;
     struct DelayQueueNode *prev = NULL;
 
     // find correct position
     while (cur && cur->delay <= node->delay) {
+      prev = cur;
       cur = cur->next;
     }
-
     if (prev) {
       prev->next = node;
     } else {
@@ -69,32 +66,18 @@ void delay_queue_insert(int tid, int time) {
       queue.head = node;
     }
 
-    printf("cur node is %d\r\n", cur->tid);
     node->next = cur;
 
     // tail
     if (queue.tail == NULL) {
       queue.tail = node;
     }
-
-    printf("add %d\r\n", node->tid);
   }
-
-  struct DelayQueueNode *n = queue.head;
-
-  while (n) {
-    printf("%d->", n->tid);
-    n = n->next;
-  }
-
-  printf("\r\n");
-  printf("size: %d\r\n", queue.size);
 
   ++queue.size;
 }
 
 struct DelayQueueNode *delay_queue_pop() {
-  printf("pop size %d\r\n", queue.size);
   struct DelayQueueNode *popped = queue.head;
 
   queue.head = popped->next;
@@ -103,18 +86,6 @@ struct DelayQueueNode *delay_queue_pop() {
   if (queue.size <= 1) {
     queue.tail = queue.head;
   }
-
-  printf("popping %d\r\n", popped->tid);
-  struct DelayQueueNode *n = queue.head;
-
-  while (n) {
-    printf("%d->", n->tid);
-    n = n->next;
-  }
-
-  printf("\r\n");
-
-  printf("queue head after: %d\r\n", queue.head);
 
   return popped;
 }
