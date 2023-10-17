@@ -27,7 +27,10 @@ void clock_notifier_task() {
   struct ClockServerRequest msg = {.req_type = CLOCK_SERVER_NOTIFY};
   int time = AwaitEvent(EVENT_TIMER);
 
-  Send(clock_server_tid, (const char *) &msg, sizeof(msg), (char *) &time, sizeof(time));
+  while (true) {
+    Send(clock_server_tid, (const char *) &msg, sizeof(msg), (char *) &time, sizeof(time));
+  }
+
   Exit();
 }
 
@@ -102,9 +105,7 @@ void clock_server_task() {
   struct ClockServerRequest req;
 
   while (true) {
-    printf("clockserver is waiting to receive\r\n");  // printed
     Receive(&tid, (char *) &req, sizeof(req));
-    printf("clockserver received notifier");  // printed
 
     switch (req.req_type) {
       case CLOCK_SERVER_TIME:
@@ -114,19 +115,18 @@ void clock_server_task() {
         // update timer
         ++time;
 
-        printf("1\r\n");
         Reply(tid, (const char *) &time, sizeof(time));  // unblock notifier
         // reply to all scheduled tasks whose delays that have passed
         while (queue.size > 0 && delay_queue_peek()->delay <= time) {
           Reply(delay_queue_pop()->tid, (const char *) &time, sizeof(time));
         }
-        printf("2\r\n");
         break;
       case CLOCK_SERVER_DELAY:
         // turn delay to delay until
         req.ticks += time;
         // fall through
       case CLOCK_SERVER_DELAY_UNTIL:
+        printf("delay until\r\n");
         if (req.ticks <= time) {
           // reply instantly
           Reply(tid, (const char *) &time, sizeof(time));
