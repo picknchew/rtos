@@ -25,9 +25,9 @@ void delay_queues_init() {
 
 void clock_notifier_task() {
   struct ClockServerRequest msg = {.req_type = CLOCK_SERVER_NOTIFY};
-  int time = AwaitEvent(EVENT_TIMER);
 
   while (true) {
+    int time = AwaitEvent(EVENT_TIMER);
     Send(clock_server_tid, (const char *) &msg, sizeof(msg), (char *) &time, sizeof(time));
   }
 
@@ -145,13 +145,11 @@ int Time(int tid) {
     return -1;
   }
 
-  // TODO
-  struct ClockServerRequest req;
-  req.req_type = CLOCK_SERVER_TIME;
+  struct ClockServerRequest req = {.req_type = CLOCK_SERVER_TIME};
 
-  int ticks;
-  Send(tid, (const char *) &req, sizeof(req), (char *) &ticks, sizeof(ticks));
-  return ticks;
+  int time;
+  Send(tid, (const char *) &req, sizeof(req), (char *) &time, sizeof(time));
+  return time;
 }
 
 int Delay(int tid, int ticks) {
@@ -163,14 +161,11 @@ int Delay(int tid, int ticks) {
     return -1;
   }
 
-  // TODO
-  struct ClockServerRequest req;
-  req.req_type = CLOCK_SERVER_DELAY;
-  req.ticks = ticks;
-
+  struct ClockServerRequest req = {.req_type = CLOCK_SERVER_DELAY, .ticks = ticks};
   int time;
+
   Send(tid, (const char *) &req, sizeof(req), (char *) &time, sizeof(time));
-  return 0;
+  return time;
 }
 
 int DelayUntil(int tid, int ticks) {
@@ -182,13 +177,9 @@ int DelayUntil(int tid, int ticks) {
     return -1;
   }
 
-  // TODO
-  struct ClockServerRequest req;
-  req.req_type = CLOCK_SERVER_DELAY_UNTIL;
-  req.ticks = ticks;
-
+  struct ClockServerRequest req = {.req_type = CLOCK_SERVER_DELAY_UNTIL, .ticks = ticks};
   int time;
   Send(tid, (const char *) &req, sizeof(req), (char *) &time, sizeof(time));
 
-  return 0;
+  return time;
 }

@@ -6,26 +6,31 @@
 #include "name_server.h"
 
 void first_task() {
-  int tid[4];
-  struct parameter_req req[4];
-  char dump[6];
-  int priority[4] = {6, 5, 4, 3};  // 3,4,5,6 smaller is higher
-  int delay_interval[4] = {10, 23, 33, 71};
-  int num_of_delays[4] = {20, 9, 6, 3};
+  int clock_server = WhoIs("clock_server");
 
-  for (int i = 0; i < 4; i++) {
-    Create(priority[i], clock_client);
-  }
+  printf("before delay\r\n");
+  Delay(clock_server, 1000);
+  printf("after delay\r\n");
+  // int tid[4];
+  // struct parameter_req req[4];
+  // char dump[6];
+  // int priority[4] = {6, 5, 4, 3};  // 3,4,5,6 smaller is higher
+  // int delay_interval[4] = {10, 23, 33, 71};
+  // int num_of_delays[4] = {20, 9, 6, 3};
 
-  for (int i = 0; i < 4; i++) {
-    Receive(&tid[i], dump, sizeof(6));
-  }
+  // for (int i = 0; i < 4; i++) {
+  //   Create(priority[i], clock_client);
+  // }
 
-  for (int i = 0; i < 4; i++) {
-    req[i].delay_interval = delay_interval[i];
-    req[i].num_of_delays = num_of_delays[i];
-    Reply(tid[i], (const char *) &req[i], sizeof(req[i]));
-  }
+  // for (int i = 0; i < 4; i++) {
+  //   Receive(&tid[i], dump, sizeof(6));
+  // }
+
+  // for (int i = 0; i < 4; i++) {
+  //   req[i].delay_interval = delay_interval[i];
+  //   req[i].num_of_delays = num_of_delays[i];
+  //   Reply(tid[i], (const char *) &req[i], sizeof(req[i]));
+  // }
 
   Exit();
 }
