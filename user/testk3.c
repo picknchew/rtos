@@ -14,7 +14,7 @@ struct TestResponse {
 };
 
 void test_clock_server_task() {
-  int priority[4] = {3, 4, 5, 6};
+  int priority[4] = {6, 5, 4, 3};
   int delays[4] = {10, 23, 33, 71};
   int num_delays[4] = {20, 9, 6, 3};
 
@@ -46,11 +46,11 @@ void test_client() {
   for (int i = 1; i <= res.num_delays; i++) {
     Delay(clock_server, res.delay);
     printf(
-        "tid: %d, number of delays: %d, delay interval: %d time: %d\r\n",
+        "tid: %d, time: %d, delay duration: %d, number of delays: %d\r\n",
         task_tid,
-        res.num_delays,
+        Time(clock_server),
         res.delay,
-        timer_get_time() / TIMER_TICK_DURATION);
+        res.num_delays);
   }
 
   Exit();

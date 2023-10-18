@@ -8,8 +8,8 @@
 #include "../syscall.h"
 #include "../timer.h"
 
-#define CENTISECOND_IN_MICROSECONDS 100000u
-#define SECOND_IN_MICROSECONDS (CENTISECOND_IN_MICROSECONDS * 10)
+#define CENTISECOND_IN_MICROSECONDS 10000u
+#define SECOND_IN_MICROSECONDS (CENTISECOND_IN_MICROSECONDS * 100)
 #define MINUTE_IN_MICROSECONDS (SECOND_IN_MICROSECONDS * 60)
 #define HOUR_IN_MICROSECONDS (MINUTE_IN_MICROSECONDS * 60)
 
@@ -29,11 +29,11 @@ void idle_task() {
     int idle_pct = time_elapsed * 100 / current_time;
 
     if (current_time > last_printed + PRINT_INTERVAL) {
-      unsigned int hours = current_time / HOUR_IN_MICROSECONDS;
-      unsigned int minutes = (current_time % HOUR_IN_MICROSECONDS) / MINUTE_IN_MICROSECONDS;
-      unsigned int seconds = (current_time % MINUTE_IN_MICROSECONDS) / SECOND_IN_MICROSECONDS;
+      unsigned int hours = time_elapsed / HOUR_IN_MICROSECONDS;
+      unsigned int minutes = (time_elapsed % HOUR_IN_MICROSECONDS) / MINUTE_IN_MICROSECONDS;
+      unsigned int seconds = (time_elapsed % MINUTE_IN_MICROSECONDS) / SECOND_IN_MICROSECONDS;
       unsigned int centiseconds =
-          (current_time % SECOND_IN_MICROSECONDS) / CENTISECOND_IN_MICROSECONDS;
+          (time_elapsed % SECOND_IN_MICROSECONDS) / CENTISECOND_IN_MICROSECONDS;
 
       printf(
           "idle_task: idle time %u:%u:%u:%u (%u%% of uptime)\r\n",
