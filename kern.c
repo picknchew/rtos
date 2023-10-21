@@ -1,15 +1,14 @@
 #include "exception.h"
 #include "irq.h"
-#include "rpi.h"
 #include "syscall.h"
 #include "task.h"
 #include "task_queue.h"
 #include "timer.h"
+#include "uart.h"
 #include "user/init_task.h"
 
 #define SVC(code) asm volatile("svc %0" : : "I"(code))
 
-static const int CONSOLE = 1;
 static const uint64_t SVC_EXCEPTION_INFO = 0x54000000;
 
 const char *train =
@@ -24,10 +23,10 @@ const char *train =
 extern void kern_exit();
 
 int kmain() {
-  uart_config_and_enable(CONSOLE, 115200, false);
+  uart_config_and_enable(UART_CONSOLE, 115200, false, true);
   uart_init();
-  uart_puts(CONSOLE, train);
-  uart_puts(CONSOLE, "Booting...\r\n");
+  uart_puts(UART_CONSOLE, train);
+  uart_puts(UART_CONSOLE, "Booting...\r\n");
 
   irq_init();
   timer_init();

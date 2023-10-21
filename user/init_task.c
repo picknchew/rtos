@@ -19,12 +19,13 @@ void init_task() {
 #else
   // Create(10, name_server_task);
   // Create(2, rps_test_task);
-  Create(1, idle_task);
+  // Create(1, idle_task);
 
-  Create(10, name_server_task);
-  Create(9, clock_server_task);
+  // Create(10, name_server_task);
+  // Create(9, clock_server_task);
 
-  Create(7, test_clock_server_task);
+  // Create(7, test_clock_server_task);
 #endif
+  printf("looping\r\n");
   for (;;) {}  // spin forever when no other tasks are running
 }

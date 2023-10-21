@@ -7,6 +7,7 @@
 #include "rpi.h"
 #include "task.h"
 #include "timer.h"
+#include "uart.h"
 
 #define GIC_BASE ((char *) 0xff840000)
 
@@ -49,7 +50,6 @@ void irq_init() {
 
 void irq_enable(enum InterruptSource irq_id) {
   // configure to be edge-triggered
-  
 
   // route interrupt to IRQ on CPU 0
   // 1 = 0b00000001
@@ -68,26 +68,20 @@ void irq_await_event(enum Event event) {
   event_blocked_task_queue_push(&event_blocked_queue, task, event);
 }
 
-static enum Event get_event(enum InterruptSource irq_id) {
-  switch (irq_id) {
-    case IRQ_TIMER_C1:
-      return EVENT_TIMER;
-    default:
-      break;
-  }
-
-  return EVENT_UNKNOWN;
-}
-
 void handle_irq() {
   uint32_t iar = *GICC_IAR;
   uint32_t irq_id = iar & GICC_IAR_IRQ_ID_MASK;
   int retval = 0;
+  enum Event event = EVENT_UNKNOWN;
 
   switch (irq_id) {
     case IRQ_TIMER_C1:
       timer_tick();
       retval = timer_get_time();
+      event = EVENT_TIMER;
+      break;
+    case IRQ_UART:
+      event = uart_handle_irq();
       break;
     case IRQ_SPURIOUS:
       break;
@@ -96,7 +90,6 @@ void handle_irq() {
   }
 
   if (irq_id != IRQ_SPURIOUS) {
-    enum Event event = get_event(irq_id);
     // unblock tasks waiting for this event
     while (event_blocked_task_queue_size(&event_blocked_queue, event) > 0) {
       struct TaskDescriptor *task = event_blocked_task_queue_pop(&event_blocked_queue, event);
