@@ -6,6 +6,7 @@
 #include "task.h"
 #include "task_queue.h"
 #include "util.h"
+#include "task.h"
 
 static const int SYSCALL_TYPE_MASK = 0xFFFF;
 

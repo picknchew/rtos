@@ -2,6 +2,7 @@
 
 #include <stdbool.h>
 #include <stddef.h>
+#include <stdio.h>
 
 #include "../circular_buffer.h"
 #include "../irq.h"
@@ -9,6 +10,7 @@
 #include "../uart.h"
 #include "name_server.h"
 #include "tid_queue.h"
+#include "../task.h"
 
 static const int TASK_PRIORITY = 20;
 

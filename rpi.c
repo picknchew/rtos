@@ -3,6 +3,7 @@
 #include <stdarg.h>
 #include <stdbool.h>
 
+#include "uart.h"
 #include "util.h"
 
 void uart_putl(size_t line, const char* buf, size_t blen) {

@@ -1,7 +1,9 @@
 #include "replay_task.h"
 
+#include <stdio.h>
 #include <stdbool.h>
 
+#include "../syscall.h"
 #include "../uart.h"
 #include "io_server.h"
 #include "name_server.h"

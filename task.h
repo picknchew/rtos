@@ -58,7 +58,7 @@ struct TaskDescriptor {
 };
 
 void tasks_init();
-
+void task_print();
 struct TaskDescriptor *task_create(struct TaskDescriptor *parent, int priority, void (*function)());
 struct TaskDescriptor *task_get_current_task();
 struct TaskDescriptor *task_get_by_tid();
