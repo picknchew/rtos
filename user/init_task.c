@@ -7,8 +7,10 @@
 #include "../timer.h"
 #include "clock_server.h"
 #include "idle_task.h"
+#include "io_server.h"
 #include "msg_perf_test.h"
 #include "name_server.h"
+#include "replay_task.h"
 #include "rps_test_task.h"
 #include "test_tasks.h"
 #include "testk3.h"
@@ -27,5 +29,7 @@ void init_task() {
   // Create(7, test_clock_server_task);
 #endif
   printf("looping\r\n");
+  Create(20, io_server_task);
+  Create(1, replay_task);
   for (;;) {}  // spin forever when no other tasks are running
 }

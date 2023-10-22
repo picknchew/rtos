@@ -10,7 +10,7 @@
 #include "name_server.h"
 #include "tid_queue.h"
 
-static const int TASK_PRIORITY = 5;
+static const int TASK_PRIORITY = 20;
 
 void io_tx_task();
 void io_rx_task();

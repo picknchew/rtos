@@ -1,5 +1,7 @@
 #pragma once
 
+void io_server_task();
+
 /**
  * the tid refers to the server that handles the appropriate channel.
  * returns the next un-returned character. The first argument is the task id
