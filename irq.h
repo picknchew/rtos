@@ -3,10 +3,10 @@
 #include <stdint.h>
 
 // must equal to the number of events
-#define EVENT_MAX 2
+#define EVENT_MAX 6
 
 enum Event {
-  EVENT_UNKNOWN,
+  EVENT_UNKNOWN = 0, // start at 0 since we use these as indices for our event queue array
   EVENT_TIMER,
   EVENT_UART_CONSOLE_RX,
   EVENT_UART_CONSOLE_TX,

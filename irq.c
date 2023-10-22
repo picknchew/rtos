@@ -81,7 +81,9 @@ void handle_irq() {
       event = EVENT_TIMER;
       break;
     case IRQ_UART:
+      printf("irq interrupt %d\r\n", IRQ_UART);
       event = uart_handle_irq();
+      printf("after interrupt %d\r\n", event);
       break;
     case IRQ_SPURIOUS:
       break;

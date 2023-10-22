@@ -212,13 +212,13 @@ static size_t get_irq_line() {
 
   uint32_t pactl_cs = *REG_PACTL_CS;
 
-  // check if uart 3 (line 2)
+  // check if uart 0 (line 1)
   if (pactl_cs & (1 << 20)) {
-    return UART_MARKLIN;
+    return UART_CONSOLE;
   }
 
-  // must be line 1
-  return UART_CONSOLE;
+  // must be line 0
+  return UART_MARKLIN;
 }
 
 bool uart_tx_fifo_full(size_t line) {

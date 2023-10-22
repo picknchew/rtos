@@ -22,8 +22,6 @@ void io_server_task() {
   int console_rx_task = Create(TASK_PRIORITY, io_rx_task);
   enum Event console_rx_event = EVENT_UART_CONSOLE_RX;
   Send(console_rx_task, (const char *) &console_rx_event, sizeof(console_rx_event), NULL, 0);
-  printf("io_server_task: sent info to tid %d\r\n", console_rx_task);
-  printf("extra debug for fun\r\n");
 
   // int console_tx_task = Create(TASK_PRIORITY, io_tx_task);
   // enum Event console_tx_event = EVENT_UART_CONSOLE_TX;
@@ -64,15 +62,12 @@ void io_tx_notify_task() {
   int tx_task;
   enum Event event;
 
-  printf("io_tx_notify_task: waiting for parent to send info\r\n");
   Receive(&tx_task, (char *) &event, sizeof(event));
   Reply(tx_task, NULL, 0);
-
-  printf("io_tx_notify_task: received event %d from tid %d\r\n", event, tx_task);
-
+  
+  struct IOTxRequest req = {.type = TX_REQ_NOTIFY};
   while (true) {
     AwaitEvent(event);
-    struct IOTxRequest req = {.type = TX_REQ_NOTIFY};
     Send(tx_task, (const char *) &req, sizeof(req), NULL, 0);
   }
 }
@@ -81,12 +76,8 @@ void io_tx_task() {
   int parent_tid;
   enum Event event;
 
-  printf("io_tx_task: waiting for parent to send info\r\n");
   Receive(&parent_tid, (char *) &event, sizeof(event));
-  task_print();
   Reply(parent_tid, NULL, 0);
-  printf("io_tx_task: received event %d from tid %d\r\n", event, parent_tid);
-  task_print();
 
   int line;
   if (event == EVENT_UART_CONSOLE_TX) {
@@ -100,11 +91,9 @@ void io_tx_task() {
   struct CircularBuffer tx_buffer;
   circular_buffer_init(&tx_buffer);
 
-  printf("creating notifier\r\n");
   // create notifier task
   int notifier_tid = Create(TASK_PRIORITY, io_tx_notify_task);
   Send(notifier_tid, (const char *) &event, sizeof(event), NULL, 0);
-  printf("created notifier\r\n");
 
   int tid;
   struct IOTxRequest req;
@@ -152,20 +141,16 @@ void io_rx_notify_task() {
   int rx_task;
   enum Event event;
 
-  printf("io_rx_notify_task: waiting for parent to send info\r\n");
-  task_print();
   Receive(&rx_task, (char *) &event, sizeof(event));
   Reply(rx_task, NULL, 0);
-  printf("io_rx_notify_task: received event %d from tid %d\r\n", event, rx_task);
-  task_print();
 
+  enum IORxRequestType req = RX_REQ_NOTIFY;
   while (true) {
-    printf("prior to await event\r\n");
-    task_print();
     AwaitEvent(event);
+    printf("io_rx_notify_task ------------------ after await event\r\n");
 
     // notify rx task
-    Send(rx_task, RX_REQ_NOTIFY, sizeof(RX_REQ_NOTIFY), NULL, 0);
+    Send(rx_task, &req, sizeof(req), NULL, 0);
   }
 }
 
@@ -175,75 +160,64 @@ void io_rx_task() {
 
   printf("io_rx_task: waiting for parent to send info\r\n");
   Receive(&parent_tid, (char *) &event, sizeof(event));
-  printf("size of event %d\r\n", sizeof(event));
-  printf("io_rx_task: before reply\r\n");
-  
-  task_print();
-  printf("io_rx_task: received event %d from tid %d\r\n", event, parent_tid);
   Reply(parent_tid, NULL, 0);
-  printf("io_rx_task: after reply\r\n");
-  task_print();
 
-  // int line;
-  // if (event == EVENT_UART_CONSOLE_RX) {
-  //   line = UART_CONSOLE;
-  //   RegisterAs("console_io_rx");
-  // } else {
-  //   line = UART_MARKLIN;
-  //   RegisterAs("marklin_io_rx");
-  // }
+  int line;
+  if (event == EVENT_UART_CONSOLE_RX) {
+    line = UART_CONSOLE;
+    RegisterAs("console_io_rx");
+  } else {
+    line = UART_MARKLIN;
+    RegisterAs("marklin_io_rx");
+  }
 
-  // struct CircularBuffer rx_buffer;
-  // circular_buffer_init(&rx_buffer);
+  struct CircularBuffer rx_buffer;
+  circular_buffer_init(&rx_buffer);
 
-  // struct TIDQueue rx_queue;
-  // tid_queue_init(&rx_queue);
+  struct TIDQueue rx_queue;
+  tid_queue_init(&rx_queue);
 
-  // printf("creating notifier\r\n");
-  // // create notifier task
-  // int notifier_tid = Create(TASK_PRIORITY, io_rx_notify_task);
-  // Send(notifier_tid, (const char *) &event, sizeof(event), NULL, 0);
-  // printf("created notifier\r\n");
-  // task_print();
+  // create notifier task
+  int notifier_tid = Create(TASK_PRIORITY, io_rx_notify_task);
+  Send(notifier_tid, (const char *) &event, sizeof(event), NULL, 0);
 
-  // int tid;
-  // enum IORxRequestType req_type;
+  int tid;
+  enum IORxRequestType req_type;
 
-  // while (true) {
-  //   printf("receive call\r\n");
-  //   Receive(&tid, (char *) &req_type, sizeof(req_type));
-  //   printf("after receive\r\n");
+  while (true) {
+    Receive(&tid, (char *) &req_type, sizeof(req_type));
+    printf("after receive req_type %d from tid %d\r\n", req_type, tid);
 
-  //   switch (req_type) {
-  //     case RX_REQ_NOTIFY:
-  //       // unblock notify task
-  //       Reply(tid, NULL, 0);
+    switch (req_type) {
+      case RX_REQ_NOTIFY:
+        // unblock notify task
+        Reply(tid, NULL, 0);
 
-  //       // read from DR, put in rx_buffer
-  //       // transfer to rx_buffer from fifo buffer so interrupts stop firing
-  //       while (uart_hasc(line)) {
-  //         char c = uart_getc(line);
-  //         circular_buffer_write(&rx_buffer, c);
-  //         printf("received: %c\r\n", c);
-  //       }
+        // read from DR, put in rx_buffer
+        // transfer to rx_buffer from fifo buffer so interrupts stop firing
+        while (uart_hasc(line)) {
+          char c = uart_getc(line);
+          circular_buffer_write(&rx_buffer, c);
+          printf("received: %c\r\n", c);
+        }
 
-  //       // unblock tasks that are waiting for data
-  //       while (!circular_buffer_empty(&rx_buffer) && !tid_queue_empty(&rx_queue)) {
-  //         char ch = circular_buffer_read(&rx_buffer);
-  //         Reply(tid_queue_poll(&rx_queue), &ch, sizeof(char));
-  //       }
+        // unblock tasks that are waiting for data
+        while (!circular_buffer_empty(&rx_buffer) && !tid_queue_empty(&rx_queue)) {
+          char ch = circular_buffer_read(&rx_buffer);
+          Reply(tid_queue_poll(&rx_queue), &ch, sizeof(char));
+        }
 
-  //       break;
-  //     case RX_REQ_GETC:
-  //       if (!circular_buffer_empty(&rx_buffer)) {
-  //         char ch = circular_buffer_read(&rx_buffer);
-  //         Reply(tid, &ch, sizeof(char));
-  //       } else {
-  //         // block task and put it in a queue for when data is available
-  //         tid_queue_add(&rx_queue, tid);
-  //       }
-  //   }
-  // }
+        break;
+      case RX_REQ_GETC:
+        if (!circular_buffer_empty(&rx_buffer)) {
+          char ch = circular_buffer_read(&rx_buffer);
+          Reply(tid, &ch, sizeof(char));
+        } else {
+          // block task and put it in a queue for when data is available
+          tid_queue_add(&rx_queue, tid);
+        }
+    }
+  }
   Exit();
 }
 
