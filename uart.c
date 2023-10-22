@@ -196,19 +196,6 @@ void uart_config_and_enable(size_t line, uint32_t baudrate, bool two_stop_bits, 
 }
 
 static size_t get_irq_line() {
-  // can get the UART line that triggered this IRQ with PACTL_CS reg
-  // instead, we will just check both the status of line 1 and line 2
-  // for (size_t line = 1; line <= 2; ++line) {
-  //   uint32_t mis = UART_REG(line, UART_MIS);
-
-  //   if (!(mis & 0x7FF)) {
-  //     printf("uart: no irqs on line %d\r\n", line);
-  //     continue;
-  //   }
-
-  //   return line;
-  // }
-
   uint32_t pactl_cs = *REG_PACTL_CS;
 
   // check if uart 0 (line 1)

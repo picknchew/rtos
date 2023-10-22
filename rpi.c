@@ -25,7 +25,7 @@ void uart_format_print(size_t line, char* fmt, va_list va) {
       ch = *(fmt++);
       switch (ch) {
         case 'c':
-          uart_putc(line, ch);
+          uart_putc(line, va_arg(va, unsigned int));
           break;
         case 'u':
           ui2a(va_arg(va, unsigned int), 10, bf);

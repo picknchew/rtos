@@ -14,8 +14,7 @@ void replay_task() {
   while (true) {
     char ch = Getc(console_rx);
 
-    // uart_putc(UART_CONSOLE, ch);
-
+    uart_putc(UART_CONSOLE, ch);
     Putc(console_tx, ch);
   }
 

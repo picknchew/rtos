@@ -33,7 +33,7 @@ void init_task() {
   // Create(9, clock_server_task);
   // Create(1, idle_task);
 
-  // Create(1, replay_task);
+  Create(1, replay_task);
   printf("looping\r\n");
   for (;;) {}  // spin forever when no other tasks are running
 }

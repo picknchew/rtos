@@ -21,9 +21,9 @@ void io_server_task() {
   enum Event console_rx_event = EVENT_UART_CONSOLE_RX;
   Send(console_rx_task, (const char *) &console_rx_event, sizeof(console_rx_event), NULL, 0);
 
-  // int console_tx_task = Create(TASK_PRIORITY, io_tx_task);
-  // enum Event console_tx_event = EVENT_UART_CONSOLE_TX;
-  // Send(console_tx_task, (const char *) &console_tx_event, sizeof(console_tx_event), NULL, 0);
+  int console_tx_task = Create(TASK_PRIORITY, io_tx_task);
+  enum Event console_tx_event = EVENT_UART_CONSOLE_TX;
+  Send(console_tx_task, (const char *) &console_tx_event, sizeof(console_tx_event), NULL, 0);
 
   // int marklin_rx_task = Create(TASK_PRIORITY, io_rx_task);
   // enum Event marklin_rx_event = EVENT_UART_MARKLIN_RX;
@@ -184,7 +184,6 @@ void io_rx_task() {
 
   while (true) {
     Receive(&tid, (char *) &req_type, sizeof(req_type));
-    printf("after receive req_type %d from tid %d\r\n", req_type, tid);
 
     switch (req_type) {
       case RX_REQ_NOTIFY:
@@ -196,7 +195,6 @@ void io_rx_task() {
         while (uart_hasc(line)) {
           char c = uart_getc(line);
           circular_buffer_write(&rx_buffer, c);
-          printf("received from line %d: %c\r\n", line, c);
         }
 
         // unblock tasks that are waiting for data
@@ -221,7 +219,12 @@ void io_rx_task() {
 
 int Getc(int tid) {
   enum IORxRequestType req_type = RX_REQ_GETC;
-  return Send(tid, (const char *) &req_type, sizeof(req_type), NULL, 0);
+
+  char ch;
+  if (Send(tid, (const char *) &req_type, sizeof(req_type), &ch, sizeof(ch)) <= 0) {
+    return -1;
+  }
+  return ch;
 }
 
 int Putc(int tid, unsigned char ch) {
