@@ -6,7 +6,6 @@
 #include "task.h"
 #include "task_queue.h"
 #include "util.h"
-#include "task.h"
 
 static const int SYSCALL_TYPE_MASK = 0xFFFF;
 
@@ -144,7 +143,6 @@ int syscall_send(
     int msglen,
     char *reply,
     int rplen) {
-
   struct TaskDescriptor *receiver = task_get_by_tid(tid);
 
   // task is not running

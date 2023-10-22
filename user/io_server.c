@@ -2,7 +2,6 @@
 
 #include <stdbool.h>
 #include <stddef.h>
-#include <stdio.h>
 
 #include "../circular_buffer.h"
 #include "../irq.h"
@@ -10,7 +9,6 @@
 #include "../uart.h"
 #include "name_server.h"
 #include "tid_queue.h"
-#include "../task.h"
 
 static const int TASK_PRIORITY = 20;
 
@@ -64,7 +62,7 @@ void io_tx_notify_task() {
 
   Receive(&tx_task, (char *) &event, sizeof(event));
   Reply(tx_task, NULL, 0);
-  
+
   struct IOTxRequest req = {.type = TX_REQ_NOTIFY};
   while (true) {
     AwaitEvent(event);
@@ -150,7 +148,7 @@ void io_rx_notify_task() {
     printf("io_rx_notify_task ------------------ after await event\r\n");
 
     // notify rx task
-    Send(rx_task, &req, sizeof(req), NULL, 0);
+    Send(rx_task, (char *) &req, sizeof(req), NULL, 0);
   }
 }
 
@@ -198,7 +196,7 @@ void io_rx_task() {
         while (uart_hasc(line)) {
           char c = uart_getc(line);
           circular_buffer_write(&rx_buffer, c);
-          printf("received: %c\r\n", c);
+          printf("received from line %d: %c\r\n", line, c);
         }
 
         // unblock tasks that are waiting for data

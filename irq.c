@@ -81,9 +81,7 @@ void handle_irq() {
       event = EVENT_TIMER;
       break;
     case IRQ_UART:
-      printf("irq interrupt %d\r\n", IRQ_UART);
       event = uart_handle_irq();
-      printf("after interrupt %d\r\n", event);
       break;
     case IRQ_SPURIOUS:
       break;
@@ -95,6 +93,7 @@ void handle_irq() {
     // unblock tasks waiting for this event
     while (event_blocked_task_queue_size(&event_blocked_queue, event) > 0) {
       struct TaskDescriptor *task = event_blocked_task_queue_pop(&event_blocked_queue, event);
+      printf("unblock task %d for event %d\r\n", task->tid, event);
 
       // set return value for AwaitEvent syscall
       task->context.registers[0] = retval;
