@@ -27,8 +27,8 @@ void clock_notifier_task() {
   struct ClockServerRequest msg = {.req_type = CLOCK_SERVER_NOTIFY};
 
   while (true) {
-    int time = AwaitEvent(EVENT_TIMER);
-    Send(clock_server_tid, (const char *) &msg, sizeof(msg), (char *) &time, sizeof(time));
+    AwaitEvent(EVENT_TIMER);
+    Send(clock_server_tid, (const char *) &msg, sizeof(msg), NULL, 0);
   }
 
   Exit();

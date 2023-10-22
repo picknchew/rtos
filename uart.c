@@ -133,6 +133,7 @@ void uart_init() {
 }
 
 void uart_putc(size_t line, unsigned char ch) {
+  while (uart_tx_fifo_full(line)) {}
   UART_REG(line, UART_DR) = ch;
 }
 
@@ -235,13 +236,6 @@ enum Event uart_handle_irq() {
   size_t line = get_irq_line();
   uint32_t mis = UART_REG(line, UART_MIS);
   bool tx = false;
-
-  printf("pactl_cs %d\r\n", *REG_PACTL_CS);
-
-  // UART 0
-  printf("pactl_cs uart 0 (console) %d\r\n", *REG_PACTL_CS & (1 << 20));
-  // UART 3
-  printf("pactl_cs uart 3 (marklin) %d\r\n", *REG_PACTL_CS & (1 << 18));
 
   if (line == 0) {
     printf("uart: failed to find line for irq!");

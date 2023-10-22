@@ -54,8 +54,14 @@ void* memset(void* s, int c, size_t n) {
 
 // define our own memcpy to avoid SIMD instructions emitted from the compiler
 void* memcpy(void* restrict dest, const void* restrict src, size_t n) {
+  if (!dest || !src) {
+    return NULL;
+  }
+  
   char* sit = (char*) src;
   char* cdest = (char*) dest;
+  // printf("memcpy len: %d\r\n", n);
+
   for (size_t i = 0; i < n; ++i) {
     *(cdest++) = *(sit++);
   }

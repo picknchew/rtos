@@ -12,9 +12,8 @@ struct NameEntry {
 };
 
 // indexed by tid
-static int name_server_tid = -1;
-
-static struct NameEntry name_map[TASKS_MAX] = {0};
+static int name_server_tid;
+static struct NameEntry name_map[TASKS_MAX];
 
 static void name_map_init() {
   name_server_tid = -1;

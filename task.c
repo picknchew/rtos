@@ -78,6 +78,10 @@ struct TaskDescriptor *task_get_current_task() {
   return current_task;
 }
 
+void task_print() {
+  printf("task queue prio 0 size: %d\r\n", ready_queue.queues[0].size);
+}
+
 struct TaskDescriptor *task_get_by_tid(int tid) {
   return &tasks[tid];
 }
@@ -90,7 +94,17 @@ void task_yield_current_task() {
     priority_task_queue_push(&ready_queue, current_task);
   }
 
+  // if (current_task) {
+  //   printf("current_task %d, status: %d\r\n", current_task->tid, current_task->status);
+  // } else {
+  //   printf("current_task is null\r\n");
+  // }
+
+  // task_print();
+
   current_task = priority_task_queue_pop(&ready_queue);
+
+  printf("task scheduled: %d\r\n", current_task->tid);
 
   if (current_task != NULL) {
     current_task->status = TASK_ACTIVE;

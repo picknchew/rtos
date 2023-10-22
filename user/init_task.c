@@ -28,8 +28,12 @@ void init_task() {
 
   // Create(7, test_clock_server_task);
 #endif
-  printf("looping\r\n");
+  Create(30, name_server_task);
   Create(20, io_server_task);
-  Create(1, replay_task);
+  // Create(9, clock_server_task);
+  // Create(1, idle_task);
+
+  // Create(1, replay_task);
+  printf("looping\r\n");
   for (;;) {}  // spin forever when no other tasks are running
 }

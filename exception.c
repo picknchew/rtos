@@ -92,6 +92,7 @@ void handle_exception(uint64_t exception_info) {
   if (task_get_current_task() == NULL) {
     // no more tasks to run
     printf("exception_handler: no current task\r\n");
+    task_print();
     for (;;) {}  // spin forever
   }
 
@@ -257,18 +258,23 @@ int syscall_reply(struct TaskDescriptor *receiver, int tid, const char *reply, i
     return -2;
   }
 
+  printf("before remove mail queue\r\n");
   // find the mail to reply
   struct MailQueueNode *mail_node = mail_queue_remove(&receiver->wait_for_reply, sender);
+  printf("after remove mail queue\r\n");
 
   if (!mail_node) {
     return -2;
   }
 
   struct Message *mail = mail_node->val;
+  printf("value of mail is %d\r\n", mail);
 
+  printf("before memcpy\r\n");
   // reply to the sender
   int length = min(mail->rplen, rplen);
   memcpy(mail->reply, reply, length);
+  printf("after memcpy\r\n");
 
   // set status to READY and push to ready queue
   task_schedule(sender);
