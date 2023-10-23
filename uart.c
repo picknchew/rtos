@@ -106,6 +106,7 @@ static const uint32_t UART_LCRH_FEN = 0x10;
 static const uint32_t UART_LCRH_WLEN_LOW = 0x20;
 static const uint32_t UART_LCRH_WLEN_HIGH = 0x40;
 
+static const uint32_t UART_CTS_MASK = 1 << 1;
 static const uint32_t UART_RX_MASK = 1 << 4;
 static const uint32_t UART_TX_MASK = 1 << 5;
 static const uint32_t UART_RT_MASK = 1 << 6;
@@ -145,7 +146,7 @@ void uart_puts(size_t line, const char* buf) {
 }
 
 void uart_enable_tx_irq(size_t line) {
-  UART_REG(line, UART_IMSC) |= UART_TX_MASK;
+  UART_REG(line, UART_IMSC) |= UART_TX_MASK | UART_CTS_MASK;
 }
 
 void uart_disable_tx_irq(size_t line) {
