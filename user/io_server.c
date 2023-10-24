@@ -25,13 +25,13 @@ void io_server_task() {
   enum Event console_tx_event = EVENT_UART_CONSOLE_TX;
   Send(console_tx_task, (const char *) &console_tx_event, sizeof(console_tx_event), NULL, 0);
 
-  // int marklin_rx_task = Create(TASK_PRIORITY, io_rx_task);
-  // enum Event marklin_rx_event = EVENT_UART_MARKLIN_RX;
-  // Send(marklin_rx_task, (const char *) &marklin_rx_event, sizeof(marklin_rx_event), NULL, 0);
+  int marklin_rx_task = Create(TASK_PRIORITY, io_rx_task);
+  enum Event marklin_rx_event = EVENT_UART_MARKLIN_RX;
+  Send(marklin_rx_task, (const char *) &marklin_rx_event, sizeof(marklin_rx_event), NULL, 0);
 
-  // int marklin_tx_task = Create(TASK_PRIORITY, io_tx_task);
-  // enum Event marklin_tx_event = EVENT_UART_MARKLIN_TX;
-  // Send(marklin_tx_task, (const char *) &marklin_tx_event, sizeof(marklin_tx_event), NULL, 0);
+  int marklin_tx_task = Create(TASK_PRIORITY, io_tx_task);
+  enum Event marklin_tx_event = EVENT_UART_MARKLIN_TX;
+  Send(marklin_tx_task, (const char *) &marklin_tx_event, sizeof(marklin_tx_event), NULL, 0);
 
   Exit();
 }
