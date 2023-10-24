@@ -1,9 +1,12 @@
 #include "terminal.h"
 
 #include <stdarg.h>
+// #include <stdlib.h>
 
-#include "string.h"
-#include "util.h"
+// #include "string.h"
+#include "../util.h"
+#include "../uart.h"
+#include "../user/io_server.h"
 
 // Serial on the RPi hat is used for the console
 static const size_t LINE_CONSOLE = 1;
@@ -27,17 +30,23 @@ const char TEXT_RESET[] = "\033[0m";
 static const unsigned int TIME_UPDATE_INTERVAL = 5000;
 static const unsigned int SCREEN_UPDATE_INTERVAL = 100000;
 
+int console_rx_server;
+int console_tx_server;
+
 static void init_screen(struct Terminal *terminal, unsigned int max_loop_duration);
 
-void terminal_init(struct Terminal *terminal, struct Trainset *trainset) {
+void terminal_init(struct Terminal *terminal, struct Trainset *trainset, int console_rx_tid,int console_tx_tid) {
   terminal->command_len = 0;
   terminal->screen_last_updated = 0;
   terminal->time_last_updated = 0;
   terminal->trainset = trainset;
 
+  console_rx_server = console_rx_tid;
+  console_tx_server = console_tx_tid;
+
   circular_buffer_init(&terminal->write_buffer);
 
-  uart_config_and_enable(LINE_CONSOLE, 115200, false);
+  // uart_config_and_enable(LINE_CONSOLE, 115200, false);
   uart_puts(LINE_CONSOLE, SEQ_CLEAR_SCREEN);
 
   init_screen(terminal, 0);
@@ -397,7 +406,7 @@ static void init_screen(struct Terminal *terminal, unsigned int max_loop_duratio
  * Returns 1 if we should quit the program, otherwise returns 0;
  */
 int terminal_tick(struct Terminal *terminal, uint64_t time, unsigned int max_loop_duration) {
-  if (!circular_buffer_is_empty(&terminal->write_buffer)) {
+  if (!circular_buffer_empty(&terminal->write_buffer)) {
     char ch = circular_buffer_read(&terminal->write_buffer);
     uart_putc(LINE_CONSOLE, ch);
   }
@@ -413,7 +422,7 @@ int terminal_tick(struct Terminal *terminal, uint64_t time, unsigned int max_loo
   }
 
   if (uart_hasc(LINE_CONSOLE)) {
-    char c = uart_getc(LINE_CONSOLE);
+    char c = Getc(console_rx_server);
 
     if (c == CHAR_COMMAND_END) {
       terminal->command_buffer[terminal->command_len] = '\0';

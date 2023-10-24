@@ -39,7 +39,7 @@ struct Trainset {
   struct CircularBuffer reverse_buffer;
 };
 
-void trainset_init(struct Trainset *trainset);
+void trainset_init(struct Trainset *trainset,int marklin_rx_tid, int marklin_tx_tid);
 void trainset_set_train_speed(struct Trainset *trainset, struct Terminal *terminal, uint8_t train, uint8_t speed);
 void trainset_train_reverse(struct Trainset *trainset, struct Terminal *terminal, uint8_t train, uint64_t time);
 void trainset_set_switch_direction(struct Trainset *trainset, struct Terminal *terminal, int switch_number, int direction, uint64_t time);

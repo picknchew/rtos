@@ -1,6 +1,8 @@
 #include "trainset.h"
 
 #include <stdbool.h>
+#include "../uart.h"
+#include "../user/io_server.h"
 
 static const int LINE_TRAINSET = 2;
 static const int BAUD_RATE = 2400;
@@ -25,6 +27,9 @@ const int TRAINSET_DIRECTION_CURVED = 0x22;
 
 const int TRAINSET_TRAINS[] = {1, 2, 24, 47, 54, 58, 78};
 
+int marklin_rx_server;
+int marklin_tx_server;
+
 // forward declarations
 void terminal_update_train_speeds(struct Terminal *terminal, uint8_t *train_speeds);
 void terminal_update_sensors(struct Terminal *terminal, bool *sensors, size_t sensors_len);
@@ -37,6 +42,9 @@ static void putc(struct Trainset *trainset, char ch) {
 }
 
 static void read_sensor_data(struct Trainset *trainset) {
+  // putc - marklin receive but part of ui
+  // Putc - marklin not receive but ui
+  // Putc(marklin_tx_server,CMD_READ_ALL_SENSORS);
   putc(trainset, CMD_READ_ALL_SENSORS);
 }
 
@@ -50,12 +58,15 @@ static int get_train_index(uint8_t train) {
   return 0;
 }
 
-void trainset_init(struct Trainset *trainset) {
+void trainset_init(struct Trainset *trainset,int marklin_rx_tid, int marklin_tx_tid) {
   trainset->last_track_switch_time = 0;
   trainset->last_command_sent_time = 0;
   trainset->last_read_sensor_query_time = 0;
   trainset->max_read_sensor_query_time = 0;
   trainset->track_switch_delay = false;
+
+  marklin_rx_server = marklin_rx_tid;
+  marklin_tx_server = marklin_tx_tid;
 
   for (unsigned int i = 0; i < TRAINSET_NUM_FEEDBACK_MODULES * TRAINSET_NUM_SENSORS_PER_MODULE; ++i) {
     trainset->sensors_occupied[i] = false;
@@ -73,16 +84,17 @@ void trainset_init(struct Trainset *trainset) {
   circular_buffer_init(&trainset->read_buffer);
   circular_buffer_init(&trainset->reverse_buffer);
 
-  uart_config_and_enable(LINE_TRAINSET, BAUD_RATE, true);
-
-  putc(trainset, CMD_SENSOR_RESET_MODE);
+  // uart_config_and_enable(LINE_TRAINSET, BAUD_RATE, true);
+  Putc(marklin_tx_server,CMD_SENSOR_RESET_MODE);
+  // putc(trainset, CMD_SENSOR_RESET_MODE);
   // get initial sensor data
   read_sensor_data(trainset);
 }
 
 static void puts(struct Trainset *trainset, char *data) {
   while (*data) {
-    putc(trainset, *data);
+    Putc(marklin_tx_server,*data);
+    // putc(trainset, *data);
     ++data;
   }
 }
@@ -180,7 +192,7 @@ enum SwitchDirection trainset_get_switch_state(struct Trainset *trainset, uint8_
 // SW9b
 // SW9c
 void trainset_tick(struct Trainset *trainset, uint64_t time, struct Terminal *terminal) {
-  if (time - trainset->last_command_sent_time >= DELAY_COMMAND_SEND && !circular_buffer_is_empty(&trainset->write_buffer)) {
+  if (time - trainset->last_command_sent_time >= DELAY_COMMAND_SEND && !circular_buffer_empty(&trainset->write_buffer)) {
     char ch = circular_buffer_read(&trainset->write_buffer);
     uart_putc(LINE_TRAINSET, ch);
     trainset->last_command_sent_time = time;
@@ -191,7 +203,7 @@ void trainset_tick(struct Trainset *trainset, uint64_t time, struct Terminal *te
     }
   }
 
-  if (!circular_buffer_is_empty(&trainset->reverse_buffer) && 
+  if (!circular_buffer_empty(&trainset->reverse_buffer) && 
       time - circular_buffer_peek_int64(&trainset->reverse_buffer) >= DELAY_REVERSE) {
     // intentionally ignore return value (only remove)
     circular_buffer_read_int64(&trainset->reverse_buffer);
@@ -205,7 +217,8 @@ void trainset_tick(struct Trainset *trainset, uint64_t time, struct Terminal *te
   }
 
   if (trainset->track_switch_delay && time - trainset->last_track_switch_time >= DELAY_OFF_LAST_SOLENOID) {
-    putc(trainset, CMD_OFF_LAST_SOLENOID);
+    Putc(marklin_tx_server,CMD_OFF_LAST_SOLENOID);
+    // putc(trainset, CMD_OFF_LAST_SOLENOID);
     trainset->track_switch_delay = false;
   }
 
@@ -225,7 +238,8 @@ void trainset_tick(struct Trainset *trainset, uint64_t time, struct Terminal *te
   }
 
   if (uart_hasc(LINE_TRAINSET)) {
-    char in = uart_getc(LINE_TRAINSET);
+    char in = Getc(marklin_rx_server);
+    // char in = uart_getc(LINE_TRAINSET);
     circular_buffer_write(&trainset->read_buffer, in);
   }
 }

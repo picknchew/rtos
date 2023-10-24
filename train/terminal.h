@@ -19,7 +19,7 @@ struct Terminal {
  * Returns 1 if we should quit the program, otherwise returns 0;
  */
 int terminal_tick(struct Terminal *terminal, uint64_t time, unsigned int max_loop_duration);
-void terminal_init(struct Terminal *terminal, struct Trainset *trainset);
+void terminal_init(struct Terminal *terminal, struct Trainset *trainset, int console_rx_tid,int console_tx_tid);
 void terminal_update_train_speeds(struct Terminal *terminal, uint8_t *train_speeds);
 void terminal_update_sensors(struct Terminal *terminal, bool *sensors, size_t sensors_len);
 void terminal_update_status(struct Terminal *terminal, char *fmt, ...);
