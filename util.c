@@ -1,5 +1,7 @@
 #include "util.h"
 
+#include <stdbool.h>
+
 // ascii digit to integer
 int a2d(char ch) {
   if (ch >= '0' && ch <= '9') {
@@ -60,7 +62,6 @@ void* memcpy(void* restrict dest, const void* restrict src, size_t n) {
   
   char* sit = (char*) src;
   char* cdest = (char*) dest;
-  // printf("memcpy len: %d\r\n", n);
 
   for (size_t i = 0; i < n; ++i) {
     *(cdest++) = *(sit++);
@@ -85,31 +86,36 @@ int strcmp(char *str1, char *str2) {
   return !(*str1) && !(*str2);
 }
 
-int atoi(char* str)
-{
-    // Initialize result
-    int res = 0;
- 
-    // Iterate through all characters
-    // of input string and update result
-    // take ASCII character of corresponding digit and
-    // subtract the code from '0' to get numerical
-    // value and multiply res by 10 to shuffle
-    // digits left to update running total
-    for (int i = 0; str[i] != '\0'; ++i)
-        res = res * 10 + str[i] - '0';
- 
-    // return result.
-    return res;
+int strlen(char *str) {
+  int index = 0;
+
+  while (str[index]) {
+    ++index;
+  }
+
+  return index;
 }
 
-int is_number(const char *str) 
-{
-    while(*str != '\0')
-    {
-        if(*str < '0' || *str > '9')
-            return 0;
-        str++;
+bool is_number(char *str) {
+  int len = strlen(str);
+
+  for (int i = 0; i < len; ++i) {
+    if (str[i] < '0' || str[i] > '9') {
+      return false;
     }
-    return 1;
+  }
+
+  return true;
+}
+
+int atoi(char *str) {
+  int ret = 0;
+  int len = strlen(str);
+
+  for (int i = 0; i < len; ++i) {
+    ret *= 10;
+    ret += (str[i] - '0');
+  }
+
+  return ret;
 }

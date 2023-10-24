@@ -10,26 +10,25 @@
 #include "name_server.h"
 #include "tid_queue.h"
 
-static const int TASK_PRIORITY = 20;
+static const int IO_TASK_PRIORITY = 20;
 
 void io_tx_task();
 void io_rx_task();
 
 void io_server_task() {
-  printf("io_server_task: initializing child tasks\r\n");
-  int console_rx_task = Create(TASK_PRIORITY, io_rx_task);
+  int console_rx_task = Create(IO_TASK_PRIORITY, io_rx_task);
   enum Event console_rx_event = EVENT_UART_CONSOLE_RX;
   Send(console_rx_task, (const char *) &console_rx_event, sizeof(console_rx_event), NULL, 0);
 
-  int console_tx_task = Create(TASK_PRIORITY, io_tx_task);
+  int console_tx_task = Create(IO_TASK_PRIORITY, io_tx_task);
   enum Event console_tx_event = EVENT_UART_CONSOLE_TX;
   Send(console_tx_task, (const char *) &console_tx_event, sizeof(console_tx_event), NULL, 0);
 
-  int marklin_rx_task = Create(TASK_PRIORITY, io_rx_task);
+  int marklin_rx_task = Create(IO_TASK_PRIORITY, io_rx_task);
   enum Event marklin_rx_event = EVENT_UART_MARKLIN_RX;
   Send(marklin_rx_task, (const char *) &marklin_rx_event, sizeof(marklin_rx_event), NULL, 0);
 
-  int marklin_tx_task = Create(TASK_PRIORITY, io_tx_task);
+  int marklin_tx_task = Create(IO_TASK_PRIORITY, io_tx_task);
   enum Event marklin_tx_event = EVENT_UART_MARKLIN_TX;
   Send(marklin_tx_task, (const char *) &marklin_tx_event, sizeof(marklin_tx_event), NULL, 0);
 
@@ -41,7 +40,7 @@ struct IOTxPutcRequest {
 };
 
 struct IOTxPutlRequest {
-  unsigned char *data;
+  const unsigned char *data;
   int datalen;
 };
 
@@ -90,7 +89,7 @@ void io_tx_task() {
   circular_buffer_init(&tx_buffer);
 
   // create notifier task
-  int notifier_tid = Create(TASK_PRIORITY, io_tx_notify_task);
+  int notifier_tid = Create(IO_TASK_PRIORITY, io_tx_notify_task);
   Send(notifier_tid, (const char *) &event, sizeof(event), NULL, 0);
 
   int tid;
@@ -117,17 +116,30 @@ void io_tx_task() {
 
         break;
       case TX_REQ_PUTC:
-        circular_buffer_write(&tx_buffer, req.putc_req.data);
         uart_enable_tx_irq(line);
+
+        if (!uart_tx_fifo_full(line)) {
+          uart_putc(line, req.putc_req.data);
+        } else {
+          circular_buffer_write(&tx_buffer, req.putc_req.data);
+        }
 
         Reply(tid, NULL, 0);
         break;
       case TX_REQ_PUTL:
+        uart_enable_tx_irq(line);
+
         for (int i = 0; i < req.putl_req.datalen; ++i) {
-          circular_buffer_write(&tx_buffer, req.putl_req.data[i]);
+          char ch = req.putl_req.data[i];
+
+          if (!uart_tx_fifo_full(line)) {
+            uart_putc(line, ch);
+            continue;
+          } else {
+            circular_buffer_write(&tx_buffer, ch);
+          }
         }
 
-        uart_enable_tx_irq(line);
         Reply(tid, NULL, 0);
     }
   }
@@ -145,7 +157,6 @@ void io_rx_notify_task() {
   enum IORxRequestType req = RX_REQ_NOTIFY;
   while (true) {
     AwaitEvent(event);
-    printf("io_rx_notify_task ------------------ after await event\r\n");
 
     // notify rx task
     Send(rx_task, (char *) &req, sizeof(req), NULL, 0);
@@ -156,7 +167,6 @@ void io_rx_task() {
   int parent_tid;
   enum Event event;
 
-  printf("io_rx_task: waiting for parent to send info\r\n");
   Receive(&parent_tid, (char *) &event, sizeof(event));
   Reply(parent_tid, NULL, 0);
 
@@ -176,7 +186,7 @@ void io_rx_task() {
   tid_queue_init(&rx_queue);
 
   // create notifier task
-  int notifier_tid = Create(TASK_PRIORITY, io_rx_notify_task);
+  int notifier_tid = Create(IO_TASK_PRIORITY, io_rx_notify_task);
   Send(notifier_tid, (const char *) &event, sizeof(event), NULL, 0);
 
   int tid;
@@ -232,7 +242,7 @@ int Putc(int tid, unsigned char ch) {
   return Send(tid, (const char *) &req, sizeof(req), NULL, 0);
 }
 
-int Putl(int tid, unsigned char *data, unsigned int len) {
+int Putl(int tid, const unsigned char *data, unsigned int len) {
   struct IOTxRequest req = {.type = TX_REQ_PUTL, .putl_req = {.data = data, .datalen = len}};
   return Send(tid, (const char *) &req, sizeof(req), NULL, 0);
 }

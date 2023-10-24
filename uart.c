@@ -146,7 +146,7 @@ void uart_puts(size_t line, const char* buf) {
 }
 
 void uart_enable_tx_irq(size_t line) {
-  UART_REG(line, UART_IMSC) |= UART_TX_MASK | UART_CTS_MASK;
+  UART_REG(line, UART_IMSC) |= UART_TX_MASK;
 }
 
 void uart_disable_tx_irq(size_t line) {
@@ -187,13 +187,12 @@ void uart_config_and_enable(size_t line, uint32_t baudrate, bool two_stop_bits, 
   // configure fifo interrupt trigger points
   // RX irq when fifo at least 1/8 full
   // TX irq when fifo less than full
-  UART_REG(line, UART_IFLS) |= 0x4;
+  // UART_REG(line, UART_IFLS) |= 0x4;
 
   // enable interrupts (rx timeout, tx)
-  // 5 = 0b101
   // we disable tx interrupts initially since we do not have
   // data to send
-  UART_REG(line, UART_IMSC) |= 5u << 4;
+  UART_REG(line, UART_IMSC) |= UART_RT_MASK | UART_RX_MASK | UART_CTS_MASK;
 }
 
 static size_t get_irq_line() {
@@ -204,7 +203,7 @@ static size_t get_irq_line() {
     return UART_CONSOLE;
   }
 
-  // must be line 0
+  // must be line 2
   return UART_MARKLIN;
 }
 
@@ -223,6 +222,7 @@ unsigned char uart_getc(size_t line) {
 enum Event uart_handle_irq() {
   size_t line = get_irq_line();
   uint32_t mis = UART_REG(line, UART_MIS);
+  bool cts = false;
   bool tx = false;
 
   if (line == 0) {
@@ -230,20 +230,29 @@ enum Event uart_handle_irq() {
     return 0;
   }
 
-  if (mis & UART_RT_MASK) {
+  if (mis & UART_CTS_MASK) {
+    // clear interrupt
+    UART_REG(line, UART_ICR) = UART_CTS_MASK;
+    cts = true;
+  } else if (mis & UART_RT_MASK) {
     // clear interrupt
     UART_REG(line, UART_ICR) = UART_RT_MASK;
   } else if (mis & UART_TX_MASK) {
     // clear interrupt
     UART_REG(line, UART_ICR) = UART_TX_MASK;
-
     tx = true;
   } else if (mis & UART_RX_MASK) {
     // clear interrupt
     UART_REG(line, UART_ICR) = UART_RX_MASK;
   }
 
-  if (tx) {
+  if (cts) {
+    if (line == UART_CONSOLE) {
+      return EVENT_UART_CONSOLE_CTS;
+    } else {
+      return EVENT_UART_MARKLIN_CTS;
+    }
+  } else if (tx) {
     if (line == UART_CONSOLE) {
       return EVENT_UART_CONSOLE_TX;
     } else {

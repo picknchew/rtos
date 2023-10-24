@@ -1,7 +1,7 @@
-#ifndef _util_h_
-#define _util_h_ 1
+#pragma once
 
 #include <stddef.h>
+#include <stdbool.h>
 
 // conversions
 int a2d(char ch);
@@ -15,7 +15,6 @@ void *memcpy(void *restrict dest, const void *restrict src, size_t n);
 
 int min(int a, int b);
 int strcmp(char *str1, char *str2);
-int atoi(char* str);
-int is_number(const char *str);
-
-#endif /* util.h */
+int strlen(char *str);
+bool is_number(char *str);
+int atoi(char *str);

@@ -32,6 +32,12 @@ void circular_buffer_write_int8(struct CircularBuffer *buffer, uint8_t i) {
   circular_buffer_write_item(buffer, item);
 }
 
+void circular_buffer_write_n(struct CircularBuffer *buffer, const unsigned char *data, unsigned int size) {
+  for (int i = 0; i < size; ++i) {
+    circular_buffer_write(buffer, data[i]);
+  }
+}
+
 void circular_buffer_write_int64(struct CircularBuffer *buffer, uint64_t i) {
   // storing 64 bit int into 8 8-bit ints
   for (unsigned int byte = 0; byte < sizeof(uint64_t); ++byte) {
@@ -73,6 +79,12 @@ static union CircularBufferItem circular_buffer_read_item(struct CircularBuffer 
 
 char circular_buffer_read(struct CircularBuffer *buffer) {
   return circular_buffer_read_item(buffer).ch;
+}
+
+void circular_buffer_read_n(struct CircularBuffer *buffer, unsigned char *out, unsigned int size) {
+  for (int i = 0; i < size; ++i) {
+    out[i] = circular_buffer_read(buffer);
+  }
 }
 
 uint8_t circular_buffer_read_int8(struct CircularBuffer *buffer) {

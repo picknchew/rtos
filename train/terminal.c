@@ -1,19 +1,16 @@
 #include "terminal.h"
 
 #include <stdarg.h>
-// #include <stdlib.h>
 
-// #include "string.h"
-#include "../util.h"
 #include "../uart.h"
 #include "../user/io_server.h"
+#include "../user/trainset_task.h"
+#include "../util.h"
 
 // Serial on the RPi hat is used for the console
 static const size_t LINE_CONSOLE = 1;
 
-static const char CHAR_COMMAND_END = '\r';
 static const char CHAR_DELIMITER = ' ';
-static const char CHAR_BACKSPACE = 8;
 
 #define CENTISECOND_IN_MICROSECONDS UINT64_C(100000)
 #define SECOND_IN_MICROSECONDS (CENTISECOND_IN_MICROSECONDS * 10)
@@ -30,26 +27,23 @@ const char TEXT_RESET[] = "\033[0m";
 static const unsigned int TIME_UPDATE_INTERVAL = 5000;
 static const unsigned int SCREEN_UPDATE_INTERVAL = 100000;
 
-int console_rx_server;
-int console_tx_server;
+static void init_screen(struct Terminal *terminal, int train_tid);
 
-static void init_screen(struct Terminal *terminal, unsigned int max_loop_duration);
-
-void terminal_init(struct Terminal *terminal, struct Trainset *trainset, int console_rx_tid,int console_tx_tid) {
+void terminal_init(
+    struct Terminal *terminal,
+    int train_tid,
+    int console_rx_tid,
+    int console_tx_tid) {
   terminal->command_len = 0;
   terminal->screen_last_updated = 0;
-  terminal->time_last_updated = 0;
-  terminal->trainset = trainset;
-
-  console_rx_server = console_rx_tid;
-  console_tx_server = console_tx_tid;
+  terminal->console_rx = console_rx_tid;
+  terminal->console_tx = console_tx_tid;
 
   circular_buffer_init(&terminal->write_buffer);
 
-  // uart_config_and_enable(LINE_CONSOLE, 115200, false);
   uart_puts(LINE_CONSOLE, SEQ_CLEAR_SCREEN);
 
-  init_screen(terminal, 0);
+  init_screen(terminal, train_tid);
 }
 
 static void putc(struct Terminal *terminal, char ch) {
@@ -75,9 +69,9 @@ static void format_print(struct Terminal *terminal, char *fmt, va_list va) {
   char ch;
 
   while ((ch = *(fmt++))) {
-    if (ch != '%')
+    if (ch != '%') {
       putc(terminal, ch);
-    else {
+    } else {
       ch = *(fmt++);
       switch (ch) {
         case 'u':
@@ -172,7 +166,7 @@ void terminal_update_status(struct Terminal *terminal, char *fmt, ...) {
 
 // Executes a command and returns 1 if the quit command is executed,
 // otherwise returns 0. Modifies command.
-static int execute_command(struct Terminal *terminal, char *command, uint64_t time) {
+int terminal_execute_command(struct Terminal *terminal, int train_tid, char *command) {
   char *saveptr = NULL;
   char *command_name = strtok_r(command, CHAR_DELIMITER, &saveptr);
 
@@ -209,7 +203,7 @@ static int execute_command(struct Terminal *terminal, char *command, uint64_t ti
     }
 
     terminal_update_status(terminal, "Changing speed of train!");
-    trainset_set_train_speed(terminal->trainset, terminal, train_number, train_speed);
+    trainset_set_train_speed(train_tid, terminal, train_number, train_speed);
   } else if (strcmp("rv", command_name)) {
     char *str_train_number = strtok_r(NULL, CHAR_DELIMITER, &saveptr);
 
@@ -225,7 +219,7 @@ static int execute_command(struct Terminal *terminal, char *command, uint64_t ti
     }
 
     terminal_update_status(terminal, "Reversing train!");
-    trainset_train_reverse(terminal->trainset, terminal, train_number, time);
+    TrainReverse(train_tid, train_number);
   } else if (strcmp("sw", command_name)) {
     char *str_switch_number = strtok_r(NULL, CHAR_DELIMITER, &saveptr);
     if (!is_number(str_switch_number)) {
@@ -235,28 +229,28 @@ static int execute_command(struct Terminal *terminal, char *command, uint64_t ti
 
     int switch_number = atoi(str_switch_number);
     char *str_switch_direction = strtok_r(NULL, CHAR_DELIMITER, &saveptr);
-    
+
     if (!str_switch_direction) {
       return 0;
     }
-    
+
     int switch_direction = 0;
 
     if (strcmp(str_switch_direction, "C")) {
       switch_direction = TRAINSET_DIRECTION_CURVED;
     }
-    
+
     if (strcmp(str_switch_direction, "S")) {
       switch_direction = TRAINSET_DIRECTION_STRAIGHT;
     }
-    
+
     if (!switch_direction) {
       terminal_update_status(terminal, "Invalid switch direction provided!");
       return 0;
     }
 
     terminal_update_status(terminal, "Changing direction of switch!");
-    trainset_set_switch_direction(terminal->trainset, terminal, switch_number, switch_direction, time);
+    TrainSetSwitchDir(train_tid, switch_number, switch_direction);
   }
 
   return 0;
@@ -266,7 +260,7 @@ static void clear_command_buffer(struct Terminal *terminal) {
   terminal->command_len = 0;
 }
 
-static void update_time(struct Terminal *terminal, uint64_t time) {
+void terminal_update_time(struct Terminal *terminal, uint64_t time) {
   // guaranteed to be less than 64 bits
   int hours = time / HOUR_IN_MICROSECONDS;
   int minutes = (time % HOUR_IN_MICROSECONDS) / MINUTE_IN_MICROSECONDS;
@@ -296,7 +290,7 @@ static char get_switch_dir_char(enum SwitchDirection dir) {
   return 'C';
 }
 
-void terminal_update_switch_states(struct Terminal *terminal) {
+void terminal_update_switch_states(struct Terminal *terminal, int train_tid) {
   const int SWITCHES_TITLE_ROW = 5;
   const int SWITCHES_ROW = 6;
 
@@ -310,25 +304,25 @@ void terminal_update_switch_states(struct Terminal *terminal) {
     ++offset;
 
     printf(terminal, "%d: ", switch_num);
-    putc(terminal, get_switch_dir_char(trainset_get_switch_state(terminal->trainset, switch_num)));
+    putc(terminal, get_switch_dir_char(trainset_get_switch_state(train_tid, switch_num)));
   }
 
   offset = 0;
   for (int switch_num = 10; switch_num <= 18; ++switch_num) {
     move_cursor(terminal, SWITCHES_ROW + offset, 10);
     ++offset;
-    
+
     printf(terminal, "%d: ", switch_num);
-    putc(terminal, get_switch_dir_char(trainset_get_switch_state(terminal->trainset, switch_num)));
+    putc(terminal, get_switch_dir_char(trainset_get_switch_state(train_tid, switch_num)));
   }
 
   offset = 0;
   for (int switch_num = 153; switch_num <= 156; ++switch_num) {
     move_cursor(terminal, SWITCHES_ROW + offset, 20);
     ++offset;
-    
+
     printf(terminal, "%d: ", switch_num);
-    putc(terminal, get_switch_dir_char(trainset_get_switch_state(terminal->trainset, switch_num)));
+    putc(terminal, get_switch_dir_char(trainset_get_switch_state(train_tid, switch_num)));
   }
 
   restore_cursor(terminal);
@@ -354,7 +348,7 @@ void terminal_update_train_speeds(struct Terminal *terminal, uint8_t *train_spee
   restore_cursor(terminal);
 }
 
-static void update_command(struct Terminal *terminal) {
+void terminal_update_command(struct Terminal *terminal) {
   save_cursor(terminal);
   move_cursor(terminal, 19, 1);
   puts(terminal, SEQ_CURSOR_DELETE_LINE);
@@ -363,14 +357,9 @@ static void update_command(struct Terminal *terminal) {
   restore_cursor(terminal);
 }
 
-static void update_max_loop_duration(struct Terminal *terminal, unsigned int max_loop_duration) {
-  save_cursor(terminal);
-  move_cursor(terminal, 2, 1);
-  printf(terminal, "Main loop duration in us (max): %u", max_loop_duration);
-  restore_cursor(terminal);
-}
-
-void terminal_update_max_sensor_duration(struct Terminal *terminal, unsigned int max_sensor_query_duration) {
+void terminal_update_max_sensor_duration(
+    struct Terminal *terminal,
+    unsigned int max_sensor_query_duration) {
   save_cursor(terminal);
   move_cursor(terminal, 3, 1);
   printf(terminal, "Sensor query duration in us (max): %u", max_sensor_query_duration);
@@ -393,60 +382,12 @@ void terminal_update_sensors(struct Terminal *terminal, bool *sensors, size_t se
   restore_cursor(terminal);
 }
 
-static void init_screen(struct Terminal *terminal, unsigned int max_loop_duration) {
-  terminal_update_switch_states(terminal);
-  terminal_update_train_speeds(terminal, trainset_get_train_speeds(terminal->trainset));
+static void init_screen(struct Terminal *terminal, int train_tid) {
+  uint8_t train_speeds[TRAINSET_NUM_TRAINS] = {0};
+
+  terminal_update_switch_states(terminal, train_tid);
+  terminal_update_train_speeds(terminal, train_speeds);
   terminal_update_sensors(terminal, NULL, 0);
-  update_command(terminal);
-  update_max_loop_duration(terminal, max_loop_duration);
+  terminal_update_command(terminal);
   terminal_update_max_sensor_duration(terminal, 0);
-}
-
-/**
- * Returns 1 if we should quit the program, otherwise returns 0;
- */
-int terminal_tick(struct Terminal *terminal, uint64_t time, unsigned int max_loop_duration) {
-  if (!circular_buffer_empty(&terminal->write_buffer)) {
-    char ch = circular_buffer_read(&terminal->write_buffer);
-    uart_putc(LINE_CONSOLE, ch);
-  }
-
-  if (time - terminal->time_last_updated >= TIME_UPDATE_INTERVAL) {
-    update_time(terminal, time);
-    terminal->time_last_updated = time;
-  }
-
-  if (time - terminal->screen_last_updated >= SCREEN_UPDATE_INTERVAL) {
-    update_max_loop_duration(terminal, max_loop_duration);
-    terminal->screen_last_updated = time;
-  }
-
-  if (uart_hasc(LINE_CONSOLE)) {
-    char c = Getc(console_rx_server);
-
-    if (c == CHAR_COMMAND_END) {
-      terminal->command_buffer[terminal->command_len] = '\0';
-      int exit = execute_command(terminal, terminal->command_buffer, time);
-      clear_command_buffer(terminal);
-      update_command(terminal);
-      return exit;
-    }
-
-    if (c == CHAR_BACKSPACE && terminal->command_len > 0) {
-      --terminal->command_len;
-      update_command(terminal);
-      return 0;
-    }
-
-    // Clear command buffer if command length exceeds buffer size - 1.
-    // Last char must be null terminator.
-    if (terminal->command_len == BUFFER_SIZE - 1) {
-      clear_command_buffer(terminal);
-    }
-
-    terminal->command_buffer[terminal->command_len++] = c;
-    update_command(terminal);
-  }
-
-  return 0;
 }

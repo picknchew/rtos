@@ -38,4 +38,4 @@ int Putc(int tid, unsigned char ch);
  * 0	success.
  * -1	tid is not a valid uart server task.
  */
-int Putl(int tid, unsigned char *data, unsigned int len);
+int Putl(int tid, const unsigned char *data, unsigned int len);

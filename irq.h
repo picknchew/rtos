@@ -3,7 +3,7 @@
 #include <stdint.h>
 
 // must equal to the number of events
-#define EVENT_MAX 7
+#define EVENT_MAX 8
 
 enum Event {
   EVENT_UNKNOWN = 0, // start at 0 since we use these as indices for our event queue array
