@@ -37,7 +37,6 @@ void train_dispatcher_notifier() {
 void train_dispatcher_task() {
   RegisterAs("train_dispatch");
 
-  int marklin_rx = WhoIs("marklin_io_rx");
   int marklin_tx = WhoIs("marklin_io_tx");
 
   Create(DISPATCHER_PRIORITY, train_dispatcher_notifier);

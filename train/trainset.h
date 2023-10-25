@@ -22,11 +22,7 @@ enum SwitchDirection { DIRECTION_CURVED, DIRECTION_STRAIGHT, DIRECTION_UNKNOWN }
 extern const unsigned int DELAY_OFF_LAST_SOLENOID;
 extern const unsigned int DELAY_REVERSE;
 
-extern const int CMD_OFF_LAST_SOLENOID;
-extern const int CMD_READ_ALL_SENSORS;
 extern const int SPEED_REVERSE_DIRECTION;
-
-extern const int IO_TASK_PRIORITY;
 
 struct Trainset {
   enum SwitchDirection switch_states[TRAINSET_NUM_MAX_SWITCHES];
@@ -62,4 +58,5 @@ void trainset_set_switch_direction(
 bool *trainset_get_sensor_data(struct Trainset *trainset);
 bool trainset_is_valid_train(uint8_t train);
 enum SwitchDirection trainset_get_switch_state(struct Trainset *trainset, uint8_t switch_number);
+void trainset_process_sensor_data(struct Trainset *trainset, char *raw_sensor_data);
 void train_task();

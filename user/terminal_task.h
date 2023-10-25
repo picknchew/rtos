@@ -47,4 +47,4 @@ void TerminalUpdateStatus(int tid, char *status);
 void TerminalUpdateSwitchStates(int tid);
 void TerminalUpdateMaxSensorDuration(int tid, unsigned int duration);
 
-int terminal_task();
+void terminal_task();

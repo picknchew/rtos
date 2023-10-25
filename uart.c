@@ -225,11 +225,6 @@ enum Event uart_handle_irq() {
   bool cts = false;
   bool tx = false;
 
-  if (line == 0) {
-    printf("uart: failed to find line for irq!");
-    return 0;
-  }
-
   if (mis & UART_CTS_MASK) {
     // clear interrupt
     UART_REG(line, UART_ICR) = UART_CTS_MASK;

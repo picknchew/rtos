@@ -15,10 +15,6 @@ struct Terminal {
   int console_tx;
 };
 
-/**
- * Returns 1 if we should quit the program, otherwise returns 0;
- */
-int terminal_tick(struct Terminal *terminal, uint64_t time);
 void terminal_init(
     struct Terminal *terminal,
     int train_tid,
@@ -33,4 +29,5 @@ void terminal_update_max_sensor_duration(
     unsigned int max_sensor_query_duration);
 void terminal_update_time(struct Terminal *terminal, uint64_t time);
 void terminal_update_command(struct Terminal *terminal);
-int terminal_execute_command(struct Terminal *terminal, int train_tid, char *command);
+bool terminal_execute_command(struct Terminal *terminal, int train_tid, char *command);
+void terminal_clear_command_buffer(struct Terminal *terminal);

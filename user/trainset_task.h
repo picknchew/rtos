@@ -1,3 +1,8 @@
+#pragma once
+
+#include <stdint.h>
+#include <stdbool.h>
+
 #include "../train/trainset.h"
 
 enum TrainRequestType {
@@ -11,7 +16,7 @@ enum TrainRequestType {
   SENSOR_DATA_NOTIFY
 };
 
-const int TRAIN_TASK_PRIORITY = 1;
+extern const int TRAIN_TASK_PRIORITY;
 
 struct TrainUpdateSensorDataRequest {
   uint64_t time_taken;
@@ -75,3 +80,4 @@ void TrainSetSpeed(int tid, uint8_t train, uint8_t speed);
 void TrainSetSwitchDir(int tid, int switch_num, int dir);
 bool TrainIsValidTrain(int tid, uint8_t train);
 enum SwitchDirection TrainGetSwitchState(int tid, uint8_t switch_num);
+void train_off_solenoid_task();

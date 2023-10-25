@@ -15,7 +15,6 @@
 #include "rps_test_task.h"
 #include "test_tasks.h"
 #include "testk3.h"
-#include "trainset_task.h"
 #include "terminal_task.h"
 
 void init_task() {
@@ -37,7 +36,6 @@ void init_task() {
   // Create(1, idle_task);
   Create(19, train_dispatcher_task);
 
-  Create(1, train_task);
   Create(1, terminal_task);
   for (;;) {}  // spin forever when no other tasks are running
 }

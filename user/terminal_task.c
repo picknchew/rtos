@@ -1,6 +1,11 @@
 #include "terminal_task.h"
 
+#include "../syscall.h"
 #include "../train/terminal.h"
+#include "clock_server.h"
+#include "io_server.h"
+#include "name_server.h"
+#include "trainset_task.h"
 
 static const char CHAR_COMMAND_END = '\r';
 static const char CHAR_BACKSPACE = 8;
@@ -27,11 +32,11 @@ void terminal_time_update_task() {
   }
 }
 
-static void handle_keypress(struct Terminal *terminal, int train_tid, char c) {
+static bool handle_keypress(struct Terminal *terminal, int train_tid, char c) {
   if (c == CHAR_COMMAND_END) {
     terminal->command_buffer[terminal->command_len] = '\0';
-    int exit = terminal_execute_command(terminal, train_tid, terminal->command_buffer);
-    clear_command_buffer(terminal);
+    bool exit = terminal_execute_command(terminal, train_tid, terminal->command_buffer);
+    terminal_clear_command_buffer(terminal);
     terminal_update_command(terminal);
     return exit;
   }
@@ -39,23 +44,26 @@ static void handle_keypress(struct Terminal *terminal, int train_tid, char c) {
   if (c == CHAR_BACKSPACE && terminal->command_len > 0) {
     --terminal->command_len;
     terminal_update_command(terminal);
-    return 0;
+    return false;
   }
 
   // Clear command buffer if command length exceeds buffer size - 1.
   // Last char must be null terminator.
   if (terminal->command_len == BUFFER_SIZE - 1) {
-    clear_command_buffer(terminal);
+    terminal_clear_command_buffer(terminal);
   }
 
   terminal_update_command(terminal);
+  return false;
 }
 
-int terminal_task() {
+void terminal_task() {
+  RegisterAs("terminal");
+
   int console_rx = WhoIs("console_io_rx");
   int console_tx = WhoIs("console_io_tx");
 
-  int train_tid = WhoIs("train");
+  int train_tid = Create(1, train_task);
 
   struct Terminal terminal;
   terminal_init(&terminal, train_tid, console_rx, console_tx);
@@ -83,8 +91,9 @@ int terminal_task() {
         terminal_update_max_sensor_duration(&terminal, req.update_max_sensor_duration_req.duration);
         break;
       case TERMINAL_KEY_PRESS_NOTIFY:
-        break;
-        handle_keypress(&terminal, train_tid, req.ch);
+        if (handle_keypress(&terminal, train_tid, req.ch)) {
+          Exit();
+        }
         break;
       case TERMINAL_TIME_NOTIFY:
         terminal_update_time(&terminal, req.time);

@@ -17,9 +17,7 @@ const unsigned int DELAY_OFF_LAST_SOLENOID = 15000;
 // delay between braking and reversing (2s) in ticks.
 const unsigned int DELAY_REVERSE = 200;
 
-const int CMD_OFF_LAST_SOLENOID = 0x20;
-const int CMD_READ_ALL_SENSORS = 0x80 + TRAINSET_NUM_FEEDBACK_MODULES;
-static const int CMD_SENSOR_RESET_MODE = 0xC0;
+static const unsigned char CMD_SENSOR_RESET_MODE = 0xC0;
 
 // offset to add to speed to turn on function on train (headlights)
 static const int SPEED_OFFSET_FUNCTION = 16;
@@ -67,12 +65,12 @@ void trainset_init(struct Trainset *trainset, int marklin_rx_tid, int train_disp
 
   uart_config_and_enable(UART_MARKLIN, BAUD_RATE, true, true);
 
-  char cmd[] = {CMD_SENSOR_RESET_MODE};
-  DispatchTrainCommand(trainset->train_dispatcher, CMD_SENSOR_RESET_MODE, 1);
+  unsigned char cmd[] = {CMD_SENSOR_RESET_MODE};
+  DispatchTrainCommand(trainset->train_dispatcher, cmd, 1);
 }
 
-static void send_command(struct Trainset *trainset, char arg1, char arg2) {
-  char data[] = {arg1, arg2};
+static void send_command(struct Trainset *trainset, unsigned char arg1, unsigned char arg2) {
+  unsigned char data[] = {arg1, arg2};
   DispatchTrainCommand(trainset->train_dispatcher, data, 2);
 }
 
@@ -112,7 +110,7 @@ uint8_t trainset_get_speed(struct Trainset *trainset, uint8_t train) {
 
 void trainset_train_reverse(struct Trainset *trainset, int terminal_tid, uint8_t train) {
   int speed = trainset_get_speed(trainset, train);
-  trainset_set_train_speed(&trainset, terminal_tid, train, 0);
+  trainset_set_train_speed(trainset, terminal_tid, train, 0);
 
   int reverse_task = Create(TRAIN_TASK_PRIORITY, train_reverse_task);
   struct TrainReverseNotifyRequest req = {.train = train, .speed = speed};
@@ -130,9 +128,12 @@ void trainset_set_switch_direction(
   trainset->switch_states[switch_number] =
       direction == TRAINSET_DIRECTION_CURVED ? DIRECTION_CURVED : DIRECTION_STRAIGHT;
   TerminalUpdateSwitchStates(terminal_tid);
+
+  // switch off solenoid after a period.
+  Create(TRAIN_TASK_PRIORITY, train_off_solenoid_task);
 }
 
-static void process_sensor_data(struct Trainset *trainset, char *raw_sensor_data) {
+void trainset_process_sensor_data(struct Trainset *trainset, char *raw_sensor_data) {
   // each feedback module has 2 numbers (contacts 1 to 8) and (contacts 9 to 16)
   for (int i = 0; i < TRAINSET_NUM_FEEDBACK_MODULES * 2; ++i) {
     char ch = raw_sensor_data[i];

@@ -1,6 +1,7 @@
 #include "terminal.h"
 
 #include <stdarg.h>
+#include <stdbool.h>
 
 #include "../uart.h"
 #include "../user/io_server.h"
@@ -166,28 +167,28 @@ void terminal_update_status(struct Terminal *terminal, char *fmt, ...) {
 
 // Executes a command and returns 1 if the quit command is executed,
 // otherwise returns 0. Modifies command.
-int terminal_execute_command(struct Terminal *terminal, int train_tid, char *command) {
+bool terminal_execute_command(struct Terminal *terminal, int train_tid, char *command) {
   char *saveptr = NULL;
   char *command_name = strtok_r(command, CHAR_DELIMITER, &saveptr);
 
   if (!command_name) {
     terminal_update_status(terminal, "Invalid command!");
-    return 0;
+    return false;
   }
 
   if (strcmp("q", command_name)) {
-    return 1;
+    return true;
   } else if (strcmp("tr", command_name)) {
     char *str_train_number = strtok_r(NULL, CHAR_DELIMITER, &saveptr);
     if (!str_train_number || !is_number(str_train_number)) {
       terminal_update_status(terminal, "Train provided is not a valid train!");
-      return 0;
+      return false;
     }
 
     char *str_train_speed = strtok_r(NULL, CHAR_DELIMITER, &saveptr);
     if (!str_train_speed || !is_number(str_train_speed)) {
       terminal_update_status(terminal, "Must provide a valid speed!");
-      return 0;
+      return false;
     }
 
     int train_number = atoi(str_train_number);
@@ -195,27 +196,28 @@ int terminal_execute_command(struct Terminal *terminal, int train_tid, char *com
 
     if (!trainset_is_valid_train(train_number)) {
       terminal_update_status(terminal, "Train provided is not a valid train!");
-      return 0;
+      return false;
     }
 
     if (train_speed < 0 || train_speed > 14) {
-      return 0;
+      return false;
     }
 
     terminal_update_status(terminal, "Changing speed of train!");
-    trainset_set_train_speed(train_tid, terminal, train_number, train_speed);
+
+    TrainSetSpeed(train_tid, train_number, train_speed);
   } else if (strcmp("rv", command_name)) {
     char *str_train_number = strtok_r(NULL, CHAR_DELIMITER, &saveptr);
 
     if (!str_train_number || !is_number(str_train_number)) {
-      return 0;
+      return false;
     }
 
     int train_number = atoi(str_train_number);
 
     if (!trainset_is_valid_train(train_number)) {
       terminal_update_status(terminal, "Train provided is not a valid train!");
-      return 0;
+      return false;
     }
 
     terminal_update_status(terminal, "Reversing train!");
@@ -224,14 +226,14 @@ int terminal_execute_command(struct Terminal *terminal, int train_tid, char *com
     char *str_switch_number = strtok_r(NULL, CHAR_DELIMITER, &saveptr);
     if (!is_number(str_switch_number)) {
       terminal_update_status(terminal, "Must provide a valid switch number!");
-      return 0;
+      return false;
     }
 
     int switch_number = atoi(str_switch_number);
     char *str_switch_direction = strtok_r(NULL, CHAR_DELIMITER, &saveptr);
 
     if (!str_switch_direction) {
-      return 0;
+      return false;
     }
 
     int switch_direction = 0;
@@ -246,17 +248,17 @@ int terminal_execute_command(struct Terminal *terminal, int train_tid, char *com
 
     if (!switch_direction) {
       terminal_update_status(terminal, "Invalid switch direction provided!");
-      return 0;
+      return false;
     }
 
     terminal_update_status(terminal, "Changing direction of switch!");
     TrainSetSwitchDir(train_tid, switch_number, switch_direction);
   }
 
-  return 0;
+  return false;
 }
 
-static void clear_command_buffer(struct Terminal *terminal) {
+void terminal_clear_command_buffer(struct Terminal *terminal) {
   terminal->command_len = 0;
 }
 
@@ -304,7 +306,7 @@ void terminal_update_switch_states(struct Terminal *terminal, int train_tid) {
     ++offset;
 
     printf(terminal, "%d: ", switch_num);
-    putc(terminal, get_switch_dir_char(trainset_get_switch_state(train_tid, switch_num)));
+    putc(terminal, get_switch_dir_char(TrainGetSwitchState(train_tid, switch_num)));
   }
 
   offset = 0;
@@ -313,7 +315,7 @@ void terminal_update_switch_states(struct Terminal *terminal, int train_tid) {
     ++offset;
 
     printf(terminal, "%d: ", switch_num);
-    putc(terminal, get_switch_dir_char(trainset_get_switch_state(train_tid, switch_num)));
+    putc(terminal, get_switch_dir_char(TrainGetSwitchState(train_tid, switch_num)));
   }
 
   offset = 0;
@@ -322,7 +324,7 @@ void terminal_update_switch_states(struct Terminal *terminal, int train_tid) {
     ++offset;
 
     printf(terminal, "%d: ", switch_num);
-    putc(terminal, get_switch_dir_char(trainset_get_switch_state(train_tid, switch_num)));
+    putc(terminal, get_switch_dir_char(TrainGetSwitchState(train_tid, switch_num)));
   }
 
   restore_cursor(terminal);

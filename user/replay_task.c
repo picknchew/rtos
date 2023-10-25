@@ -3,6 +3,7 @@
 #include <stdbool.h>
 
 #include "../circular_buffer.h"
+#include "../rpi.h"
 #include "../syscall.h"
 #include "../train/train_dispatcher.h"
 #include "../uart.h"
@@ -55,7 +56,6 @@ void replay_task() {
   uart_config_and_enable(LINE_TRAINSET, BAUD_RATE, true, true);
   int console_rx = WhoIs("console_io_rx");
   int console_tx = WhoIs("console_io_tx");
-  int marklin_tx = WhoIs("marklin_io_tx");
   int marklin_rx = WhoIs("marklin_io_rx");
   int train_dispatch = WhoIs("train_dispatch");
 
