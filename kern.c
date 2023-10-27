@@ -23,7 +23,7 @@ const char *train =
 extern void kern_exit();
 
 int kmain() {
-  uart_config_and_enable(UART_CONSOLE, 115200, false, true);
+  uart_config_and_enable(UART_CONSOLE, 115200, false, true, false);
   uart_init();
   uart_puts(UART_CONSOLE, train);
   uart_puts(UART_CONSOLE, "Booting...\r\n");

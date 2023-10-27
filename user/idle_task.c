@@ -7,6 +7,8 @@
 #include "../rpi.h"
 #include "../syscall.h"
 #include "../timer.h"
+#include "name_server.h"
+#include "terminal_task.h"
 
 #define CENTISECOND_IN_MICROSECONDS 10000u
 #define SECOND_IN_MICROSECONDS (CENTISECOND_IN_MICROSECONDS * 100)
@@ -17,6 +19,8 @@
 static const unsigned int PRINT_INTERVAL = 2e6;
 
 void idle_task() {
+  int terminal = WhoIs("terminal");
+
   uint64_t init_time = timer_get_time();
   uint64_t last_printed = 0;
   uint64_t time_elapsed = 0;
@@ -29,19 +33,23 @@ void idle_task() {
     int idle_pct = time_elapsed * 100 / current_time;
 
     if (current_time > last_printed + PRINT_INTERVAL) {
-      unsigned int hours = time_elapsed / HOUR_IN_MICROSECONDS;
-      unsigned int minutes = (time_elapsed % HOUR_IN_MICROSECONDS) / MINUTE_IN_MICROSECONDS;
-      unsigned int seconds = (time_elapsed % MINUTE_IN_MICROSECONDS) / SECOND_IN_MICROSECONDS;
-      unsigned int centiseconds =
-          (time_elapsed % SECOND_IN_MICROSECONDS) / CENTISECOND_IN_MICROSECONDS;
+      // unsigned int hours = time_elapsed / HOUR_IN_MICROSECONDS;
+      // unsigned int minutes = (time_elapsed % HOUR_IN_MICROSECONDS) / MINUTE_IN_MICROSECONDS;
+      // unsigned int seconds = (time_elapsed % MINUTE_IN_MICROSECONDS) / SECOND_IN_MICROSECONDS;
+      // unsigned int centiseconds =
+      //     (time_elapsed % SECOND_IN_MICROSECONDS) / CENTISECOND_IN_MICROSECONDS;
 
-      printf(
-          "idle_task: idle time %u:%u:%u:%u (%u%% of uptime)\r\n",
-          hours,
-          minutes,
-          seconds,
-          centiseconds,
-          idle_pct);
+      // printf("idle_task: idle time %u:%u:%u:%u (%u%% of uptime)\r\n",
+      //     hours,
+      //     minutes,
+      //     seconds,
+      //     centiseconds,
+      //     idle_pct);
+
+      TerminalUpdateStatus(terminal, "idle_task: %d\r\n", time_elapsed);
+
+      TerminalUpdateIdle(terminal, time_elapsed, idle_pct);
+
       last_printed = current_time;
     }
   }

@@ -33,15 +33,11 @@ struct Trainset {
   uint64_t last_track_switch_time;
   uint64_t max_read_sensor_query_time;
 
-  // trains that need to be reversed.
-  struct CircularBuffer reverse_buffer;
-
   // task tids
   int train_dispatcher;
-  int marklin_rx;
 };
 
-void trainset_init(struct Trainset *trainset, int marklin_rx_tid, int train_dispatcher_tid);
+void trainset_init(struct Trainset *trainset, int train_dispatcher_tid);
 void trainset_set_train_speed(
     struct Trainset *trainset,
     int terminal_tid,

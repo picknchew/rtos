@@ -5,7 +5,6 @@
 #include <stdio.h>
 
 #include "../syscall.h"
-#include "../timer.h"
 #include "../train/train_dispatcher.h"
 #include "../train/trainset.h"
 #include "../uart.h"
@@ -14,34 +13,21 @@
 #include "io_server.h"
 #include "name_server.h"
 
-const unsigned char CMD_OFF_LAST_SOLENOID = 0x20;
-const unsigned char CMD_READ_ALL_SENSORS = 0x80 + TRAINSET_NUM_FEEDBACK_MODULES;
+const unsigned char CMD_OFF_LAST_SOLENOID[] = {0x20};
+const unsigned char CMD_READ_ALL_SENSORS[] = {0x80 + TRAINSET_NUM_FEEDBACK_MODULES};
 
-const int TRAIN_TASK_PRIORITY = 1;
+const int TRAIN_TASK_PRIORITY = 3;
 
 void train_sensor_update_task() {
-  int train_controller = MyParentTid();
-  int train_dispatcher = WhoIs("train_dispatch");
-  int marklin_rx = WhoIs("marklin_io_rx");
+  int train = MyParentTid();
+  int train_dispatcher = WhoIs("marklin_io_tx");
   int clock_server = WhoIs("clock_server");
 
+  struct TrainRequest req = {.type = READ_SENSORS};
+
   while (true) {
-    unsigned char cmd[] = {CMD_READ_ALL_SENSORS};
-    DispatchTrainCommand(train_dispatcher, cmd, 1);
-
-    uint64_t start_time = Time(clock_server);
-    struct TrainRequest req = {
-        .type = SENSOR_DATA_NOTIFY,
-    };
-
-    for (int i = 0; i < TRAINSET_NUM_FEEDBACK_MODULES * 2; ++i) {
-      req.update_sensor_data_req.raw_sensor_data[i] = Getc(marklin_rx);
-    }
-
-    uint64_t end_time = Time(clock_server);
-    req.update_sensor_data_req.time_taken = start_time - end_time;
-
-    Send(train_controller, (const char *) &req, sizeof(req), NULL, 0);
+    Delay(clock_server, 10);
+    Send(train, (const char *) &req, sizeof(req), NULL, 0);
   }
 
   Exit();
@@ -77,8 +63,7 @@ static void handle_off_last_solenoid(struct Trainset *trainset, uint64_t current
   // multiple switches in a short duration can cause the solenoid to be switched off many times
   // when it is already off.
   if (current_time - trainset->last_track_switch_time >= DELAY_OFF_LAST_SOLENOID) {
-    const unsigned char cmd[] = {CMD_OFF_LAST_SOLENOID};
-    DispatchTrainCommand(trainset->train_dispatcher, cmd, 1);
+    DispatchTrainCommand(trainset->train_dispatcher, CMD_OFF_LAST_SOLENOID, 1);
   }
 }
 
@@ -86,14 +71,15 @@ void train_task() {
   RegisterAs("train");
 
   int clock_server = WhoIs("clock_server");
-  int marklin_rx = WhoIs("marklin_rx");
-  int train_dispatcher = WhoIs("train_dispatch");
+  int marklin_io_tx = WhoIs("marklin_io_tx");
+  int marklin_rx = WhoIs("marklin_io_rx");
 
   struct Trainset trainset;
-  trainset_init(&trainset, marklin_rx, train_dispatcher);
+  trainset_init(&trainset, marklin_io_tx);
 
   int terminal = WhoIs("terminal");
 
+  // create sensor update task
   Create(TRAIN_TASK_PRIORITY, train_sensor_update_task);
 
   int tid;
@@ -119,7 +105,7 @@ void train_task() {
         break;
       case REVERSE_TRAIN:
         Reply(tid, NULL, 0);
-        trainset_train_reverse(&trainset, terminal, req.reverse_notify_req.train);
+        trainset_train_reverse(&trainset, terminal, req.reverse_req.train);
         break;
       case IS_VALID_TRAIN:
         res.is_valid_train = trainset_is_valid_train(req.is_valid_train_req.train);
@@ -130,28 +116,57 @@ void train_task() {
             trainset_get_switch_state(&trainset, req.get_switch_state_req.switch_num);
         Reply(tid, (const char *) &res, sizeof(res));
         break;
-      case SENSOR_DATA_NOTIFY:
-        trainset_process_sensor_data(&trainset, req.update_sensor_data_req.raw_sensor_data);
+      // case SENSOR_DATA_NOTIFY:
+      //   trainset_process_sensor_data(&trainset, req.update_sensor_data_req.raw_sensor_data);
+
+      //   TerminalUpdateSensors(
+      //       terminal,
+      //       trainset_get_sensor_data(&trainset),
+      //       TRAINSET_NUM_FEEDBACK_MODULES * TRAINSET_NUM_SENSORS_PER_MODULE);
+
+      //   if (trainset.max_read_sensor_query_time < req.update_sensor_data_req.time_taken) {
+      //     trainset.max_read_sensor_query_time = req.update_sensor_data_req.time_taken;
+      //     TerminalUpdateMaxSensorDuration(terminal, trainset.max_read_sensor_query_time);
+      //   }
+
+      //   Reply(tid, NULL, 0);
+      //   break;
+      case READ_SENSORS: {
+        char raw_sensor_data[TRAINSET_NUM_FEEDBACK_MODULES * 2] = {0};
+        uint64_t start_time = Time(clock_server);
+
+        DispatchTrainCommand(marklin_io_tx, CMD_READ_ALL_SENSORS, 1);
+
+        for (int i = 0; i < TRAINSET_NUM_FEEDBACK_MODULES * 2; ++i) {
+          raw_sensor_data[i] = Getc(marklin_rx);
+        }
+        NotifyMarklinRead(marklin_io_tx);
+
+        uint64_t end_time = Time(clock_server);
+        // get in microseconds
+        uint64_t time_taken = end_time - start_time;
+
+        trainset_process_sensor_data(&trainset, raw_sensor_data);
 
         TerminalUpdateSensors(
             terminal,
             trainset_get_sensor_data(&trainset),
             TRAINSET_NUM_FEEDBACK_MODULES * TRAINSET_NUM_SENSORS_PER_MODULE);
 
-        if (trainset.max_read_sensor_query_time < req.update_sensor_data_req.time_taken) {
-          trainset.max_read_sensor_query_time = req.update_sensor_data_req.time_taken;
-          TerminalUpdateMaxSensorDuration(terminal, trainset.max_read_sensor_query_time);
+        if (trainset.max_read_sensor_query_time < time_taken) {
+          trainset.max_read_sensor_query_time = time_taken;
+          TerminalUpdateMaxSensorDuration(terminal, time_taken);
         }
-
         Reply(tid, NULL, 0);
-        break;
+      } break;
       case REVERSE_TRAIN_NOTIFY:
-        Reply(tid, NULL, 0);
         TerminalUpdateStatus(terminal, "Reversing train..");
         trainset_set_train_speed(
             &trainset, terminal, req.reverse_notify_req.train, SPEED_REVERSE_DIRECTION);
+        // Delay(clock_server, 10);
         trainset_set_train_speed(
             &trainset, terminal, req.reverse_notify_req.train, req.reverse_notify_req.speed);
+        Reply(tid, NULL, 0);
         break;
       case OFF_LAST_SOLENOID_NOTIFY:
         Reply(tid, NULL, 0);
@@ -169,13 +184,18 @@ void TrainReverse(int tid, uint8_t train) {
 
 void TrainSetSpeed(int tid, uint8_t train, uint8_t speed) {
   struct TrainRequest req = {
-      .type = SET_SWITCH_DIR, .set_train_speed_req = {.train = train, .speed = speed}};
+      .type = SET_SPEED, .set_train_speed_req = {.train = train, .speed = speed}};
   Send(tid, (const char *) &req, sizeof(req), NULL, 0);
 }
 
 void TrainSetSwitchDir(int tid, int switch_num, int dir) {
   struct TrainRequest req = {
       .type = SET_SWITCH_DIR, .set_switch_dir_req = {.switch_num = switch_num, .dir = dir}};
+  Send(tid, (const char *) &req, sizeof(req), NULL, 0);
+}
+
+void TrainReadSensors(int tid) {
+  struct TrainRequest req = {.type = READ_SENSORS};
   Send(tid, (const char *) &req, sizeof(req), NULL, 0);
 }
 
@@ -190,7 +210,7 @@ bool TrainIsValidTrain(int tid, uint8_t train) {
 enum SwitchDirection TrainGetSwitchState(int tid, uint8_t switch_num) {
   struct TrainResponse res;
   struct TrainRequest req = {
-      .type = IS_VALID_TRAIN, .get_switch_state_req = {.switch_num = switch_num}};
+      .type = GET_SWITCH_STATE, .get_switch_state_req = {.switch_num = switch_num}};
   Send(tid, (const char *) &req, sizeof(req), (char *) &res, sizeof(res));
 
   return res.switch_state;

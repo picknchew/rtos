@@ -9,11 +9,10 @@
 #include "../user/trainset_task.h"
 #include "train_dispatcher.h"
 
-static const int LINE_TRAINSET = 2;
 static const int BAUD_RATE = 2400;
 
 // delay to switch off last solenoid in ticks (150ms)
-const unsigned int DELAY_OFF_LAST_SOLENOID = 15000;
+const unsigned int DELAY_OFF_LAST_SOLENOID = 15;
 // delay between braking and reversing (2s) in ticks.
 const unsigned int DELAY_REVERSE = 200;
 
@@ -28,7 +27,6 @@ const int TRAINSET_DIRECTION_CURVED = 0x22;
 
 const int TRAINSET_TRAINS[] = {1, 2, 24, 47, 54, 58, 78};
 
-int marklin_rx_server;
 int marklin_tx_server;
 
 static int get_train_index(uint8_t train) {
@@ -41,12 +39,11 @@ static int get_train_index(uint8_t train) {
   return 0;
 }
 
-void trainset_init(struct Trainset *trainset, int marklin_rx_tid, int train_dispatcher_tid) {
+void trainset_init(struct Trainset *trainset, int train_dispatcher_tid) {
   trainset->last_track_switch_time = 0;
   trainset->max_read_sensor_query_time = 0;
 
   trainset->train_dispatcher = train_dispatcher_tid;
-  trainset->marklin_rx = marklin_rx_tid;
 
   for (unsigned int i = 0; i < TRAINSET_NUM_FEEDBACK_MODULES * TRAINSET_NUM_SENSORS_PER_MODULE;
        ++i) {
@@ -61,9 +58,7 @@ void trainset_init(struct Trainset *trainset, int marklin_rx_tid, int train_disp
     trainset->train_speeds[i] = 0;
   }
 
-  circular_buffer_init(&trainset->reverse_buffer);
-
-  uart_config_and_enable(UART_MARKLIN, BAUD_RATE, true, true);
+  uart_config_and_enable(UART_MARKLIN, BAUD_RATE, true, true, true);
 
   unsigned char cmd[] = {CMD_SENSOR_RESET_MODE};
   DispatchTrainCommand(trainset->train_dispatcher, cmd, 1);
@@ -88,7 +83,7 @@ void trainset_set_train_speed(
     trainset->train_speeds[train_index] = speed;
   }
 
-  TerminalUpdateTrainSpeeds(terminal_tid, trainset->train_speeds);
+  TerminalUpdateTrainSpeed(terminal_tid, train_index, speed);
 
   // add 16 to speed for auxiliary function
   send_command(trainset, speed + SPEED_OFFSET_FUNCTION, train);
@@ -124,10 +119,13 @@ void trainset_set_switch_direction(
     int direction,
     uint64_t time) {
   send_command(trainset, direction, switch_number);
-  trainset->last_track_switch_time = time;
-  trainset->switch_states[switch_number] =
+
+  enum SwitchDirection switch_direction =
       direction == TRAINSET_DIRECTION_CURVED ? DIRECTION_CURVED : DIRECTION_STRAIGHT;
-  TerminalUpdateSwitchStates(terminal_tid);
+
+  trainset->last_track_switch_time = time;
+  trainset->switch_states[switch_number] = switch_direction;
+  TerminalUpdateSwitchState(terminal_tid, switch_number, switch_direction);
 
   // switch off solenoid after a period.
   Create(TRAIN_TASK_PRIORITY, train_off_solenoid_task);

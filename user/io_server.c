@@ -10,10 +10,11 @@
 #include "name_server.h"
 #include "tid_queue.h"
 
-static const int IO_TASK_PRIORITY = 20;
+const int IO_TASK_PRIORITY = 20;
 
 void io_tx_task();
 void io_rx_task();
+void io_marklin_tx_task();
 
 void io_server_task() {
   int console_rx_task = Create(IO_TASK_PRIORITY, io_rx_task);
@@ -28,9 +29,10 @@ void io_server_task() {
   enum Event marklin_rx_event = EVENT_UART_MARKLIN_RX;
   Send(marklin_rx_task, (const char *) &marklin_rx_event, sizeof(marklin_rx_event), NULL, 0);
 
-  int marklin_tx_task = Create(IO_TASK_PRIORITY, io_tx_task);
-  enum Event marklin_tx_event = EVENT_UART_MARKLIN_TX;
-  Send(marklin_tx_task, (const char *) &marklin_tx_event, sizeof(marklin_tx_event), NULL, 0);
+  // int marklin_tx_task = Create(IO_TASK_PRIORITY, io_tx_task);
+  // enum Event marklin_tx_event = EVENT_UART_MARKLIN_TX;
+  // Send(marklin_tx_task, (const char *) &marklin_tx_event, sizeof(marklin_tx_event), NULL, 0);
+  Create(IO_TASK_PRIORITY, io_marklin_tx_task);
 
   Exit();
 }
@@ -44,7 +46,14 @@ struct IOTxPutlRequest {
   int datalen;
 };
 
-enum IOTxRequestType { TX_REQ_NOTIFY, TX_REQ_PUTC, TX_REQ_PUTL };
+enum IOTxRequestType {
+  TX_REQ_NOTIFY_TX,
+  TX_REQ_PUTC,
+  TX_REQ_PUTL,
+  TX_REQ_NOTIFY_CTS_OFF,
+  TX_REQ_NOTIFY_CTS_ON,
+  TX_REQ_READ
+};
 
 struct IOTxRequest {
   enum IOTxRequestType type;
@@ -62,10 +71,115 @@ void io_tx_notify_task() {
   Receive(&tx_task, (char *) &event, sizeof(event));
   Reply(tx_task, NULL, 0);
 
-  struct IOTxRequest req = {.type = TX_REQ_NOTIFY};
+  struct IOTxRequest req = {.type = TX_REQ_NOTIFY_TX};
   while (true) {
     AwaitEvent(event);
     Send(tx_task, (const char *) &req, sizeof(req), NULL, 0);
+  }
+}
+
+void io_marklin_tx_notify_cts_on_task() {
+  int marklin_tx_io_task = MyParentTid();
+
+  struct IOTxRequest req = {.type = TX_REQ_NOTIFY_CTS_ON};
+  while (true) {
+    AwaitEvent(EVENT_UART_MARKLIN_CTS_ON);
+    Send(marklin_tx_io_task, (const char *) &req, sizeof(req), NULL, 0);
+  }
+}
+
+void io_marklin_tx_notify_cts_off_task() {
+  int marklin_tx_io_task = MyParentTid();
+
+  struct IOTxRequest req = {.type = TX_REQ_NOTIFY_CTS_OFF};
+  while (true) {
+    AwaitEvent(EVENT_UART_MARKLIN_CTS_OFF);
+    Send(marklin_tx_io_task, (const char *) &req, sizeof(req), NULL, 0);
+  }
+}
+
+enum MarklinState { MARKLIN_READY, MARKLIN_CMD_SENT, MARKLIN_BUSY };
+
+void io_marklin_tx_task() {
+  bool done_reading = true;
+
+  RegisterAs("marklin_io_tx");
+
+  int line = UART_MARKLIN;
+
+  struct CircularBuffer tx_buffer;
+  circular_buffer_init(&tx_buffer);
+
+  // create notifier task
+  Create(IO_TASK_PRIORITY, io_marklin_tx_notify_cts_on_task);
+  Create(IO_TASK_PRIORITY, io_marklin_tx_notify_cts_off_task);
+
+  int tid;
+  struct IOTxRequest req;
+
+  enum MarklinState marklin_state = MARKLIN_READY;
+
+  while (true) {
+    Receive(&tid, (char *) &req, sizeof(req));
+
+    switch (req.type) {
+      case TX_REQ_NOTIFY_CTS_OFF:
+
+        // tx fifo buffer not empty
+        // fill fifo buffer until full or tx_buffer empty
+        marklin_state = MARKLIN_BUSY;
+
+        // unblock notify task
+        Reply(tid, NULL, 0);
+        break;
+      case TX_REQ_NOTIFY_CTS_ON:
+        if (marklin_state == MARKLIN_BUSY) {
+          marklin_state = MARKLIN_READY;
+        }
+
+        Reply(tid, NULL, 0);
+        break;
+      case TX_REQ_PUTC:
+        circular_buffer_write_int8(&tx_buffer, 1);
+        circular_buffer_write(&tx_buffer, req.putc_req.data);
+
+        Reply(tid, NULL, 0);
+
+        break;
+      case TX_REQ_PUTL:
+        circular_buffer_write_int8(&tx_buffer, req.putl_req.datalen);
+        for (int i = 0; i < req.putl_req.datalen; ++i) {
+          circular_buffer_write(&tx_buffer, req.putl_req.data[i]);
+        }
+
+        // must reply after, if we reply before, the request data can be corrupted
+        // in the middle of our write to UART.
+        Reply(tid, NULL, 0);
+        break;
+      case TX_REQ_READ:
+        done_reading = true;
+        Reply(tid, NULL, 0);
+        break;
+      default:
+        // do not use tx
+        break;
+    }
+
+    if (!circular_buffer_empty(&tx_buffer) && marklin_state == MARKLIN_READY && done_reading) {
+      int datalen = circular_buffer_read_int8(&tx_buffer);
+
+      for (int i = 0; i < datalen; ++i) {
+        char ch = circular_buffer_read(&tx_buffer);
+        uart_putc(line, ch);
+
+        // read all sensors
+        if (ch == 0x80 + 5) {
+          done_reading = false;
+        }
+      }
+
+      marklin_state = MARKLIN_CMD_SENT;
+    }
   }
 }
 
@@ -99,7 +213,7 @@ void io_tx_task() {
     Receive(&tid, (char *) &req, sizeof(req));
 
     switch (req.type) {
-      case TX_REQ_NOTIFY:
+      case TX_REQ_NOTIFY_TX:
         // unblock notify task
         Reply(tid, NULL, 0);
 
@@ -118,10 +232,10 @@ void io_tx_task() {
       case TX_REQ_PUTC:
         uart_enable_tx_irq(line);
 
-        if (!uart_tx_fifo_full(line)) {
-          uart_putc(line, req.putc_req.data);
-        } else {
+        if (!circular_buffer_empty(&tx_buffer)) {
           circular_buffer_write(&tx_buffer, req.putc_req.data);
+        } else if (!uart_tx_fifo_full(line)) {
+          uart_putc(line, req.putc_req.data);
         }
 
         Reply(tid, NULL, 0);
@@ -130,17 +244,18 @@ void io_tx_task() {
         uart_enable_tx_irq(line);
 
         for (int i = 0; i < req.putl_req.datalen; ++i) {
-          char ch = req.putl_req.data[i];
+          circular_buffer_write(&tx_buffer, req.putl_req.data[i]);
+        }
 
-          if (!uart_tx_fifo_full(line)) {
-            uart_putc(line, ch);
-            continue;
-          } else {
-            circular_buffer_write(&tx_buffer, ch);
-          }
+        // write as much as we can and wait for tx
+        while (!uart_tx_fifo_full(line) && !circular_buffer_empty(&tx_buffer)) {
+          uart_putc(line, circular_buffer_read(&tx_buffer));
         }
 
         Reply(tid, NULL, 0);
+      default:
+        // do not use cts
+        break;
     }
   }
 }
@@ -244,5 +359,10 @@ int Putc(int tid, unsigned char ch) {
 
 int Putl(int tid, const unsigned char *data, unsigned int len) {
   struct IOTxRequest req = {.type = TX_REQ_PUTL, .putl_req = {.data = data, .datalen = len}};
+  return Send(tid, (const char *) &req, sizeof(req), NULL, 0);
+}
+
+int NotifyMarklinRead(int tid) {
+  struct IOTxRequest req = {.type = TX_REQ_READ};
   return Send(tid, (const char *) &req, sizeof(req), NULL, 0);
 }

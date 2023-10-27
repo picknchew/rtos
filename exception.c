@@ -154,8 +154,8 @@ int syscall_send(
   sender->outgoing_msg.sender = sender;
   sender->outgoing_msg.msg = msg;
   sender->outgoing_msg.msglen = msglen;
-  sender->outgoing_msg.reply = reply;
-  sender->outgoing_msg.rplen = rplen;
+  sender->reply_msg.msg = reply;
+  sender->reply_msg.msglen = rplen;
 
   sender->tempnode.val = &sender->outgoing_msg;
   sender->tempnode.next = NULL;
@@ -169,6 +169,7 @@ int syscall_send(
   if (receiver->status != TASK_SEND_BLOCKED) {
     // move from ready queue do not push
     sender->status = TASK_RECEIVE_BLOCKED;
+    sender->blocked = receiver->tid;
 
     // put mailNode to receiver's wait_for_receive queue
     mail_queue_add(&receiver->wait_for_receive, &sender->tempnode);
@@ -185,15 +186,13 @@ int syscall_send(
     // move from ready queue do not push
     sender->status = TASK_REPLY_BLOCKED;
 
-    mail_queue_add(&receiver->wait_for_reply, &sender->tempnode);
-
     // msg copy and overflow detection
     *(receiver->receive_buffer.tid) = sender->tid;
     memcpy(
         receiver->receive_buffer.msg,
         sender->outgoing_msg.msg,
         min(receiver->receive_buffer.msglen, sender->outgoing_msg.msglen));
-
+    
     // set status to READY and push to ready_queue
     task_schedule(receiver);
   }
@@ -208,7 +207,7 @@ int syscall_receive(struct TaskDescriptor *receiver, int *tid, char *msg, int ms
    * On Tr doing Receive(), kernel finds there are no waiting Sends for Tr
    * Tr blocks (Ready -> ReceiveWait)
    */
-  if (receiver->wait_for_receive.head == NULL) {
+  if (mail_queue_size(&receiver->wait_for_receive) == 0) {
     receiver->receive_buffer.tid = tid;
     receiver->receive_buffer.msg = msg;
     receiver->receive_buffer.msglen = msglen;
@@ -224,17 +223,14 @@ int syscall_receive(struct TaskDescriptor *receiver, int *tid, char *msg, int ms
      * kernel copies message from Ts to Tr
      * Tr remains Ready
      */
-    struct MailQueueNode *mailNode = mail_queue_pop(&receiver->wait_for_receive);
-    struct Message *mail = mailNode->val;
+    struct Message *incoming_msg = mail_queue_pop(&receiver->wait_for_receive)->val;
 
-    mail_queue_add(&receiver->wait_for_reply, mailNode);
-
-    struct TaskDescriptor *sender = mail->sender;
+    struct TaskDescriptor *sender = incoming_msg->sender;
     sender->status = TASK_REPLY_BLOCKED;
     *tid = sender->tid;
 
-    int len = min(msglen, mail->msglen);
-    memcpy(msg, mail->msg, len);
+    int len = min(msglen, incoming_msg->msglen);
+    memcpy(msg, incoming_msg->msg, len);
 
     return len;
   }
@@ -248,6 +244,7 @@ int syscall_receive(struct TaskDescriptor *receiver, int *tid, char *msg, int ms
  * kernel copies reply from Tr to Ts
  */
 int syscall_reply(struct TaskDescriptor *receiver, int tid, const char *reply, int rplen) {
+  // the tid to reply to
   struct TaskDescriptor *sender = task_get_by_tid(tid);
   if (sender->status == TASK_EXITED) {
     return -1;
@@ -257,18 +254,11 @@ int syscall_reply(struct TaskDescriptor *receiver, int tid, const char *reply, i
     return -2;
   }
 
-  // find the mail to reply
-  struct MailQueueNode *mail_node = mail_queue_remove(&receiver->wait_for_reply, sender);
-
-  if (!mail_node) {
-    return -2;
-  }
-
-  struct Message *mail = mail_node->val;
+  struct Message *reply_msg = &sender->reply_msg;
 
   // reply to the sender
-  int length = min(mail->rplen, rplen);
-  memcpy(mail->reply, reply, length);
+  int length = min(reply_msg->msglen, rplen);
+  memcpy(reply_msg->msg, reply, length);
 
   // set status to READY and push to ready queue
   task_schedule(sender);

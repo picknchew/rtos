@@ -31,11 +31,14 @@ void init_task() {
   // Create(7, test_clock_server_task);
 #endif
   Create(30, name_server_task);
-  Create(20, io_server_task);
-  // Create(9, clock_server_task);
-  // Create(1, idle_task);
-  Create(19, train_dispatcher_task);
+  Create(29, clock_server_task);
+  Create(IO_TASK_PRIORITY, io_server_task);
+  // Create(19, train_dispatcher_task);
 
-  Create(1, terminal_task);
+  Create(TERMINAL_TASK_PRIORITY, terminal_task);
+  Create(1, idle_task);
+  // Create(1, replay_task);
+  // task_print();
+  // printf("spin\r\n");
   for (;;) {}  // spin forever when no other tasks are running
 }

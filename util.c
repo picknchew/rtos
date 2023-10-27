@@ -86,7 +86,7 @@ int strcmp(char *str1, char *str2) {
   return !(*str1) && !(*str2);
 }
 
-int strlen(char *str) {
+int strlen(const char *str) {
   int index = 0;
 
   while (str[index]) {

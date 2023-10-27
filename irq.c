@@ -44,8 +44,14 @@ extern void kern_exit();
 
 static struct EventBlockedTaskQueue event_blocked_queue;
 
+static bool missed_irq[EVENT_MAX];
+
 void irq_init() {
   event_blocked_task_queue_init(&event_blocked_queue);
+
+  for (unsigned int i = 0; i < EVENT_MAX; ++i) {
+    missed_irq[i] = false;
+  }
 }
 
 void irq_enable(enum InterruptSource irq_id) {
@@ -64,8 +70,14 @@ void irq_enable(enum InterruptSource irq_id) {
 void irq_await_event(enum Event event) {
   struct TaskDescriptor *task = task_get_current_task();
 
-  task->status = TASK_EVENT_BLOCKED;
-  event_blocked_task_queue_push(&event_blocked_queue, task, event);
+  // for marklin cts
+  if (!missed_irq[event]) {
+    task->status = TASK_EVENT_BLOCKED;
+    event_blocked_task_queue_push(&event_blocked_queue, task, event);
+  } else {
+    missed_irq[event] = false;
+    task->context.registers[0] = 0;
+  }
 }
 
 void handle_irq() {
@@ -90,8 +102,16 @@ void handle_irq() {
   }
 
   if (irq_id != IRQ_SPURIOUS) {
+    if (event != EVENT_IGNORE && event_blocked_task_queue_size(&event_blocked_queue, event) == 0) {
+      if (missed_irq[event]) {
+        printf("irq_handler: missed interrupt %d\r\n", event);
+      }
+      
+      missed_irq[event] = true;
+    }
     // unblock tasks waiting for this event
-    while (event_blocked_task_queue_size(&event_blocked_queue, event) > 0) {
+    while (event != EVENT_IGNORE &&
+           event_blocked_task_queue_size(&event_blocked_queue, event) > 0) {
       struct TaskDescriptor *task = event_blocked_task_queue_pop(&event_blocked_queue, event);
 
       // set return value for AwaitEvent syscall

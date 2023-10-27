@@ -1,5 +1,7 @@
 #pragma once
 
+extern const int IO_TASK_PRIORITY;
+
 void io_server_task();
 
 /**
@@ -39,3 +41,5 @@ int Putc(int tid, unsigned char ch);
  * -1	tid is not a valid uart server task.
  */
 int Putl(int tid, const unsigned char *data, unsigned int len);
+
+int NotifyMarklinRead(int tid);

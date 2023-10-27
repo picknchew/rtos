@@ -14,9 +14,11 @@ void mail_queue_init(struct MailQueue *mail_queue) {
 void mail_init(struct Message *mail, struct TaskDescriptor *task) {
   mail->msg = NULL;
   mail->msglen = 0;
-  mail->reply = NULL;
-  mail->rplen = 0;
   mail->sender = task;
+}
+
+unsigned int mail_queue_size(struct MailQueue *mail_queue) {
+  return mail_queue->size;
 }
 
 void mail_queue_add(struct MailQueue *mail_queue, struct MailQueueNode *node) {

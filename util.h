@@ -15,6 +15,6 @@ void *memcpy(void *restrict dest, const void *restrict src, size_t n);
 
 int min(int a, int b);
 int strcmp(char *str1, char *str2);
-int strlen(char *str);
+int strlen(const char *str);
 bool is_number(char *str);
 int atoi(char *str);

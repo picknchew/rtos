@@ -157,7 +157,12 @@ static const uint32_t UARTCLK = 48000000;
 
 // Configure the line properties (e.g, parity, baud rate) of a UART
 // and ensure that it is enabled
-void uart_config_and_enable(size_t line, uint32_t baudrate, bool two_stop_bits, bool fifo_buffer) {
+void uart_config_and_enable(
+    size_t line,
+    uint32_t baudrate,
+    bool two_stop_bits,
+    bool fifo_buffer,
+    bool cts_irq) {
   // to avoid floating point, this computes 64 times the required baud divisor
   uint32_t baud_divisor = (uint32_t) ((((uint64_t) UARTCLK) * 4) / baudrate);
 
@@ -192,19 +197,25 @@ void uart_config_and_enable(size_t line, uint32_t baudrate, bool two_stop_bits, 
   // enable interrupts (rx timeout, tx)
   // we disable tx interrupts initially since we do not have
   // data to send
-  UART_REG(line, UART_IMSC) |= UART_RT_MASK | UART_RX_MASK | UART_CTS_MASK;
+  uint32_t imsc_state = UART_RT_MASK | UART_RX_MASK;
+
+  if (cts_irq) {
+    imsc_state |= UART_CTS_MASK;
+  }
+
+  UART_REG(line, UART_IMSC) |= imsc_state;
 }
 
 static size_t get_irq_line() {
   uint32_t pactl_cs = *REG_PACTL_CS;
 
-  // check if uart 0 (line 1)
-  if (pactl_cs & (1 << 20)) {
-    return UART_CONSOLE;
+  // check if uart 3 (line 2)
+  if (pactl_cs & (1 << 18)) {
+    return UART_MARKLIN;
   }
 
-  // must be line 2
-  return UART_MARKLIN;
+  // must be line 1
+  return UART_CONSOLE;
 }
 
 bool uart_tx_fifo_full(size_t line) {
@@ -219,16 +230,25 @@ unsigned char uart_getc(size_t line) {
   return UART_REG(line, UART_DR);
 }
 
+bool uart_cts(size_t line) {
+  return UART_REG(line, UART_FR) & 1;
+}
+
 enum Event uart_handle_irq() {
   size_t line = get_irq_line();
   uint32_t mis = UART_REG(line, UART_MIS);
-  bool cts = false;
   bool tx = false;
 
   if (mis & UART_CTS_MASK) {
     // clear interrupt
     UART_REG(line, UART_ICR) = UART_CTS_MASK;
-    cts = true;
+
+    if (uart_cts(UART_MARKLIN)) {
+      // we do not enable cts for console
+      return EVENT_UART_MARKLIN_CTS_ON;
+    } else {
+      return EVENT_UART_MARKLIN_CTS_OFF;
+    }
   } else if (mis & UART_RT_MASK) {
     // clear interrupt
     UART_REG(line, UART_ICR) = UART_RT_MASK;
@@ -241,13 +261,7 @@ enum Event uart_handle_irq() {
     UART_REG(line, UART_ICR) = UART_RX_MASK;
   }
 
-  if (cts) {
-    if (line == UART_CONSOLE) {
-      return EVENT_UART_CONSOLE_CTS;
-    } else {
-      return EVENT_UART_MARKLIN_CTS;
-    }
-  } else if (tx) {
+  if (tx) {
     if (line == UART_CONSOLE) {
       return EVENT_UART_CONSOLE_TX;
     } else {

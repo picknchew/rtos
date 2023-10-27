@@ -7,7 +7,7 @@
 #define TASKS_MAX 128
 #define NUM_REGISTERS 31
 
-#define STACK_SIZE 16384
+#define STACK_SIZE 8192
 
 enum TaskStatus {
   TASK_ACTIVE,
@@ -44,6 +44,7 @@ struct TaskDescriptor {
 
   struct TaskDescriptor *parent;
   enum TaskStatus status;
+  int blocked;
 
   // block of memory allocated for this task
   uint64_t stack[STACK_SIZE];
@@ -51,10 +52,10 @@ struct TaskDescriptor {
   // NOTE: add extra fields below here
   // list of senders blocked waiting for the task to receive
   struct MailQueue wait_for_receive;
-  struct MailQueue wait_for_reply;
   struct Recvbuffer receive_buffer;
   struct MailQueueNode tempnode;
   struct Message outgoing_msg;
+  struct Message reply_msg;
 };
 
 void tasks_init();

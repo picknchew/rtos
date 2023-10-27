@@ -20,7 +20,6 @@ void tasks_init() {
     task->status = TASK_EXITED;
 
     mail_queue_init(&task->wait_for_receive);
-    mail_queue_init(&task->wait_for_reply);
 
     task->receive_buffer.tid = NULL;
     task->receive_buffer.msg = NULL;
@@ -61,6 +60,7 @@ task_create(struct TaskDescriptor *parent, int priority, void (*function)()) {
   task->parent = parent;
   task->priority = priority;
   task->status = TASK_READY;
+  task->blocked = 0;
 
   for (int i = 0; i < NUM_REGISTERS; ++i) {
     context->registers[i] = i;
@@ -90,18 +90,16 @@ void task_yield_current_task() {
     priority_task_queue_push(&ready_queue, current_task);
   }
 
-  // if (current_task) {
-  //   printf("current_task %d, status: %d\r\n", current_task->tid, current_task->status);
-  // } else {
-  //   printf("current_task is null\r\n");
-  // }
-
-  // task_print();
-
   current_task = priority_task_queue_pop(&ready_queue);
 
   if (current_task != NULL) {
     current_task->status = TASK_ACTIVE;
+  }
+}
+
+void task_print() {
+  for (int i = 0; i < 15; ++i) {
+    printf("task status %d, %d, %d\r\n", i, tasks[i].status, tasks[i].blocked);
   }
 }
 
@@ -115,19 +113,17 @@ void task_exit_current_task() {
   current_task->wait_for_receive.tail = NULL;
   current_task->wait_for_receive.size = 0;
 
-  current_task->wait_for_reply.head = NULL;
-  current_task->wait_for_reply.tail = NULL;
-  current_task->wait_for_reply.size = 0;
-
   current_task->receive_buffer.tid = NULL;
   current_task->receive_buffer.msg = NULL;
   current_task->receive_buffer.msglen = 0;
 
   current_task->outgoing_msg.msg = NULL;
   current_task->outgoing_msg.msglen = 0;
-  current_task->outgoing_msg.reply = NULL;
-  current_task->outgoing_msg.rplen = 0;
   current_task->outgoing_msg.sender = NULL;
+
+  current_task->reply_msg.msg = NULL;
+  current_task->reply_msg.msglen = 0;
+  current_task->reply_msg.sender = NULL;  // unused
 
   current_task->tempnode.next = NULL;
   current_task->tempnode.val = NULL;

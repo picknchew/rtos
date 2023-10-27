@@ -1,17 +1,23 @@
+#include <stdarg.h>
+#include <stdint.h>
+
 #include "../train/terminal.h"
+#include "../train/trainset.h"
 
 enum TerminalRequestType {
-  UPDATE_TRAIN_SPEEDS,
+  UPDATE_TRAIN_SPEED,
   UPDATE_SENSORS,
   UPDATE_STATUS,
-  UPDATE_SWITCH_STATES,
+  UPDATE_IDLE,
+  UPDATE_SWITCH_STATE,
   UPDATE_MAX_SENSOR_DURATION,
   TERMINAL_TIME_NOTIFY,
   TERMINAL_KEY_PRESS_NOTIFY
 };
 
-struct TerminalUpdateTrainSpeedsRequest {
-  uint8_t *train_speeds;
+struct TerminalUpdateTrainSpeedRequest {
+  int train_index;
+  uint8_t train_speed;
 };
 
 struct TerminalUpdateSensorsRequest {
@@ -19,8 +25,19 @@ struct TerminalUpdateSensorsRequest {
   size_t sensors_len;
 };
 
+struct TerminalUpdateIdleRequest {
+  uint64_t idle;
+  int idle_pct;
+};
+
 struct TerminalUpdateStatusRequest {
-  char *status;
+  char *fmt;
+  va_list va;
+};
+
+struct TerminalUpdateSwitchRequest {
+  int switch_num;
+  enum SwitchDirection dir;
 };
 
 struct TerminalUpdateMaxSensorDurationRequest {
@@ -34,17 +51,22 @@ struct TerminalRequest {
     char ch;
     uint64_t time;
 
-    struct TerminalUpdateTrainSpeedsRequest update_train_speeds_req;
+    struct TerminalUpdateTrainSpeedRequest update_train_speed_req;
     struct TerminalUpdateSensorsRequest update_sensors_req;
     struct TerminalUpdateStatusRequest update_status_req;
     struct TerminalUpdateMaxSensorDurationRequest update_max_sensor_duration_req;
+    struct TerminalUpdateIdleRequest update_idle_req;
+    struct TerminalUpdateSwitchRequest update_switch_state_req;
   };
 };
 
-void TerminalUpdateTrainSpeeds(int tid, uint8_t *train_speeds);
+extern const int TERMINAL_TASK_PRIORITY;
+
+void TerminalUpdateTrainSpeed(int tid, int train_index, uint8_t train_speed);
 void TerminalUpdateSensors(int tid, bool *sensors, size_t sensors_len);
-void TerminalUpdateStatus(int tid, char *status);
-void TerminalUpdateSwitchStates(int tid);
+void TerminalUpdateStatus(int tid, char *status, ...);
+void TerminalUpdateSwitchState(int tid, int switch_num, enum SwitchDirection dir);
 void TerminalUpdateMaxSensorDuration(int tid, unsigned int duration);
+void TerminalUpdateIdle(int tid, uint64_t idle, int idle_pct);
 
 void terminal_task();

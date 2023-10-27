@@ -4,10 +4,8 @@
 
 struct Message {
   struct TaskDescriptor *sender;
-  const char *msg;
+  char *msg;
   int msglen;
-  char *reply;
-  int rplen;
 };
 
 struct MailQueueNode {
@@ -25,5 +23,6 @@ struct MailQueue {
 void mail_queue_init(struct MailQueue *mail_queue);
 void mail_init(struct Message *mail, struct TaskDescriptor *task);
 void mail_queue_add(struct MailQueue *mail_queue, struct MailQueueNode *node);
+unsigned int mail_queue_size(struct MailQueue *mail_queue);
 struct MailQueueNode *mail_queue_remove(struct MailQueue *mail_queue, struct TaskDescriptor *sender);
 struct MailQueueNode *mail_queue_pop(struct MailQueue *mail_queue);

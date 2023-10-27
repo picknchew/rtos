@@ -33,7 +33,7 @@ void circular_buffer_write_int8(struct CircularBuffer *buffer, uint8_t i) {
 }
 
 void circular_buffer_write_n(struct CircularBuffer *buffer, const unsigned char *data, unsigned int size) {
-  for (int i = 0; i < size; ++i) {
+  for (unsigned int i = 0; i < size; ++i) {
     circular_buffer_write(buffer, data[i]);
   }
 }
@@ -66,7 +66,7 @@ size_t circular_buffer_size(struct CircularBuffer *buffer) {
 }
 
 bool circular_buffer_empty(struct CircularBuffer *buffer) {
-  return !buffer->size;
+  return buffer->size == 0;
 }
 
 static union CircularBufferItem circular_buffer_read_item(struct CircularBuffer *buffer) {
@@ -82,7 +82,7 @@ char circular_buffer_read(struct CircularBuffer *buffer) {
 }
 
 void circular_buffer_read_n(struct CircularBuffer *buffer, unsigned char *out, unsigned int size) {
-  for (int i = 0; i < size; ++i) {
+  for (unsigned int i = 0; i < size; ++i) {
     out[i] = circular_buffer_read(buffer);
   }
 }
