@@ -16,8 +16,9 @@ static const char CHAR_DELIMITER = ' ';
 
 static const char SEQ_CLEAR_SCREEN[] = "\033[2J";
 static const char SEQ_CURSOR_MOVE_TOP_LEFT[] = "\033[H";
-static const char SEQ_CURSOR_HIDE[] = "\033[?25l";
 static const char SEQ_CURSOR_DELETE_LINE[] = "\033[K";
+static const char SEQ_CURSOR_HIDE[] = "\033[?25l";
+static const char SEQ_CURSOR_SHOW[] = "\033[?25h";
 
 const char TEXT_RESET[] = "\033[0m";
 
@@ -133,12 +134,12 @@ static void restore_cursor(struct Terminal *terminal) {
 void terminal_update_status_va(struct Terminal *terminal, char *fmt, va_list va) {
   save_cursor(terminal);
   move_cursor(terminal, 20, 1);
-  puts(terminal, SEQ_CURSOR_DELETE_LINE);
-  printf(terminal, "\033[32m");
+  puts(terminal, "\033[32m");
 
   format_print(terminal, fmt, va);
 
   puts(terminal, TEXT_RESET);
+  puts(terminal, SEQ_CURSOR_DELETE_LINE);
   restore_cursor(terminal);
 }
 
@@ -210,7 +211,7 @@ bool terminal_execute_command(struct Terminal *terminal, int train_tid, char *co
       return false;
     }
 
-    terminal_update_status(terminal, "Changing speed of train!");
+    // terminal_update_status(terminal, "Changing speed of train!");
 
     TrainSetSpeed(train_tid, train_number, train_speed);
   } else if (strcmp("rv", command_name)) {
@@ -418,9 +419,9 @@ bool terminal_handle_keypress(struct Terminal *terminal, int train_tid, char c) 
 void terminal_update_command(struct Terminal *terminal) {
   save_cursor(terminal);
   move_cursor(terminal, 19, 1);
-  puts(terminal, SEQ_CURSOR_DELETE_LINE);
   puts(terminal, "> ");
   putl(terminal, terminal->command_buffer, terminal->command_len);
+  puts(terminal, SEQ_CURSOR_DELETE_LINE);
   restore_cursor(terminal);
 }
 
@@ -438,19 +439,20 @@ void terminal_update_sensors(struct Terminal *terminal, bool *sensors, size_t se
   move_cursor(terminal, 16, 1);
 
   print_title(terminal, "Recently triggered sensors:");
-  puts(terminal, SEQ_CURSOR_DELETE_LINE);
   for (unsigned int i = 0; i < sensors_len; ++i) {
     if (sensors[i]) {
       char ch = 'A' + i / 16;
       printf(terminal, " %c%d", ch, i % 16 + 1);
     }
   }
+  puts(terminal, SEQ_CURSOR_DELETE_LINE);
 
   restore_cursor(terminal);
 }
 
 static void init_screen(struct Terminal *terminal) {
   puts(terminal, SEQ_CLEAR_SCREEN);
+  puts(terminal, SEQ_CURSOR_HIDE);
 
   terminal_init_switch_states(terminal);
   terminal_init_train_speeds(terminal);

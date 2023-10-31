@@ -30,7 +30,7 @@ void train_dispatcher_cts_on_notifier() {
 
   struct TrainDispatchRequest req = {.type = CTS_ON_NOTIFY};
   while (true) {
-    AwaitEvent(EVENT_UART_MARKLIN_CTS_ON);
+    AwaitEvent(EVENT_UART_MARKLIN_CTS);
     Send(dispatcher, (const char *) &req, sizeof(req), NULL, 0);
   }
 }

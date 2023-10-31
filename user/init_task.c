@@ -35,9 +35,9 @@ void init_task() {
   Create(IO_TASK_PRIORITY, io_server_task);
   // // Create(19, train_dispatcher_task);
 
-  // Create(TERMINAL_TASK_PRIORITY, terminal_task);
-  // Create(1, idle_task);
-  Create(1, replay_task);
+  Create(TERMINAL_TASK_PRIORITY, terminal_task);
+  Create(1, idle_task);
+  // Create(1, replay_task);
   // task_print();
   // printf("spin\r\n");
   for (;;) {}  // spin forever when no other tasks are running

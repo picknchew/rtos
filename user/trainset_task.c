@@ -154,42 +154,13 @@ void train_task() {
 
         if (trainset.max_read_sensor_query_time < req.update_sensor_data_req.time_taken) {
           trainset.max_read_sensor_query_time = req.update_sensor_data_req.time_taken;
-          // TerminalUpdateMaxSensorDuration(terminal, trainset.max_read_sensor_query_time);
+          TerminalUpdateMaxSensorDuration(terminal, trainset.max_read_sensor_query_time);
         }
 
         TerminalUpdateStatus(terminal, "replied to sensor notifier");
 
         Reply(tid, NULL, 0);
         break;
-      case READ_SENSORS: {
-        // char raw_sensor_data[TRAINSET_NUM_FEEDBACK_MODULES * 2] = {0};
-        // uint64_t start_time = Time(clock_server);
-
-        // DispatchTrainCommand(marklin_io_tx, CMD_READ_ALL_SENSORS, 1);
-
-        // for (int i = 0; i < TRAINSET_NUM_FEEDBACK_MODULES * 2; ++i) {
-        //   raw_sensor_data[i] = Getc(marklin_rx);
-        // }
-        // NotifyMarklinRead(marklin_io_tx);
-
-        // uint64_t end_time = Time(clock_server);
-        // // get in microseconds
-        // uint64_t time_taken = end_time - start_time;
-
-        // trainset_process_sensor_data(&trainset, raw_sensor_data);
-
-        // TerminalUpdateSensors(
-        //     terminal,
-        //     trainset_get_sensor_data(&trainset),
-        //     TRAINSET_NUM_FEEDBACK_MODULES * TRAINSET_NUM_SENSORS_PER_MODULE);
-
-        // if (trainset.max_read_sensor_query_time < time_taken) {
-        //   trainset.max_read_sensor_query_time = time_taken;
-        //   TerminalUpdateMaxSensorDuration(terminal, time_taken);
-        // }
-        Reply(tid, NULL, 0);
-        break;
-      }
       case REVERSE_TRAIN_NOTIFY:
         TerminalUpdateStatus(terminal, "Reversing train..");
         trainset_set_train_speed(
@@ -222,11 +193,6 @@ void TrainSetSpeed(int tid, uint8_t train, uint8_t speed) {
 void TrainSetSwitchDir(int tid, int switch_num, int dir) {
   struct TrainRequest req = {
       .type = SET_SWITCH_DIR, .set_switch_dir_req = {.switch_num = switch_num, .dir = dir}};
-  Send(tid, (const char *) &req, sizeof(req), NULL, 0);
-}
-
-void TrainReadSensors(int tid) {
-  struct TrainRequest req = {.type = READ_SENSORS};
   Send(tid, (const char *) &req, sizeof(req), NULL, 0);
 }
 

@@ -76,33 +76,33 @@ void replay_task() {
   //   read_sensor_data(train_dispatch);
   // }
 
-  trainset_set_train_speed(&trainset, 0, 58, 2);
+  // trainset_set_train_speed(&trainset, 0, 58, 2);
+  trainset_set_train_speed(&trainset, 0, 54, 2);
   read_sensor_data(train_dispatch);
-  trainset_set_train_speed(&trainset, 0, 24, 2);
-
-  while (true) {
-    if (uart_hasc(UART_MARKLIN)) {
-      printf("missed rx interrupt\r\n");
-    }
-  }
 
   // while (true) {
-  //   printf("waiting for train data\r\n");
-  //   for (int i = 0; i < TRAINSET_NUM_FEEDBACK_MODULES * 2; ++i) {
-  //     // printf("before getc\r\n");
-  //     char marklin_ch = Getc(marklin_rx);
-  //     printf("read %d\r\n", i);
-  //     circular_buffer_write(&rx_buffer, marklin_ch);
+  //   if (uart_hasc(UART_MARKLIN)) {
+  //     printf("missed rx interrupt\r\n");
   //   }
-
-  //   printf("notify marklin read\r\n");
-  //   NotifyMarklinRead(train_dispatch);
-
-  //   printf("got train data!\r\n");
-  //   process_sensor_data(&rx_buffer, sensors);
-
-  //   update_screen(sensors);
   // }
+
+  while (true) {
+    printf("waiting for train data\r\n");
+    for (int i = 0; i < TRAINSET_NUM_FEEDBACK_MODULES * 2; ++i) {
+      // printf("before getc\r\n");
+      char marklin_ch = Getc(marklin_rx);
+      printf("read %d\r\n", i);
+      circular_buffer_write(&rx_buffer, marklin_ch);
+    }
+
+    printf("notify marklin read\r\n");
+    NotifyMarklinRead(train_dispatch);
+
+    printf("got train data!\r\n");
+    process_sensor_data(&rx_buffer, sensors);
+
+    update_screen(sensors);
+  }
 
   Exit();
 }

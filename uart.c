@@ -248,14 +248,8 @@ enum Event uart_handle_irq() {
     // clear interrupt
     UART_REG(line, UART_ICR) = UART_CTS_MASK;
 
-    if (line == UART_MARKLIN) {
-      // we do not enable cts for console
-      if (uart_cts(UART_MARKLIN)) {
-        return EVENT_UART_MARKLIN_CTS_ON;
-      } else {
-        return EVENT_UART_MARKLIN_CTS_OFF;
-      }
-    }
+    // no need to check line we do not enable cts for console
+    return EVENT_UART_MARKLIN_CTS;
   } else if (mis & UART_RT_MASK) {
     // clear interrupt
     UART_REG(line, UART_ICR) = UART_RT_MASK;

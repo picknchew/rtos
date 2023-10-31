@@ -43,7 +43,7 @@ void terminal_task() {
   int train_tid = Create(TRAIN_TASK_PRIORITY, train_task);
 
   Create(TERMINAL_TASK_PRIORITY, terminal_key_press_task);
-  // Create(TERMINAL_TASK_PRIORITY, terminal_time_update_task);
+  Create(TERMINAL_TASK_PRIORITY, terminal_time_update_task);
 
   struct Terminal terminal;
   terminal_init(&terminal, console_rx, console_tx);

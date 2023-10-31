@@ -46,14 +46,7 @@ struct IOTxPutlRequest {
   int datalen;
 };
 
-enum IOTxRequestType {
-  TX_REQ_NOTIFY_TX,
-  TX_REQ_PUTC,
-  TX_REQ_PUTL,
-  TX_REQ_NOTIFY_CTS_OFF,
-  TX_REQ_NOTIFY_CTS_ON,
-  TX_REQ_READ
-};
+enum IOTxRequestType { TX_REQ_NOTIFY_TX, TX_REQ_PUTC, TX_REQ_PUTL, TX_REQ_NOTIFY_CTS, TX_REQ_READ };
 
 struct IOTxRequest {
   enum IOTxRequestType type;
@@ -78,24 +71,12 @@ void io_tx_notify_task() {
   }
 }
 
-void io_marklin_tx_notify_cts_on_task() {
+void io_marklin_tx_notify_cts_task() {
   int marklin_tx_io_task = MyParentTid();
 
-  struct IOTxRequest req = {.type = TX_REQ_NOTIFY_CTS_ON};
+  struct IOTxRequest req = {.type = TX_REQ_NOTIFY_CTS};
   while (true) {
-    AwaitEvent(EVENT_UART_MARKLIN_CTS_ON);
-    // printf("cts on\r\n");
-    Send(marklin_tx_io_task, (const char *) &req, sizeof(req), NULL, 0);
-  }
-}
-
-void io_marklin_tx_notify_cts_off_task() {
-  int marklin_tx_io_task = MyParentTid();
-
-  struct IOTxRequest req = {.type = TX_REQ_NOTIFY_CTS_OFF};
-  while (true) {
-    AwaitEvent(EVENT_UART_MARKLIN_CTS_OFF);
-    // printf("cts off\r\n");
+    AwaitEvent(EVENT_UART_MARKLIN_CTS);
     Send(marklin_tx_io_task, (const char *) &req, sizeof(req), NULL, 0);
   }
 }
@@ -113,8 +94,7 @@ void io_marklin_tx_task() {
   circular_buffer_init(&tx_buffer);
 
   // create notifier task
-  Create(NOTIFIER_PRIORITY, io_marklin_tx_notify_cts_on_task);
-  Create(NOTIFIER_PRIORITY, io_marklin_tx_notify_cts_off_task);
+  Create(NOTIFIER_PRIORITY, io_marklin_tx_notify_cts_task);
 
   int tid;
   struct IOTxRequest req;
@@ -126,21 +106,13 @@ void io_marklin_tx_task() {
     Receive(&tid, (char *) &req, sizeof(req));
 
     switch (req.type) {
-      case TX_REQ_NOTIFY_CTS_OFF:
+      case TX_REQ_NOTIFY_CTS:
         if (marklin_state == MARKLIN_CMD_SENT) {
-          printf("cts off: %d\r\n", marklin_state);
           marklin_state = MARKLIN_BUSY;
         }
 
-        // unblock notify task
-        Reply(tid, NULL, 0);
-        break;
-      case TX_REQ_NOTIFY_CTS_ON:
         if (marklin_state == MARKLIN_BUSY) {
-          // printf("marklin ready\r\n");
           marklin_state = MARKLIN_READY;
-          printf("cts on: %d\r\n", marklin_state);
-          printf("tx on: %d\r\n", uart_tx_asserted(UART_MARKLIN));
         }
 
         Reply(tid, NULL, 0);
@@ -169,12 +141,7 @@ void io_marklin_tx_task() {
         break;
     }
 
-    if (!circular_buffer_empty(&tx_buffer) && marklin_state == MARKLIN_READY) {
-      // printf("finished reading data %d\r\n", done_reading);
-    }
-
     if (!circular_buffer_empty(&tx_buffer) && marklin_state == MARKLIN_READY && done_reading) {
-      printf("send command status: %d\r\n", marklin_state);
       char ch = circular_buffer_read(&tx_buffer);
       uart_putc(line, ch);
 
@@ -281,7 +248,6 @@ void io_rx_notify_task() {
   while (true) {
     AwaitEvent(event);
 
-    printf("notify rx data\r\n");
     // notify rx task
     Send(rx_task, (char *) &req, sizeof(req), NULL, 0);
   }
@@ -342,9 +308,7 @@ void io_rx_task() {
         if (!circular_buffer_empty(&rx_buffer)) {
           char ch = circular_buffer_read(&rx_buffer);
           Reply(tid, &ch, sizeof(char));
-          printf("queue is not empty\r\n");
         } else {
-          printf("queue is empty on getc\r\n");
           // block task and put it in a queue for when data is available
           tid_queue_add(&rx_queue, tid);
         }

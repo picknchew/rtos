@@ -109,7 +109,7 @@ void handle_irq() {
         while (true) {}
       }
 
-      //   missed_irq[event] = true;
+      missed_irq[event] = true;
     }
     // unblock tasks waiting for this event
     while (event != EVENT_IGNORE &&
