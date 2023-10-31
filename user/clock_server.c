@@ -101,7 +101,7 @@ void clock_server_task() {
   delay_queue_init();
 
   // max priority
-  Create(63, clock_notifier_task);
+  Create(NOTIFIER_PRIORITY, clock_notifier_task);
   RegisterAs("clock_server");
   printf("clock_server: started with id %d\r\n", MyTid());
 

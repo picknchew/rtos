@@ -43,7 +43,7 @@ void terminal_task() {
   int train_tid = Create(TRAIN_TASK_PRIORITY, train_task);
 
   Create(TERMINAL_TASK_PRIORITY, terminal_key_press_task);
-  Create(TERMINAL_TASK_PRIORITY, terminal_time_update_task);
+  // Create(TERMINAL_TASK_PRIORITY, terminal_time_update_task);
 
   struct Terminal terminal;
   terminal_init(&terminal, console_rx, console_tx);
@@ -67,8 +67,8 @@ void terminal_task() {
         Reply(tid, NULL, 0);
         break;
       case UPDATE_STATUS:
+        terminal_update_status_va(&terminal, req.update_status_req.fmt, req.update_status_req.va);
         Reply(tid, NULL, 0);
-        terminal_update_status(&terminal, req.update_status_req.fmt, req.update_status_req.va);
         break;
       case UPDATE_SWITCH_STATE:
         terminal_update_switch_state(

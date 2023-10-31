@@ -20,14 +20,36 @@ const int TRAIN_TASK_PRIORITY = 3;
 
 void train_sensor_update_task() {
   int train = MyParentTid();
-  int train_dispatcher = WhoIs("marklin_io_tx");
+  int marklin_io_tx = WhoIs("marklin_io_tx");
+  int marklin_rx = WhoIs("marklin_io_rx");
   int clock_server = WhoIs("clock_server");
+  int terminal = WhoIs("terminal");
 
-  struct TrainRequest req = {.type = READ_SENSORS};
+  struct TrainRequest req = {.type = SENSOR_DATA_NOTIFY, .update_sensor_data_req = {}};
 
   while (true) {
-    Delay(clock_server, 10);
+    // Delay(clock_server, 10);
+
+    uint64_t start_time = Time(clock_server);
+
+    DispatchTrainCommand(marklin_io_tx, CMD_READ_ALL_SENSORS, 1);
+
+    TerminalUpdateStatus(terminal, "begin read sensor");
+    for (int i = 0; i < TRAINSET_NUM_FEEDBACK_MODULES * 2; ++i) {
+      req.update_sensor_data_req.raw_sensor_data[i] = Getc(marklin_rx);
+      TerminalUpdateStatus(
+          terminal, "latest sensor byte read: %d/%d", i, TRAINSET_NUM_FEEDBACK_MODULES * 2 - 1);
+    }
+    TerminalUpdateStatus(terminal, "completed reading set");
+    NotifyMarklinRead(marklin_io_tx);
+    TerminalUpdateStatus(terminal, "notified marklin done read");
+
+    uint64_t end_time = Time(clock_server);
+    // get in microseconds
+    req.update_sensor_data_req.time_taken = end_time - start_time;
+
     Send(train, (const char *) &req, sizeof(req), NULL, 0);
+    TerminalUpdateStatus(terminal, "sent info back to main train task");
   }
 
   Exit();
@@ -91,8 +113,10 @@ void train_task() {
     switch (req.type) {
       case SET_SPEED:
         Reply(tid, NULL, 0);
+        TerminalUpdateStatus(terminal, "trainset: set speed");
         trainset_set_train_speed(
             &trainset, terminal, req.set_train_speed_req.train, req.set_train_speed_req.speed);
+        TerminalUpdateStatus(terminal, "trainset: after set speed");
         break;
       case SET_SWITCH_DIR:
         Reply(tid, NULL, 0);
@@ -116,49 +140,56 @@ void train_task() {
             trainset_get_switch_state(&trainset, req.get_switch_state_req.switch_num);
         Reply(tid, (const char *) &res, sizeof(res));
         break;
-      // case SENSOR_DATA_NOTIFY:
-      //   trainset_process_sensor_data(&trainset, req.update_sensor_data_req.raw_sensor_data);
+      case SENSOR_DATA_NOTIFY:
+        TerminalUpdateStatus(terminal, "trainset: sensor data notify");
+        trainset_process_sensor_data(&trainset, req.update_sensor_data_req.raw_sensor_data);
 
-      //   TerminalUpdateSensors(
-      //       terminal,
-      //       trainset_get_sensor_data(&trainset),
-      //       TRAINSET_NUM_FEEDBACK_MODULES * TRAINSET_NUM_SENSORS_PER_MODULE);
-
-      //   if (trainset.max_read_sensor_query_time < req.update_sensor_data_req.time_taken) {
-      //     trainset.max_read_sensor_query_time = req.update_sensor_data_req.time_taken;
-      //     TerminalUpdateMaxSensorDuration(terminal, trainset.max_read_sensor_query_time);
-      //   }
-
-      //   Reply(tid, NULL, 0);
-      //   break;
-      case READ_SENSORS: {
-        char raw_sensor_data[TRAINSET_NUM_FEEDBACK_MODULES * 2] = {0};
-        uint64_t start_time = Time(clock_server);
-
-        DispatchTrainCommand(marklin_io_tx, CMD_READ_ALL_SENSORS, 1);
-
-        for (int i = 0; i < TRAINSET_NUM_FEEDBACK_MODULES * 2; ++i) {
-          raw_sensor_data[i] = Getc(marklin_rx);
-        }
-        NotifyMarklinRead(marklin_io_tx);
-
-        uint64_t end_time = Time(clock_server);
-        // get in microseconds
-        uint64_t time_taken = end_time - start_time;
-
-        trainset_process_sensor_data(&trainset, raw_sensor_data);
+        TerminalUpdateStatus(terminal, "trainset: processed sensor data");
 
         TerminalUpdateSensors(
             terminal,
             trainset_get_sensor_data(&trainset),
             TRAINSET_NUM_FEEDBACK_MODULES * TRAINSET_NUM_SENSORS_PER_MODULE);
+        TerminalUpdateStatus(terminal, "update sensor data");
 
-        if (trainset.max_read_sensor_query_time < time_taken) {
-          trainset.max_read_sensor_query_time = time_taken;
-          TerminalUpdateMaxSensorDuration(terminal, time_taken);
+        if (trainset.max_read_sensor_query_time < req.update_sensor_data_req.time_taken) {
+          trainset.max_read_sensor_query_time = req.update_sensor_data_req.time_taken;
+          // TerminalUpdateMaxSensorDuration(terminal, trainset.max_read_sensor_query_time);
         }
+
+        TerminalUpdateStatus(terminal, "replied to sensor notifier");
+
         Reply(tid, NULL, 0);
-      } break;
+        break;
+      case READ_SENSORS: {
+        // char raw_sensor_data[TRAINSET_NUM_FEEDBACK_MODULES * 2] = {0};
+        // uint64_t start_time = Time(clock_server);
+
+        // DispatchTrainCommand(marklin_io_tx, CMD_READ_ALL_SENSORS, 1);
+
+        // for (int i = 0; i < TRAINSET_NUM_FEEDBACK_MODULES * 2; ++i) {
+        //   raw_sensor_data[i] = Getc(marklin_rx);
+        // }
+        // NotifyMarklinRead(marklin_io_tx);
+
+        // uint64_t end_time = Time(clock_server);
+        // // get in microseconds
+        // uint64_t time_taken = end_time - start_time;
+
+        // trainset_process_sensor_data(&trainset, raw_sensor_data);
+
+        // TerminalUpdateSensors(
+        //     terminal,
+        //     trainset_get_sensor_data(&trainset),
+        //     TRAINSET_NUM_FEEDBACK_MODULES * TRAINSET_NUM_SENSORS_PER_MODULE);
+
+        // if (trainset.max_read_sensor_query_time < time_taken) {
+        //   trainset.max_read_sensor_query_time = time_taken;
+        //   TerminalUpdateMaxSensorDuration(terminal, time_taken);
+        // }
+        Reply(tid, NULL, 0);
+        break;
+      }
       case REVERSE_TRAIN_NOTIFY:
         TerminalUpdateStatus(terminal, "Reversing train..");
         trainset_set_train_speed(

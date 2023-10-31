@@ -1,3 +1,5 @@
+#pragma once
+
 #include "irq.h"
 #include "task_queue.h"
 

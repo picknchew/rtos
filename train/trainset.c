@@ -25,7 +25,7 @@ const int SPEED_REVERSE_DIRECTION = 15;
 const int TRAINSET_DIRECTION_STRAIGHT = 0x21;
 const int TRAINSET_DIRECTION_CURVED = 0x22;
 
-const int TRAINSET_TRAINS[] = {1, 2, 24, 47, 54, 58, 78};
+const int TRAINSET_TRAINS[] = {1, 2, 24, 47, 54, 58, 77, 78};
 
 int marklin_tx_server;
 
@@ -58,10 +58,10 @@ void trainset_init(struct Trainset *trainset, int train_dispatcher_tid) {
     trainset->train_speeds[i] = 0;
   }
 
-  uart_config_and_enable(UART_MARKLIN, BAUD_RATE, true, true, true);
+  uart_config_and_enable(UART_MARKLIN, BAUD_RATE, true, false, true);
 
   unsigned char cmd[] = {CMD_SENSOR_RESET_MODE};
-  DispatchTrainCommand(trainset->train_dispatcher, cmd, 1);
+  // DispatchTrainCommand(trainset->train_dispatcher, cmd, 1);
 }
 
 static void send_command(struct Trainset *trainset, unsigned char arg1, unsigned char arg2) {
@@ -81,9 +81,8 @@ void trainset_set_train_speed(
     trainset->train_speeds[train_index] = 0;
   } else {
     trainset->train_speeds[train_index] = speed;
+    // TerminalUpdateTrainSpeed(terminal_tid, train_index, speed);
   }
-
-  TerminalUpdateTrainSpeed(terminal_tid, train_index, speed);
 
   // add 16 to speed for auxiliary function
   send_command(trainset, speed + SPEED_OFFSET_FUNCTION, train);
@@ -125,7 +124,7 @@ void trainset_set_switch_direction(
 
   trainset->last_track_switch_time = time;
   trainset->switch_states[switch_number] = switch_direction;
-  TerminalUpdateSwitchState(terminal_tid, switch_number, switch_direction);
+  // TerminalUpdateSwitchState(terminal_tid, switch_number, switch_direction);
 
   // switch off solenoid after a period.
   Create(TRAIN_TASK_PRIORITY, train_off_solenoid_task);

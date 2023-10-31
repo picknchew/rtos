@@ -102,12 +102,14 @@ void handle_irq() {
   }
 
   if (irq_id != IRQ_SPURIOUS) {
-    if (event != EVENT_IGNORE && event_blocked_task_queue_size(&event_blocked_queue, event) == 0) {
+    if (event != EVENT_IGNORE && event != EVENT_UART_CONSOLE_TX &&
+        event_blocked_task_queue_size(&event_blocked_queue, event) == 0) {
       if (missed_irq[event]) {
         printf("irq_handler: missed interrupt %d\r\n", event);
+        while (true) {}
       }
-      
-      missed_irq[event] = true;
+
+      //   missed_irq[event] = true;
     }
     // unblock tasks waiting for this event
     while (event != EVENT_IGNORE &&

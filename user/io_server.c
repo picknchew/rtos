@@ -84,6 +84,7 @@ void io_marklin_tx_notify_cts_on_task() {
   struct IOTxRequest req = {.type = TX_REQ_NOTIFY_CTS_ON};
   while (true) {
     AwaitEvent(EVENT_UART_MARKLIN_CTS_ON);
+    // printf("cts on\r\n");
     Send(marklin_tx_io_task, (const char *) &req, sizeof(req), NULL, 0);
   }
 }
@@ -94,6 +95,7 @@ void io_marklin_tx_notify_cts_off_task() {
   struct IOTxRequest req = {.type = TX_REQ_NOTIFY_CTS_OFF};
   while (true) {
     AwaitEvent(EVENT_UART_MARKLIN_CTS_OFF);
+    // printf("cts off\r\n");
     Send(marklin_tx_io_task, (const char *) &req, sizeof(req), NULL, 0);
   }
 }
@@ -111,43 +113,45 @@ void io_marklin_tx_task() {
   circular_buffer_init(&tx_buffer);
 
   // create notifier task
-  Create(IO_TASK_PRIORITY, io_marklin_tx_notify_cts_on_task);
-  Create(IO_TASK_PRIORITY, io_marklin_tx_notify_cts_off_task);
+  Create(NOTIFIER_PRIORITY, io_marklin_tx_notify_cts_on_task);
+  Create(NOTIFIER_PRIORITY, io_marklin_tx_notify_cts_off_task);
 
   int tid;
   struct IOTxRequest req;
 
   enum MarklinState marklin_state = MARKLIN_READY;
+  int clock_server = WhoIs("clock_server");
 
   while (true) {
     Receive(&tid, (char *) &req, sizeof(req));
 
     switch (req.type) {
       case TX_REQ_NOTIFY_CTS_OFF:
-
-        // tx fifo buffer not empty
-        // fill fifo buffer until full or tx_buffer empty
-        marklin_state = MARKLIN_BUSY;
+        if (marklin_state == MARKLIN_CMD_SENT) {
+          printf("cts off: %d\r\n", marklin_state);
+          marklin_state = MARKLIN_BUSY;
+        }
 
         // unblock notify task
         Reply(tid, NULL, 0);
         break;
       case TX_REQ_NOTIFY_CTS_ON:
         if (marklin_state == MARKLIN_BUSY) {
+          // printf("marklin ready\r\n");
           marklin_state = MARKLIN_READY;
+          printf("cts on: %d\r\n", marklin_state);
+          printf("tx on: %d\r\n", uart_tx_asserted(UART_MARKLIN));
         }
 
         Reply(tid, NULL, 0);
         break;
       case TX_REQ_PUTC:
-        circular_buffer_write_int8(&tx_buffer, 1);
         circular_buffer_write(&tx_buffer, req.putc_req.data);
 
         Reply(tid, NULL, 0);
 
         break;
       case TX_REQ_PUTL:
-        circular_buffer_write_int8(&tx_buffer, req.putl_req.datalen);
         for (int i = 0; i < req.putl_req.datalen; ++i) {
           circular_buffer_write(&tx_buffer, req.putl_req.data[i]);
         }
@@ -165,18 +169,23 @@ void io_marklin_tx_task() {
         break;
     }
 
+    if (!circular_buffer_empty(&tx_buffer) && marklin_state == MARKLIN_READY) {
+      // printf("finished reading data %d\r\n", done_reading);
+    }
+
     if (!circular_buffer_empty(&tx_buffer) && marklin_state == MARKLIN_READY && done_reading) {
-      int datalen = circular_buffer_read_int8(&tx_buffer);
+      printf("send command status: %d\r\n", marklin_state);
+      char ch = circular_buffer_read(&tx_buffer);
+      uart_putc(line, ch);
 
-      for (int i = 0; i < datalen; ++i) {
-        char ch = circular_buffer_read(&tx_buffer);
-        uart_putc(line, ch);
-
-        // read all sensors
-        if (ch == 0x80 + 5) {
-          done_reading = false;
-        }
+      // read all sensors
+      if (ch == 0x80 + 5) {
+        // printf("begin reading data SENSOR COMMAND\r\n");
+        done_reading = false;
+        // printf("done get sensor data %d\r\n", done_reading);
       }
+
+      // Delay(clock_server, 2);
 
       marklin_state = MARKLIN_CMD_SENT;
     }
@@ -203,7 +212,7 @@ void io_tx_task() {
   circular_buffer_init(&tx_buffer);
 
   // create notifier task
-  int notifier_tid = Create(IO_TASK_PRIORITY, io_tx_notify_task);
+  int notifier_tid = Create(NOTIFIER_PRIORITY, io_tx_notify_task);
   Send(notifier_tid, (const char *) &event, sizeof(event), NULL, 0);
 
   int tid;
@@ -230,11 +239,9 @@ void io_tx_task() {
 
         break;
       case TX_REQ_PUTC:
-        uart_enable_tx_irq(line);
-
-        if (!circular_buffer_empty(&tx_buffer)) {
+        if (!circular_buffer_empty(&tx_buffer) || uart_tx_fifo_full(line)) {
           circular_buffer_write(&tx_buffer, req.putc_req.data);
-        } else if (!uart_tx_fifo_full(line)) {
+        } else {
           uart_putc(line, req.putc_req.data);
         }
 
@@ -253,6 +260,7 @@ void io_tx_task() {
         }
 
         Reply(tid, NULL, 0);
+        break;
       default:
         // do not use cts
         break;
@@ -273,6 +281,7 @@ void io_rx_notify_task() {
   while (true) {
     AwaitEvent(event);
 
+    printf("notify rx data\r\n");
     // notify rx task
     Send(rx_task, (char *) &req, sizeof(req), NULL, 0);
   }
@@ -301,7 +310,7 @@ void io_rx_task() {
   tid_queue_init(&rx_queue);
 
   // create notifier task
-  int notifier_tid = Create(IO_TASK_PRIORITY, io_rx_notify_task);
+  int notifier_tid = Create(NOTIFIER_PRIORITY, io_rx_notify_task);
   Send(notifier_tid, (const char *) &event, sizeof(event), NULL, 0);
 
   int tid;
@@ -333,7 +342,9 @@ void io_rx_task() {
         if (!circular_buffer_empty(&rx_buffer)) {
           char ch = circular_buffer_read(&rx_buffer);
           Reply(tid, &ch, sizeof(char));
+          printf("queue is not empty\r\n");
         } else {
+          printf("queue is empty on getc\r\n");
           // block task and put it in a queue for when data is available
           tid_queue_add(&rx_queue, tid);
         }

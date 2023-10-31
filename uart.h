@@ -17,6 +17,7 @@ void uart_config_and_enable(
 enum Event uart_handle_irq();
 void uart_enable_tx_irq(size_t line);
 void uart_disable_tx_irq(size_t line);
+bool uart_tx_asserted(size_t line);
 bool uart_tx_fifo_full(size_t line);
 bool uart_hasc(size_t line);
 unsigned char uart_getc(size_t line);

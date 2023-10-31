@@ -2,8 +2,14 @@
 
 #include <stdint.h>
 
+#include "task.h"
+#include "task_queue.h"
+
 // must equal to the number of events
 #define EVENT_MAX 10
+
+// max priority
+#define NOTIFIER_PRIORITY (MAX_PRIORITY - 1)
 
 enum Event {
   EVENT_UNKNOWN = 0,  // start at 0 since we use these as indices for our event queue array

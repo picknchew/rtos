@@ -9,7 +9,7 @@
 #define TRAINSET_NUM_SENSORS_PER_MODULE 16
 
 #define TRAINSET_NUM_MAX_SWITCHES 255
-#define TRAINSET_NUM_TRAINS 7
+#define TRAINSET_NUM_TRAINS 8
 
 extern const int TRAINSET_DIRECTION_STRAIGHT;
 extern const int TRAINSET_DIRECTION_CURVED;
@@ -28,7 +28,7 @@ struct Trainset {
   enum SwitchDirection switch_states[TRAINSET_NUM_MAX_SWITCHES];
   bool sensors_occupied[TRAINSET_NUM_FEEDBACK_MODULES * TRAINSET_NUM_SENSORS_PER_MODULE];
 
-  uint8_t train_speeds[7];
+  uint8_t train_speeds[TRAINSET_NUM_TRAINS];
 
   uint64_t last_track_switch_time;
   uint64_t max_read_sensor_query_time;

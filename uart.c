@@ -80,6 +80,7 @@ static const uint32_t UART_LCRH = 0x2c;
 static const uint32_t UART_CR = 0x30;
 static const uint32_t UART_IFLS = 0x34;
 static const uint32_t UART_IMSC = 0x38;
+static const uint32_t UART_RIS = 0x3c;
 static const uint32_t UART_MIS = 0x40;
 static const uint32_t UART_ICR = 0x44;
 
@@ -191,8 +192,8 @@ void uart_config_and_enable(
 
   // configure fifo interrupt trigger points
   // RX irq when fifo at least 1/8 full
-  // TX irq when fifo less than full
-  // UART_REG(line, UART_IFLS) |= 0x4;
+  // TX irq when fifo is 4/8 full
+  UART_REG(line, UART_IFLS) = 0;
 
   // enable interrupts (rx timeout, tx)
   // we disable tx interrupts initially since we do not have
@@ -226,6 +227,10 @@ bool uart_hasc(size_t line) {
   return !(UART_REG(line, UART_FR) & UART_FR_RXFE);
 }
 
+bool uart_tx_asserted(size_t line) {
+  return UART_REG(line, UART_RIS) & UART_TX_MASK;
+}
+
 unsigned char uart_getc(size_t line) {
   return UART_REG(line, UART_DR);
 }
@@ -243,11 +248,13 @@ enum Event uart_handle_irq() {
     // clear interrupt
     UART_REG(line, UART_ICR) = UART_CTS_MASK;
 
-    if (uart_cts(UART_MARKLIN)) {
+    if (line == UART_MARKLIN) {
       // we do not enable cts for console
-      return EVENT_UART_MARKLIN_CTS_ON;
-    } else {
-      return EVENT_UART_MARKLIN_CTS_OFF;
+      if (uart_cts(UART_MARKLIN)) {
+        return EVENT_UART_MARKLIN_CTS_ON;
+      } else {
+        return EVENT_UART_MARKLIN_CTS_OFF;
+      }
     }
   } else if (mis & UART_RT_MASK) {
     // clear interrupt
@@ -261,17 +268,18 @@ enum Event uart_handle_irq() {
     UART_REG(line, UART_ICR) = UART_RX_MASK;
   }
 
-  if (tx) {
-    if (line == UART_CONSOLE) {
-      return EVENT_UART_CONSOLE_TX;
-    } else {
-      return EVENT_UART_MARKLIN_TX;
-    }
-  } else {
+  if (!tx) {
+    // handle rx interrupts first
     if (line == UART_CONSOLE) {
       return EVENT_UART_CONSOLE_RX;
     } else {
       return EVENT_UART_MARKLIN_RX;
+    }
+  } else {
+    if (line == UART_CONSOLE) {
+      return EVENT_UART_CONSOLE_TX;
+    } else {
+      return EVENT_UART_MARKLIN_TX;
     }
   }
 
