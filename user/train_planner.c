@@ -1,8 +1,8 @@
 #include "../trackdata/track_data.h"
 
 // direction of train in relation to track graph
-struct TrainDirection {
-  FORWARD, REVERSE
+enum TrainDirection {
+  TRAINDIR_FORWARD, TRAINDIR_REVERSE
 };
 
 struct TrainPosition {
@@ -10,14 +10,14 @@ struct TrainPosition {
   // the train is heading from
   unsigned int dist;
   struct TrackNode *node;
-}
+};
 
 struct TrainState {
-  struct TrainDirection direction;
+  enum TrainDirection direction;
 };
 
 void train_state_init(struct TrainState *state) {
-  state->direction;
+  state->direction = TRAINDIR_FORWARD;
 }
 
 #define DIRECTIONS_NUM 3

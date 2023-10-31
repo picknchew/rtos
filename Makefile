@@ -23,7 +23,7 @@ CFLAGS:=-g -pipe -static $(WARNINGS) $(PREPROC_VARS) -ffreestanding -nostartfile
 LDFLAGS:=-Wl,-nmagic -Wl,-Tlinker.ld
 
 # Source files and include dirs
-SOURCES := $(wildcard *.c) $(wildcard *.S) $(wildcard user/*.c) $(wildcard train/*.c) $(wildcard traindata/*.c)
+SOURCES := $(wildcard *.c) $(wildcard *.S) $(wildcard user/*.c) $(wildcard train/*.c) $(wildcard trackdata/*.c)
 # Create .o and .d files for every .cc and .S (hand-written assembly) file
 OBJECTS := $(patsubst %.c, %.o, $(patsubst %.S, %.o, $(SOURCES)))
 DEPENDS := $(patsubst %.c, %.d, $(patsubst %.S, %.d, $(SOURCES)))
