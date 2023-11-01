@@ -22,12 +22,11 @@ void train_sensor_update_task() {
   int marklin_rx = WhoIs("marklin_io_rx");
   int marklin_tx = WhoIs("marklin_io_tx");
   int clock_server = WhoIs("clock_server");
+  int terminal = WhoIs("terminal");
 
   struct TrainRequest req = {.type = SENSOR_DATA_NOTIFY, .update_sensor_data_req = {0}};
 
   while (true) {
-    // Delay(clock_server, 10);
-
     uint64_t start_time = Time(clock_server);
 
     DispatchTrainCommand(marklin_tx, CMD_READ_ALL_SENSORS, 1);
@@ -118,6 +117,7 @@ void train_task() {
         break;
       case REVERSE_TRAIN:
         Reply(tid, NULL, 0);
+        TerminalUpdateStatus(terminal, "Reversing train..");
         trainset_train_reverse(&trainset, terminal, req.reverse_req.train);
         break;
       case IS_VALID_TRAIN:

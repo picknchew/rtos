@@ -58,7 +58,6 @@ void terminal_screen_task() {
             req.update_train_speed_req.train_speed);
         break;
       case UPDATE_SENSORS:
-        terminal_update_status(&screen, "Reversing train..");
         terminal_update_sensors(
             &screen, req.update_sensors_req.sensors, req.update_sensors_req.sensors_len);
         Reply(tid, NULL, 0);

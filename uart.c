@@ -242,7 +242,7 @@ bool uart_cts(size_t line) {
 enum Event uart_handle_irq() {
   size_t line = get_irq_line();
   uint32_t mis = UART_REG(line, UART_MIS);
-  bool tx = false;
+  bool rx = false;
 
   if (mis & UART_CTS_MASK) {
     // clear interrupt
@@ -253,16 +253,17 @@ enum Event uart_handle_irq() {
   } else if (mis & UART_RT_MASK) {
     // clear interrupt
     UART_REG(line, UART_ICR) = UART_RT_MASK;
+    rx = true;
   } else if (mis & UART_TX_MASK) {
     // clear interrupt
     UART_REG(line, UART_ICR) = UART_TX_MASK;
-    tx = true;
   } else if (mis & UART_RX_MASK) {
     // clear interrupt
     UART_REG(line, UART_ICR) = UART_RX_MASK;
+    rx = true;
   }
 
-  if (!tx) {
+  if (rx) {
     // handle rx interrupts first
     if (line == UART_CONSOLE) {
       return EVENT_UART_CONSOLE_RX;

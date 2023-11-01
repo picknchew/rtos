@@ -7,8 +7,8 @@
 #include "irq.h"
 #include "name_server.h"
 #include "syscall.h"
-#include "user/tid_queue.h"
 #include "uart.h"
+#include "user/tid_queue.h"
 
 const int IO_TASK_PRIORITY = 20;
 
@@ -105,9 +105,7 @@ void io_marklin_tx_task() {
       case TX_REQ_NOTIFY_CTS:
         if (marklin_state == MARKLIN_CMD_SENT) {
           marklin_state = MARKLIN_BUSY;
-        }
-
-        if (marklin_state == MARKLIN_BUSY) {
+        } else if (marklin_state == MARKLIN_BUSY) {
           marklin_state = MARKLIN_READY;
         }
 
@@ -252,7 +250,7 @@ void io_rx_task() {
   Receive(&parent_tid, (char *) &event, sizeof(event));
   Reply(parent_tid, NULL, 0);
 
-  int line;
+  size_t line;
   if (event == EVENT_UART_CONSOLE_RX) {
     line = UART_CONSOLE;
     RegisterAs("console_io_rx");

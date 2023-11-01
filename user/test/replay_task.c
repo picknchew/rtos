@@ -77,8 +77,10 @@ void replay_task() {
   // }
 
   // trainset_set_train_speed(&trainset, 0, 58, 2);
-  trainset_set_train_speed(&trainset, 0, 54, 2);
+  trainset_set_train_speed(&trainset, 0, 58, 2);
   read_sensor_data(train_dispatch);
+  // trainset_set_train_speed(&trainset, 0, 58, 0);
+  // read_sensor_data(train_dispatch);
 
   // while (true) {
   //   if (uart_hasc(UART_MARKLIN)) {
@@ -89,7 +91,7 @@ void replay_task() {
   while (true) {
     printf("waiting for train data\r\n");
     for (int i = 0; i < TRAINSET_NUM_FEEDBACK_MODULES * 2; ++i) {
-      // printf("before getc\r\n");
+      printf("before getc\r\n");
       char marklin_ch = Getc(marklin_rx);
       printf("read %d\r\n", i);
       circular_buffer_write(&rx_buffer, marklin_ch);
