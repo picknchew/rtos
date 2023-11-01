@@ -1,7 +1,7 @@
 #include "terminal_screen.h"
 
-#include "io_server.h"
-#include "train/trainset.h"
+#include "user/server/io_server.h"
+#include "user/train/trainset.h"
 #include "util.h"
 
 static const char SEQ_CLEAR_SCREEN[] = "\033[2J";

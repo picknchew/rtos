@@ -2,10 +2,10 @@
 
 #include <stdbool.h>
 
-#include "name_server.h"
 #include "rpi.h"
 #include "syscall.h"
 #include "task.h"
+#include "user/server/name_server.h"
 
 enum RPSRequestType { RPS_REQUEST_SIGNUP, RPS_REQUEST_PLAY, RPS_REQUEST_QUIT };
 

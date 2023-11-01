@@ -4,11 +4,11 @@
 #include <stdint.h>
 
 #include "irq.h"
-#include "name_server.h"
 #include "rpi.h"
 #include "syscall.h"
-#include "terminal_task.h"
 #include "timer.h"
+#include "user/server/name_server.h"
+#include "user/terminal/terminal_task.h"
 
 #define CENTISECOND_IN_MICROSECONDS 10000u
 #define SECOND_IN_MICROSECONDS (CENTISECOND_IN_MICROSECONDS * 100)

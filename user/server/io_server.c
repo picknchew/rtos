@@ -7,7 +7,7 @@
 #include "irq.h"
 #include "name_server.h"
 #include "syscall.h"
-#include "tid_queue.h"
+#include "user/tid_queue.h"
 #include "uart.h"
 
 const int IO_TASK_PRIORITY = 20;

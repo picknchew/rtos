@@ -3,7 +3,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include "train/trainset.h"
+#include "trainset.h"
 
 enum TrainRequestType {
   SET_SPEED,

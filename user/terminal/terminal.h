@@ -1,10 +1,9 @@
 #pragma once
 
 #include <stdarg.h>
+#include <stdbool.h>
+#include <stddef.h>
 #include <stdint.h>
-
-#include "circular_buffer.h"
-#include "trainset.h"
 
 #define COMMAND_BUFFER_SIZE 64
 

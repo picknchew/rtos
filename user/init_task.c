@@ -2,18 +2,18 @@
 
 #include <stdio.h>
 
-#include "clock_server.h"
 #include "idle_task.h"
-#include "io_server.h"
-#include "msg_perf_test.h"
-#include "name_server.h"
-#include "replay_task.h"
-#include "rps_test_task.h"
+#include "server/clock_server.h"
+#include "server/io_server.h"
+#include "server/name_server.h"
 #include "syscall.h"
 #include "task.h"
-#include "terminal_task.h"
-#include "test_tasks.h"
-#include "testk3.h"
+#include "terminal/terminal_task.h"
+#include "test/msg_perf_test.h"
+#include "test/replay_task.h"
+#include "test/rps/rps_test_task.h"
+#include "test/testk3.h"
+#include "test/test_tasks.h"
 #include "timer.h"
 #include "train/train_dispatcher.h"
 

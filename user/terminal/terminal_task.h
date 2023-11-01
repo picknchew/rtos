@@ -3,8 +3,8 @@
 #include <stdarg.h>
 #include <stdint.h>
 
-#include "train/terminal.h"
-#include "train/trainset.h"
+#include "terminal.h"
+#include "user/train/trainset.h"
 
 enum TerminalRequestType {
   UPDATE_TRAIN_SPEED,

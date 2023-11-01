@@ -5,7 +5,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#include "train/trainset.h"
+#include "user/train/trainset.h"
 
 struct TerminalScreen {
   int console_tx;

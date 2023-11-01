@@ -3,13 +3,13 @@
 #include <stdbool.h>
 
 #include "circular_buffer.h"
-#include "io_server.h"
-#include "name_server.h"
 #include "rpi.h"
 #include "syscall.h"
-#include "train/train_dispatcher.h"
-#include "train/trainset.h"
 #include "uart.h"
+#include "user/server/io_server.h"
+#include "user/server/name_server.h"
+#include "user/train/train_dispatcher.h"
+#include "user/train/trainset.h"
 
 #define TRAINSET_NUM_FEEDBACK_MODULES 5
 #define TRAINSET_NUM_SENSORS_PER_MODULE 16

@@ -3,9 +3,9 @@
 #include <stdarg.h>
 #include <stdbool.h>
 
-#include "user/io_server.h"
-#include "user/terminal_task.h"
-#include "user/trainset_task.h"
+#include "terminal_task.h"
+#include "user/server/io_server.h"
+#include "user/train/trainset_task.h"
 #include "util.h"
 
 static const char CHAR_DELIMITER = ' ';
