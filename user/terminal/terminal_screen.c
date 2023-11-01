@@ -101,8 +101,8 @@ void terminal_update_status_va(struct TerminalScreen *screen, char *fmt, va_list
 
   format_print(screen, fmt, va);
 
-  puts(screen, TEXT_RESET);
   puts(screen, SEQ_CURSOR_DELETE_LINE);
+  puts(screen, TEXT_RESET);
   restore_cursor(screen);
 }
 
@@ -169,7 +169,9 @@ static void terminal_init_train_speeds(struct TerminalScreen *screen) {
   restore_cursor(screen);
 }
 
-void terminal_screen_init(struct TerminalScreen *screen) {
+void terminal_screen_init(struct TerminalScreen *screen, int console_tx) {
+  screen->console_tx = console_tx;
+
   puts(screen, SEQ_CLEAR_SCREEN);
   puts(screen, SEQ_CURSOR_HIDE);
 

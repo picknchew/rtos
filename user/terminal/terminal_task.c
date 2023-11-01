@@ -39,8 +39,10 @@ void terminal_screen_task() {
 
   Create(TERMINAL_TASK_PRIORITY, terminal_time_update_task);
 
+  int console_tx = WhoIs("console_io_tx");
+
   struct TerminalScreen screen;
-  terminal_screen_init(&screen);
+  terminal_screen_init(&screen, console_tx);
 
   int tid;
   struct TerminalRequest req;
@@ -79,9 +81,9 @@ void terminal_screen_task() {
         terminal_update_idle(&screen, req.update_idle_req.idle, req.update_idle_req.idle_pct);
         break;
       case UPDATE_COMMAND:
-        Reply(tid, NULL, 0);
         terminal_update_command(
             &screen, req.update_command_req.command, req.update_command_req.len);
+        Reply(tid, NULL, 0);
         break;
       case TERMINAL_TIME_NOTIFY:
         terminal_update_time(&screen, req.time);
@@ -160,6 +162,6 @@ void TerminalUpdateMaxSensorDuration(int tid, unsigned int duration) {
 
 void TerminalUpdateCommand(int tid, char *command, size_t len) {
   struct TerminalRequest req = {
-      .type = UPDATE_MAX_SENSOR_DURATION, .update_command_req = {.command = command, .len = len}};
+      .type = UPDATE_COMMAND, .update_command_req = {.command = command, .len = len}};
   Send(tid, (const char *) &req, sizeof(req), NULL, 0);
 }

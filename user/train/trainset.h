@@ -15,8 +15,6 @@ extern const int TRAINSET_DIRECTION_STRAIGHT;
 extern const int TRAINSET_DIRECTION_CURVED;
 extern const int TRAINSET_TRAINS[];
 
-struct Terminal;
-
 enum SwitchDirection { DIRECTION_CURVED, DIRECTION_STRAIGHT, DIRECTION_UNKNOWN };
 
 extern const unsigned int DELAY_OFF_LAST_SOLENOID;

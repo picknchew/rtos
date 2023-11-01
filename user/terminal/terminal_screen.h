@@ -11,7 +11,7 @@ struct TerminalScreen {
   int console_tx;
 };
 
-void terminal_screen_init(struct TerminalScreen *screen);
+void terminal_screen_init(struct TerminalScreen *screen, int console_tx);
 void terminal_update_train_speed(
     struct TerminalScreen *screen,
     int train_index,

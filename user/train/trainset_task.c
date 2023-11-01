@@ -7,7 +7,6 @@
 #include "syscall.h"
 #include "train_dispatcher.h"
 #include "trainset.h"
-#include "uart.h"
 #include "user/server/clock_server.h"
 #include "user/server/io_server.h"
 #include "user/server/name_server.h"
