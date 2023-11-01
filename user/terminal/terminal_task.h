@@ -17,6 +17,11 @@ enum TerminalRequestType {
   TERMINAL_TIME_NOTIFY
 };
 
+struct VelocityMeasurementInfo{
+  int train_tid;
+  struct Terminal *terminal;
+};
+
 struct TerminalUpdateTrainSpeedRequest {
   int train_index;
   uint8_t train_speed;

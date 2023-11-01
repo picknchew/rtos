@@ -102,6 +102,13 @@ void terminal_task() {
   struct Terminal terminal;
   terminal_init(&terminal, terminal_screen);
 
+   #if VMEASUREMENT
+    struct VelocityMeasurementInfo info = {.train_tid = train_tid, .terminal = &terminal};
+    int vtid = Create(63,velocity_measurement_task);
+    Send(vtid, (const char *)&info,sizeof(info),NULL,0);
+  #else
+  #endif
+
   int tid;
   char ch;
   while (true) {

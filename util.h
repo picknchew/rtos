@@ -19,3 +19,4 @@ int strlen(const char *str);
 bool is_number(char *str);
 int atoi(char *str);
 char *strtok_r(char *str, char delim, char **saveptr);
+char *strcat (char *dest, const char *src,int len);

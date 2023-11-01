@@ -10,11 +10,12 @@ OBJDUMP:=$(XBINDIR)/$(TRIPLE)-objdump
 BENCHMARK_SIZE ?= 4
 BENCHMARK ?= 0
 BENCHMARK_TYPE ?= 0
+VMEASUREMENT ?= 0
 
 # COMPILE OPTIONS
 # -ffunction-sections causes each function to be in a separate section (linker script relies on this)
 WARNINGS=-Wall -Wextra -Wpedantic -Wno-unused-const-variable
-PREPROC_VARS=-DBENCHMARK=$(BENCHMARK) -DBENCHMARK_MSG_SIZE=$(BENCHMARK_SIZE) -DBENCHMARK_TYPE=${BENCHMARK_TYPE}
+PREPROC_VARS=-DBENCHMARK=$(BENCHMARK) -DBENCHMARK_MSG_SIZE=$(BENCHMARK_SIZE) -DBENCHMARK_TYPE=${BENCHMARK_TYPE} -DVMEASUREMENT=$(VMEASUREMENT)
 CFLAGS:=-g -I ./ -pipe -static $(WARNINGS) $(PREPROC_VARS) -ffreestanding -nostartfiles\
 	-mcpu=$(ARCH) -static-pie -mstrict-align -fno-builtin -mgeneral-regs-only -O3
 
@@ -56,6 +57,9 @@ kernel.elf: $(OBJECTS) linker.ld
 %.o: %.c Makefile BENCHMARK BENCHMARK_SIZE BENCHMARK_TYPE
 	$(CC) $(CFLAGS) -MMD -MP -c $< -o $@
 
+%.o: %.c Makefile VMEASUREMENT
+	$(CC) $(CFLAGS) -MMD -MP -c $< -o $@
+
 %.o: %.S Makefile
 	$(CC) $(CFLAGS) -MMD -MP -c $< -o $@
 
@@ -63,5 +67,6 @@ kernel.elf: $(OBJECTS) linker.ld
 $(eval $(call DEPENDABLE_VAR,BENCHMARK))
 $(eval $(call DEPENDABLE_VAR,BENCHMARK_TYPE))
 $(eval $(call DEPENDABLE_VAR,BENCHMARK_SIZE))
+$(eval $(call DEPENDABLE_VAR,VMEASUREMENT))
 
 -include $(DEPENDS)

@@ -145,3 +145,8 @@ char* strtok_r(char* str, char delim, char** saveptr) {
   *saveptr = NULL;
   return str;
 }
+
+char *strcat (char *dest, const char *src,int len){
+  memcpy (dest + strlen (dest), src,len);
+  return dest;
+}
