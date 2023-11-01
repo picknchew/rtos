@@ -3,12 +3,12 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include "../irq.h"
-#include "../rpi.h"
-#include "../syscall.h"
-#include "../timer.h"
+#include "irq.h"
 #include "name_server.h"
+#include "rpi.h"
+#include "syscall.h"
 #include "terminal_task.h"
+#include "timer.h"
 
 #define CENTISECOND_IN_MICROSECONDS 10000u
 #define SECOND_IN_MICROSECONDS (CENTISECOND_IN_MICROSECONDS * 100)

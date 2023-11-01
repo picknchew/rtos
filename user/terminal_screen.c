@@ -1,8 +1,8 @@
 #include "terminal_screen.h"
 
-#include "../train/trainset.h"
-#include "../util.h"
 #include "io_server.h"
+#include "train/trainset.h"
+#include "util.h"
 
 static const char SEQ_CLEAR_SCREEN[] = "\033[2J";
 static const char SEQ_CURSOR_DELETE_LINE[] = "\033[K";
@@ -237,10 +237,7 @@ void terminal_update_train_speed(
   restore_cursor(screen);
 }
 
-void terminal_update_command(
-    struct TerminalScreen *screen,
-    char *command,
-    unsigned int len) {
+void terminal_update_command(struct TerminalScreen *screen, char *command, unsigned int len) {
   save_cursor(screen);
   move_cursor(screen, 19, 1);
   puts(screen, "> ");

@@ -1,9 +1,9 @@
 #pragma once
 
-#include <stdint.h>
 #include <stdbool.h>
+#include <stdint.h>
 
-#include "../train/trainset.h"
+#include "train/trainset.h"
 
 enum TrainRequestType {
   SET_SPEED,

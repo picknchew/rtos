@@ -3,7 +3,7 @@
 #include <stdarg.h>
 #include <stdint.h>
 
-#include "../circular_buffer.h"
+#include "circular_buffer.h"
 #include "trainset.h"
 
 #define COMMAND_BUFFER_SIZE 64

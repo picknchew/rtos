@@ -1,8 +1,8 @@
 #include "test_tasks.h"
 
-#include "../rpi.h"
-#include "../syscall.h"
 #include "name_server.h"
+#include "rpi.h"
+#include "syscall.h"
 
 void print_tid_task() {
   int sender;

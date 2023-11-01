@@ -2,10 +2,10 @@
 
 #include <stdbool.h>
 
-#include "../rpi.h"
-#include "../syscall.h"
 #include "name_server.h"
+#include "rpi.h"
 #include "rps_server.h"
+#include "syscall.h"
 
 // https://www.javamex.com/tutorials/random_numbers/xorshift.shtml
 static uint64_t rand() {

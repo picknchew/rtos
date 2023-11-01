@@ -2,10 +2,10 @@
 
 #include <stdbool.h>
 
-#include "../rpi.h"
-#include "../syscall.h"
-#include "../task.h"
-#include "../util.h"
+#include "rpi.h"
+#include "syscall.h"
+#include "task.h"
+#include "util.h"
 
 struct NameEntry {
   char name[NAME_SERVER_NAME_MAX];
@@ -44,7 +44,7 @@ void name_server_task() {
 
   while (true) {
     int tid;
-    struct NameServerRequest req = { .req_type = NAME_SERVER_REGISTER_AS };
+    struct NameServerRequest req = {.req_type = NAME_SERVER_REGISTER_AS};
 
     Receive(&tid, (char *) &req, sizeof(req));
 

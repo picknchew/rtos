@@ -1,5 +1,4 @@
-#ifndef _rpi_h_
-#define _rpi_h_ 1
+#pragma once
 
 #include <stdarg.h>
 #include <stdbool.h>
@@ -12,5 +11,3 @@ void uart_printf(size_t line, char *fmt, ...);
 void uart_format_print(size_t line, char *fmt, va_list va);
 void printf(char *fmt, ...);
 void puts(char *str);
-
-#endif /* rpi.h */

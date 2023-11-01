@@ -4,14 +4,14 @@
 #include <stdint.h>
 #include <stdio.h>
 
-#include "../syscall.h"
-#include "../train/train_dispatcher.h"
-#include "../train/trainset.h"
-#include "../uart.h"
-#include "../user/terminal_task.h"
 #include "clock_server.h"
 #include "io_server.h"
 #include "name_server.h"
+#include "syscall.h"
+#include "train/train_dispatcher.h"
+#include "train/trainset.h"
+#include "uart.h"
+#include "user/terminal_task.h"
 
 const unsigned char CMD_OFF_LAST_SOLENOID[] = {0x20};
 const unsigned char CMD_READ_ALL_SENSORS[] = {0x80 + TRAINSET_NUM_FEEDBACK_MODULES};

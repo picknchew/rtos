@@ -2,12 +2,12 @@
 
 #include <stdbool.h>
 
-#include "../syscall.h"
-#include "../uart.h"
-#include "../user/io_server.h"
-#include "../user/terminal_task.h"
-#include "../user/trainset_task.h"
+#include "syscall.h"
 #include "train_dispatcher.h"
+#include "uart.h"
+#include "user/io_server.h"
+#include "user/terminal_task.h"
+#include "user/trainset_task.h"
 
 static const int BAUD_RATE = 2400;
 

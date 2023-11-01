@@ -1,9 +1,11 @@
+#pragma once
+
 #include <stdarg.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 
-#include "../train/trainset.h"
+#include "train/trainset.h"
 
 struct TerminalScreen {
   int console_tx;

@@ -1,8 +1,8 @@
 #include "mail.h"
 
 #include <stddef.h>
-#include "stdint.h"
 
+#include "stdint.h"
 #include "task.h"
 
 void mail_queue_init(struct MailQueue *mail_queue) {
@@ -47,7 +47,9 @@ struct MailQueueNode *mail_queue_pop(struct MailQueue *mail_queue) {
   return popped;
 }
 
-struct MailQueueNode *mail_queue_remove(struct MailQueue *mail_queue, struct TaskDescriptor *sender) {
+struct MailQueueNode *mail_queue_remove(
+    struct MailQueue *mail_queue,
+    struct TaskDescriptor *sender) {
   struct MailQueueNode *cur = mail_queue->head;
   struct MailQueueNode *previous = NULL;
 

@@ -2,9 +2,9 @@
 
 #include <stdint.h>
 
-#include "../rpi.h"
-#include "../syscall.h"
-#include "../timer.h"
+#include "rpi.h"
+#include "syscall.h"
+#include "timer.h"
 
 #define RECEIVE_TASK 2
 #define SEND_TASK 3

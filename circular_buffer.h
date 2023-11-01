@@ -1,5 +1,4 @@
-#ifndef _circular_buffer_h_
-#define _circular_buffer_h_ 1
+#pragma once
 
 #include <stdbool.h>
 #include <stddef.h>
@@ -21,7 +20,10 @@ struct CircularBuffer {
 
 void circular_buffer_init(struct CircularBuffer *buffer);
 void circular_buffer_write(struct CircularBuffer *buffer, unsigned char ch);
-void circular_buffer_write_n(struct CircularBuffer *buffer, const unsigned char *data, unsigned int size);
+void circular_buffer_write_n(
+    struct CircularBuffer *buffer,
+    const unsigned char *data,
+    unsigned int size);
 void circular_buffer_write_int8(struct CircularBuffer *buffer, uint8_t i);
 void circular_buffer_write_int64(struct CircularBuffer *buffer, uint64_t i);
 uint64_t circular_buffer_peek_int64(struct CircularBuffer *buffer);
@@ -31,5 +33,3 @@ uint8_t circular_buffer_read_int8(struct CircularBuffer *buffer);
 uint64_t circular_buffer_read_int64(struct CircularBuffer *buffer);
 bool circular_buffer_empty(struct CircularBuffer *buffer);
 size_t circular_buffer_size(struct CircularBuffer *buffer);
-
-#endif /* circular_buffer.h */

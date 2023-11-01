@@ -2,12 +2,12 @@
 
 #include <stdarg.h>
 
-#include "../syscall.h"
-#include "../train/terminal.h"
 #include "clock_server.h"
 #include "io_server.h"
 #include "name_server.h"
+#include "syscall.h"
 #include "terminal_screen.h"
+#include "train/terminal.h"
 #include "trainset_task.h"
 
 const int TERMINAL_TASK_PRIORITY = 3;

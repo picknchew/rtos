@@ -1,6 +1,8 @@
+#pragma once
+
 #include <stdbool.h>
 
-#include "../task.h"
+#include "task.h"
 
 struct TIDQueueNode {
   int tid;

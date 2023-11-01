@@ -2,7 +2,7 @@
 
 #include <stdbool.h>
 
-#include "../task.h"
+#include "task.h"
 
 void tid_queue_init(struct TIDQueue *queue) {
   queue->head = NULL;

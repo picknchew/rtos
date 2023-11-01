@@ -1,10 +1,10 @@
 #include "testk3.h"
 
-#include "../rpi.h"
-#include "../syscall.h"
-#include "../timer.h"
 #include "clock_server.h"
 #include "name_server.h"
+#include "rpi.h"
+#include "syscall.h"
+#include "timer.h"
 
 void test_client();
 

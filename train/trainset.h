@@ -3,7 +3,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include "../circular_buffer.h"
+#include "circular_buffer.h"
 
 #define TRAINSET_NUM_FEEDBACK_MODULES 5
 #define TRAINSET_NUM_SENSORS_PER_MODULE 16

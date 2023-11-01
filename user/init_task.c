@@ -2,10 +2,6 @@
 
 #include <stdio.h>
 
-#include "../syscall.h"
-#include "../task.h"
-#include "../timer.h"
-#include "../train/train_dispatcher.h"
 #include "clock_server.h"
 #include "idle_task.h"
 #include "io_server.h"
@@ -13,9 +9,13 @@
 #include "name_server.h"
 #include "replay_task.h"
 #include "rps_test_task.h"
+#include "syscall.h"
+#include "task.h"
+#include "terminal_task.h"
 #include "test_tasks.h"
 #include "testk3.h"
-#include "terminal_task.h"
+#include "timer.h"
+#include "train/train_dispatcher.h"
 
 void init_task() {
 #if BENCHMARK

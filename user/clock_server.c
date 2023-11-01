@@ -5,10 +5,10 @@
 #include <stdint.h>
 #include <stdio.h>
 
-#include "../irq.h"
-#include "../syscall.h"
-#include "../task.h"
+#include "irq.h"
 #include "name_server.h"
+#include "syscall.h"
+#include "task.h"
 
 static int clock_server_tid = -1;
 

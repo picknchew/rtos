@@ -3,12 +3,12 @@
 #include <stdbool.h>
 #include <stddef.h>
 
-#include "../circular_buffer.h"
-#include "../irq.h"
-#include "../syscall.h"
-#include "../uart.h"
+#include "circular_buffer.h"
+#include "irq.h"
 #include "name_server.h"
+#include "syscall.h"
 #include "tid_queue.h"
+#include "uart.h"
 
 const int IO_TASK_PRIORITY = 20;
 

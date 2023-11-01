@@ -1,9 +1,7 @@
-#include "../trackdata/track_data.h"
+#include "trackdata/track_data.h"
 
 // direction of train in relation to track graph
-enum TrainDirection {
-  TRAINDIR_FORWARD, TRAINDIR_REVERSE
-};
+enum TrainDirection { TRAINDIR_FORWARD, TRAINDIR_REVERSE };
 
 struct TrainPosition {
   // position of train relative to the start of a track from the direction

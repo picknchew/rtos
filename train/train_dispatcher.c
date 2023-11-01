@@ -2,12 +2,12 @@
 
 #include <stdbool.h>
 
-#include "../circular_buffer.h"
-#include "../irq.h"
-#include "../syscall.h"
-#include "../uart.h"
-#include "../user/io_server.h"
-#include "../user/name_server.h"
+#include "circular_buffer.h"
+#include "irq.h"
+#include "syscall.h"
+#include "uart.h"
+#include "user/io_server.h"
+#include "user/name_server.h"
 
 static const int DISPATCHER_PRIORITY = 19;
 

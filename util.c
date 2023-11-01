@@ -59,7 +59,7 @@ void* memcpy(void* restrict dest, const void* restrict src, size_t n) {
   if (!dest || !src) {
     return NULL;
   }
-  
+
   char* sit = (char*) src;
   char* cdest = (char*) dest;
 
@@ -73,7 +73,7 @@ int min(int a, int b) {
   return (a < b) ? a : b;
 }
 
-int strcmp(char *str1, char *str2) {
+int strcmp(char* str1, char* str2) {
   while (*str1 && *str2) {
     if (*str1 != *str2) {
       return 0;
@@ -86,7 +86,7 @@ int strcmp(char *str1, char *str2) {
   return !(*str1) && !(*str2);
 }
 
-int strlen(const char *str) {
+int strlen(const char* str) {
   int index = 0;
 
   while (str[index]) {
@@ -96,7 +96,7 @@ int strlen(const char *str) {
   return index;
 }
 
-bool is_number(char *str) {
+bool is_number(char* str) {
   int len = strlen(str);
 
   for (int i = 0; i < len; ++i) {
@@ -108,7 +108,7 @@ bool is_number(char *str) {
   return true;
 }
 
-int atoi(char *str) {
+int atoi(char* str) {
   int ret = 0;
   int len = strlen(str);
 
@@ -120,8 +120,8 @@ int atoi(char *str) {
   return ret;
 }
 
-char *strtok_r(char *str, char delim, char **saveptr) {
-  char *cur = str;
+char* strtok_r(char* str, char delim, char** saveptr) {
+  char* cur = str;
 
   if (!str) {
     str = *saveptr;
