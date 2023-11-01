@@ -11,8 +11,8 @@ enum TerminalRequestType {
   UPDATE_IDLE,
   UPDATE_SWITCH_STATE,
   UPDATE_MAX_SENSOR_DURATION,
-  TERMINAL_TIME_NOTIFY,
-  TERMINAL_KEY_PRESS_NOTIFY
+  UPDATE_COMMAND,
+  TERMINAL_TIME_NOTIFY
 };
 
 struct TerminalUpdateTrainSpeedRequest {
@@ -44,6 +44,11 @@ struct TerminalUpdateMaxSensorDurationRequest {
   unsigned int duration;
 };
 
+struct TerminalUpdateCommandRequest {
+  char *command;
+  size_t len;
+};
+
 struct TerminalRequest {
   enum TerminalRequestType type;
 
@@ -57,6 +62,7 @@ struct TerminalRequest {
     struct TerminalUpdateMaxSensorDurationRequest update_max_sensor_duration_req;
     struct TerminalUpdateIdleRequest update_idle_req;
     struct TerminalUpdateSwitchRequest update_switch_state_req;
+    struct TerminalUpdateCommandRequest update_command_req;
   };
 };
 
@@ -68,5 +74,6 @@ void TerminalUpdateStatus(int tid, char *status, ...);
 void TerminalUpdateSwitchState(int tid, int switch_num, enum SwitchDirection dir);
 void TerminalUpdateMaxSensorDuration(int tid, unsigned int duration);
 void TerminalUpdateIdle(int tid, uint64_t idle, int idle_pct);
+void TerminalUpdateCommand(int tid, char *command, size_t len);
 
 void terminal_task();

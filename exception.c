@@ -75,7 +75,6 @@ void handle_exception(uint64_t exception_info) {
       break;
     case SYSCALL_REPLY:
       current_task->context.registers[0] = syscall_reply(
-          current_task,
           (int) current_task->context.registers[0],
           (const char *) current_task->context.registers[1],
           (int) current_task->context.registers[2]);
@@ -149,6 +148,7 @@ int syscall_send(
   if (receiver->status == TASK_EXITED) {
     return -1;
   }
+
   // send-receive-reply transactions could not be completed: -2
 
   sender->outgoing_msg.sender = sender;
@@ -192,7 +192,7 @@ int syscall_send(
         receiver->receive_buffer.msg,
         sender->outgoing_msg.msg,
         min(receiver->receive_buffer.msglen, sender->outgoing_msg.msglen));
-    
+
     // set status to READY and push to ready_queue
     task_schedule(receiver);
   }
@@ -243,7 +243,7 @@ int syscall_receive(struct TaskDescriptor *receiver, int *tid, char *msg, int ms
  * Ts unblocks (ReplyWait -> Ready)
  * kernel copies reply from Tr to Ts
  */
-int syscall_reply(struct TaskDescriptor *receiver, int tid, const char *reply, int rplen) {
+int syscall_reply(int tid, const char *reply, int rplen) {
   // the tid to reply to
   struct TaskDescriptor *sender = task_get_by_tid(tid);
   if (sender->status == TASK_EXITED) {

@@ -29,9 +29,6 @@ void io_server_task() {
   enum Event marklin_rx_event = EVENT_UART_MARKLIN_RX;
   Send(marklin_rx_task, (const char *) &marklin_rx_event, sizeof(marklin_rx_event), NULL, 0);
 
-  // int marklin_tx_task = Create(IO_TASK_PRIORITY, io_tx_task);
-  // enum Event marklin_tx_event = EVENT_UART_MARKLIN_TX;
-  // Send(marklin_tx_task, (const char *) &marklin_tx_event, sizeof(marklin_tx_event), NULL, 0);
   Create(IO_TASK_PRIORITY, io_marklin_tx_task);
 
   Exit();
@@ -100,7 +97,6 @@ void io_marklin_tx_task() {
   struct IOTxRequest req;
 
   enum MarklinState marklin_state = MARKLIN_READY;
-  int clock_server = WhoIs("clock_server");
 
   while (true) {
     Receive(&tid, (char *) &req, sizeof(req));
@@ -147,12 +143,8 @@ void io_marklin_tx_task() {
 
       // read all sensors
       if (ch == 0x80 + 5) {
-        // printf("begin reading data SENSOR COMMAND\r\n");
         done_reading = false;
-        // printf("done get sensor data %d\r\n", done_reading);
       }
-
-      // Delay(clock_server, 2);
 
       marklin_state = MARKLIN_CMD_SENT;
     }

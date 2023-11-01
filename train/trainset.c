@@ -61,7 +61,7 @@ void trainset_init(struct Trainset *trainset, int train_dispatcher_tid) {
   uart_config_and_enable(UART_MARKLIN, BAUD_RATE, true, false, true);
 
   unsigned char cmd[] = {CMD_SENSOR_RESET_MODE};
-  // DispatchTrainCommand(trainset->train_dispatcher, cmd, 1);
+  DispatchTrainCommand(trainset->train_dispatcher, cmd, 1);
 }
 
 static void send_command(struct Trainset *trainset, unsigned char arg1, unsigned char arg2) {
@@ -81,7 +81,7 @@ void trainset_set_train_speed(
     trainset->train_speeds[train_index] = 0;
   } else {
     trainset->train_speeds[train_index] = speed;
-    // TerminalUpdateTrainSpeed(terminal_tid, train_index, speed);
+    TerminalUpdateTrainSpeed(terminal_tid, train_index, speed);
   }
 
   // add 16 to speed for auxiliary function
@@ -124,7 +124,7 @@ void trainset_set_switch_direction(
 
   trainset->last_track_switch_time = time;
   trainset->switch_states[switch_number] = switch_direction;
-  // TerminalUpdateSwitchState(terminal_tid, switch_number, switch_direction);
+  TerminalUpdateSwitchState(terminal_tid, switch_number, switch_direction);
 
   // switch off solenoid after a period.
   Create(TRAIN_TASK_PRIORITY, train_off_solenoid_task);
@@ -139,7 +139,6 @@ void trainset_process_sensor_data(struct Trainset *trainset, char *raw_sensor_da
     // the most significant bit represents the lowest sensor
     for (int j = 0; j < 8; ++j) {
       // take last bit each time
-      // trainset->sensors_occupied[i * 8 + j] = (ch >> j) & 1;
       trainset->sensors_occupied[i * 8 + j] = (ch >> (7 - j)) & 1;
     }
   }

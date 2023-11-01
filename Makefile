@@ -15,7 +15,7 @@ BENCHMARK_TYPE ?= 0
 # -ffunction-sections causes each function to be in a separate section (linker script relies on this)
 WARNINGS=-Wall -Wextra -Wpedantic -Wno-unused-const-variable
 PREPROC_VARS=-DBENCHMARK=$(BENCHMARK) -DBENCHMARK_MSG_SIZE=$(BENCHMARK_SIZE) -DBENCHMARK_TYPE=${BENCHMARK_TYPE}
-CFLAGS:=-g -pipe -static $(WARNINGS) $(PREPROC_VARS) -ffreestanding -nostartfiles\
+CFLAGS:=-g -I ./ -pipe -static $(WARNINGS) $(PREPROC_VARS) -ffreestanding -nostartfiles\
 	-mcpu=$(ARCH) -static-pie -mstrict-align -fno-builtin -mgeneral-regs-only -O3
 
 # -Wl,option tells g++ to pass 'option' to the linker with commas replaced by spaces

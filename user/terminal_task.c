@@ -7,6 +7,7 @@
 #include "clock_server.h"
 #include "io_server.h"
 #include "name_server.h"
+#include "terminal_screen.h"
 #include "trainset_task.h"
 
 const int TERMINAL_TASK_PRIORITY = 3;
@@ -17,8 +18,7 @@ void terminal_key_press_task() {
 
   while (true) {
     char ch = Getc(console_rx);
-    struct TerminalRequest req = {.type = TERMINAL_KEY_PRESS_NOTIFY, .ch = ch};
-    Send(terminal, (const char *) &req, sizeof(req), NULL, 0);
+    Send(terminal, (const char *) &ch, sizeof(ch), NULL, 0);
   }
 }
 
@@ -34,19 +34,13 @@ void terminal_time_update_task() {
   }
 }
 
-void terminal_task() {
+void terminal_screen_task() {
   RegisterAs("terminal");
 
-  int console_rx = WhoIs("console_io_rx");
-  int console_tx = WhoIs("console_io_tx");
-
-  int train_tid = Create(TRAIN_TASK_PRIORITY, train_task);
-
-  Create(TERMINAL_TASK_PRIORITY, terminal_key_press_task);
   Create(TERMINAL_TASK_PRIORITY, terminal_time_update_task);
 
-  struct Terminal terminal;
-  terminal_init(&terminal, console_rx, console_tx);
+  struct TerminalScreen screen;
+  terminal_screen_init(&screen);
 
   int tid;
   struct TerminalRequest req;
@@ -57,43 +51,66 @@ void terminal_task() {
       case UPDATE_TRAIN_SPEED:
         Reply(tid, NULL, 0);
         terminal_update_train_speed(
-            &terminal,
+            &screen,
             req.update_train_speed_req.train_index,
             req.update_train_speed_req.train_speed);
         break;
       case UPDATE_SENSORS:
+        terminal_update_status(&screen, "Reversing train..");
         terminal_update_sensors(
-            &terminal, req.update_sensors_req.sensors, req.update_sensors_req.sensors_len);
+            &screen, req.update_sensors_req.sensors, req.update_sensors_req.sensors_len);
         Reply(tid, NULL, 0);
         break;
       case UPDATE_STATUS:
-        terminal_update_status_va(&terminal, req.update_status_req.fmt, req.update_status_req.va);
+        terminal_update_status_va(&screen, req.update_status_req.fmt, req.update_status_req.va);
         Reply(tid, NULL, 0);
         break;
       case UPDATE_SWITCH_STATE:
         terminal_update_switch_state(
-            &terminal, req.update_switch_state_req.switch_num, req.update_switch_state_req.dir);
+            &screen, req.update_switch_state_req.switch_num, req.update_switch_state_req.dir);
         Reply(tid, NULL, 0);
         break;
       case UPDATE_MAX_SENSOR_DURATION:
         Reply(tid, NULL, 0);
-        terminal_update_max_sensor_duration(&terminal, req.update_max_sensor_duration_req.duration);
+        terminal_update_max_sensor_duration(&screen, req.update_max_sensor_duration_req.duration);
         break;
       case UPDATE_IDLE:
         Reply(tid, NULL, 0);
-        terminal_update_idle(&terminal, req.update_idle_req.idle, req.update_idle_req.idle_pct);
+        terminal_update_idle(&screen, req.update_idle_req.idle, req.update_idle_req.idle_pct);
         break;
-      case TERMINAL_KEY_PRESS_NOTIFY:
-        if (terminal_handle_keypress(&terminal, train_tid, req.ch)) {
-          terminal_update_status(&terminal, "Exited.");
-          Exit();
-        }
+      case UPDATE_COMMAND:
         Reply(tid, NULL, 0);
+        terminal_update_command(
+            &screen, req.update_command_req.command, req.update_command_req.len);
         break;
       case TERMINAL_TIME_NOTIFY:
-        terminal_update_time(&terminal, req.time);
+        terminal_update_time(&screen, req.time);
         Reply(tid, NULL, 0);
+        break;
     }
+  }
+}
+
+void terminal_task() {
+  int terminal_screen = Create(TERMINAL_TASK_PRIORITY, terminal_screen_task);
+
+  int train_tid = Create(TRAIN_TASK_PRIORITY, train_task);
+  Create(TERMINAL_TASK_PRIORITY, terminal_key_press_task);
+
+  struct Terminal terminal;
+  terminal_init(&terminal, terminal_screen);
+
+  int tid;
+  char ch;
+  while (true) {
+    Receive(&tid, (char *) &ch, sizeof(ch));
+
+    if (terminal_handle_keypress(&terminal, train_tid, ch)) {
+      TerminalUpdateStatus(terminal_screen, "Exited.");
+      Exit();
+    }
+
+    Reply(tid, NULL, 0);
   }
 
   Exit();
@@ -138,5 +155,11 @@ void TerminalUpdateIdle(int tid, uint64_t idle, int idle_pct) {
 void TerminalUpdateMaxSensorDuration(int tid, unsigned int duration) {
   struct TerminalRequest req = {
       .type = UPDATE_MAX_SENSOR_DURATION, .update_max_sensor_duration_req = {.duration = duration}};
+  Send(tid, (const char *) &req, sizeof(req), NULL, 0);
+}
+
+void TerminalUpdateCommand(int tid, char *command, size_t len) {
+  struct TerminalRequest req = {
+      .type = UPDATE_MAX_SENSOR_DURATION, .update_command_req = {.command = command, .len = len}};
   Send(tid, (const char *) &req, sizeof(req), NULL, 0);
 }

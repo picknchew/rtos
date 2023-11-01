@@ -55,8 +55,8 @@ static const int BAUD_RATE = 2400;
 
 void replay_task() {
   uart_config_and_enable(LINE_TRAINSET, BAUD_RATE, true, true, true);
-  int console_rx = WhoIs("console_io_rx");
-  int console_tx = WhoIs("console_io_tx");
+  // int console_rx = WhoIs("console_io_rx");
+  // int console_tx = WhoIs("console_io_tx");
   int marklin_rx = WhoIs("marklin_io_rx");
   int train_dispatch = WhoIs("marklin_io_tx");
 

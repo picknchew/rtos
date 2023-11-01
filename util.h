@@ -1,7 +1,7 @@
 #pragma once
 
-#include <stddef.h>
 #include <stdbool.h>
+#include <stddef.h>
 
 // conversions
 int a2d(char ch);
@@ -18,3 +18,4 @@ int strcmp(char *str1, char *str2);
 int strlen(const char *str);
 bool is_number(char *str);
 int atoi(char *str);
+char *strtok_r(char *str, char delim, char **saveptr);

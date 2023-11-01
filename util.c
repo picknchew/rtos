@@ -119,3 +119,29 @@ int atoi(char *str) {
 
   return ret;
 }
+
+char *strtok_r(char *str, char delim, char **saveptr) {
+  char *cur = str;
+
+  if (!str) {
+    str = *saveptr;
+    cur = *saveptr;
+  }
+
+  if (!cur || *cur == '\0') {
+    return NULL;
+  }
+
+  while (*cur) {
+    if (*cur == delim) {
+      *cur = '\0';
+      *saveptr = cur + 1;
+      return str;
+    }
+
+    ++cur;
+  }
+
+  *saveptr = NULL;
+  return str;
+}

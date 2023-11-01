@@ -20,36 +20,29 @@ const int TRAIN_TASK_PRIORITY = 3;
 
 void train_sensor_update_task() {
   int train = MyParentTid();
-  int marklin_io_tx = WhoIs("marklin_io_tx");
   int marklin_rx = WhoIs("marklin_io_rx");
+  int marklin_tx = WhoIs("marklin_io_tx");
   int clock_server = WhoIs("clock_server");
-  int terminal = WhoIs("terminal");
 
-  struct TrainRequest req = {.type = SENSOR_DATA_NOTIFY, .update_sensor_data_req = {}};
+  struct TrainRequest req = {.type = SENSOR_DATA_NOTIFY, .update_sensor_data_req = {0}};
 
   while (true) {
     // Delay(clock_server, 10);
 
     uint64_t start_time = Time(clock_server);
 
-    DispatchTrainCommand(marklin_io_tx, CMD_READ_ALL_SENSORS, 1);
+    DispatchTrainCommand(marklin_tx, CMD_READ_ALL_SENSORS, 1);
 
-    TerminalUpdateStatus(terminal, "begin read sensor");
     for (int i = 0; i < TRAINSET_NUM_FEEDBACK_MODULES * 2; ++i) {
       req.update_sensor_data_req.raw_sensor_data[i] = Getc(marklin_rx);
-      TerminalUpdateStatus(
-          terminal, "latest sensor byte read: %d/%d", i, TRAINSET_NUM_FEEDBACK_MODULES * 2 - 1);
     }
-    TerminalUpdateStatus(terminal, "completed reading set");
-    NotifyMarklinRead(marklin_io_tx);
-    TerminalUpdateStatus(terminal, "notified marklin done read");
+    NotifyMarklinRead(marklin_tx);
 
     uint64_t end_time = Time(clock_server);
     // get in microseconds
     req.update_sensor_data_req.time_taken = end_time - start_time;
 
     Send(train, (const char *) &req, sizeof(req), NULL, 0);
-    TerminalUpdateStatus(terminal, "sent info back to main train task");
   }
 
   Exit();
@@ -93,11 +86,10 @@ void train_task() {
   RegisterAs("train");
 
   int clock_server = WhoIs("clock_server");
-  int marklin_io_tx = WhoIs("marklin_io_tx");
-  int marklin_rx = WhoIs("marklin_io_rx");
+  int marklin_tx = WhoIs("marklin_io_tx");
 
   struct Trainset trainset;
-  trainset_init(&trainset, marklin_io_tx);
+  trainset_init(&trainset, marklin_tx);
 
   int terminal = WhoIs("terminal");
 
@@ -113,10 +105,8 @@ void train_task() {
     switch (req.type) {
       case SET_SPEED:
         Reply(tid, NULL, 0);
-        TerminalUpdateStatus(terminal, "trainset: set speed");
         trainset_set_train_speed(
             &trainset, terminal, req.set_train_speed_req.train, req.set_train_speed_req.speed);
-        TerminalUpdateStatus(terminal, "trainset: after set speed");
         break;
       case SET_SWITCH_DIR:
         Reply(tid, NULL, 0);
@@ -141,31 +131,23 @@ void train_task() {
         Reply(tid, (const char *) &res, sizeof(res));
         break;
       case SENSOR_DATA_NOTIFY:
-        TerminalUpdateStatus(terminal, "trainset: sensor data notify");
         trainset_process_sensor_data(&trainset, req.update_sensor_data_req.raw_sensor_data);
-
-        TerminalUpdateStatus(terminal, "trainset: processed sensor data");
 
         TerminalUpdateSensors(
             terminal,
             trainset_get_sensor_data(&trainset),
             TRAINSET_NUM_FEEDBACK_MODULES * TRAINSET_NUM_SENSORS_PER_MODULE);
-        TerminalUpdateStatus(terminal, "update sensor data");
 
         if (trainset.max_read_sensor_query_time < req.update_sensor_data_req.time_taken) {
           trainset.max_read_sensor_query_time = req.update_sensor_data_req.time_taken;
           TerminalUpdateMaxSensorDuration(terminal, trainset.max_read_sensor_query_time);
         }
 
-        TerminalUpdateStatus(terminal, "replied to sensor notifier");
-
         Reply(tid, NULL, 0);
         break;
       case REVERSE_TRAIN_NOTIFY:
-        TerminalUpdateStatus(terminal, "Reversing train..");
         trainset_set_train_speed(
             &trainset, terminal, req.reverse_notify_req.train, SPEED_REVERSE_DIRECTION);
-        // Delay(clock_server, 10);
         trainset_set_train_speed(
             &trainset, terminal, req.reverse_notify_req.train, req.reverse_notify_req.speed);
         Reply(tid, NULL, 0);
