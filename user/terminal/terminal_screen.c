@@ -17,6 +17,10 @@ static const char SEQ_CURSOR_MOVE_TOP_LEFT[] = "\033[H";
 #define MINUTE_IN_CENTISECONDS (SECOND_IN_CENTISECONDS * 60)
 #define HOUR_IN_CENTISECONDS (MINUTE_IN_CENTISECONDS * 60)
 
+#define DISTANCE_LINE 22
+#define VELOCITY_BASE_LINE 23
+int velocity_offset = 0;
+
 const char TEXT_RESET[] = "\033[0m";
 
 static void putc(struct TerminalScreen *screen, char ch) {
@@ -266,7 +270,15 @@ void terminal_update_sensors(struct TerminalScreen *screen, bool *sensors, size_
     if (sensors[i]) {
       char ch = 'A' + i / 16;
       printf(screen, " %c%d", ch, i % 16 + 1);
+
+      if (i==2||i==3){
+        #if VMEASUREMENT
+          Send (WhoIs("vmeasurement"),"1",1,NULL,0);
+        #else
+        #endif
+      }
     }
+    
   }
   puts(screen, SEQ_CURSOR_DELETE_LINE);
 
@@ -293,4 +305,19 @@ void terminal_update_idle(struct TerminalScreen *screen, uint64_t idle, int idle
       minutes,
       seconds,
       centiseconds);
+}
+
+void terminal_print_loop_distance(struct TerminalScreen *screen, int begin, int end, int distance){
+  save_cursor(screen);
+  move_cursor(screen, DISTANCE_LINE, 1);
+  printf(screen, "START FROM %s TO %s distance: %d ", begin, end, distance);
+  restore_cursor(screen);
+}
+
+void terminal_print_loop_time(struct TerminalScreen *screen, int train, int speed, int time, int velocity){
+  save_cursor(screen);
+  move_cursor(screen, VELOCITY_BASE_LINE+velocity_offset, 1);
+  velocity_offset++;
+  printf(screen, "train %d at %d looptime %d velocity %d", train, speed, time, velocity);
+  restore_cursor(screen);
 }

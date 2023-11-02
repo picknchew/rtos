@@ -2,6 +2,7 @@
 
 #include <stdio.h>
 
+#include "../train/trackdata/distance.h"
 #include "terminal_task.h"
 #include "util.h"
 #include "../server/name_server.h"
@@ -23,6 +24,7 @@ void velocity_measurement_task() {
   //   int terminal = MyParentTid();
   int tid;
   Receive(&tid, (char *) &info, sizeof(info));
+  Reply(tid,NULL,0);
   struct Terminal *terminal = info.terminal;
   int train_tid = info.train_tid;
 
@@ -34,13 +36,18 @@ void velocity_measurement_task() {
     terminal_clear_command_buffer(terminal);
   }
 
+  struct TrackNode *track;
+  tracka_init(track);
+  struct TrackDistance info = track_distance(track, track[2]);
+
+
   char msg[2];
   int msglen = 0;
   char speed_command[10];
   int t = 0;
   int time_tid = WhoIs("clock_server");
-  for (int k = 0; k < 8; k++) {
-    for (int m = 0; m < 15; m++) {
+  for (int k = 6; k < 7; k++) {
+    for (int m = 12; m < 13; m++) {
     //   strcat(speed_command, "tr ", 3);
     //   strcat(speed_command, TRAINS[k], trains_len[k]);
     //   strcat(speed_command, " ", 1);
@@ -48,7 +55,7 @@ void velocity_measurement_task() {
     //   msglen = 4 + trains_len[k] + m / 10 + 1;
     //   memcpy(terminal->command_buffer, speed_command, msglen);
       TrainSetSpeed(train_tid,TRAINSET_TRAINS[k],m);
-      for (int i = 0; i < 100; i++) {
+      for (int i = 0; i < 5; i++) {
         Receive(&tid, msg, 1);
         Reply(tid, NULL, 0);
         int t1 = Time(time_tid);
@@ -58,6 +65,7 @@ void velocity_measurement_task() {
         if (i >= 2) {
           t += t2 - t1;
         }
+        
         printf("train: %d speed:%d time:%d\r\n",k,t,t2-t1);
       }
     }
