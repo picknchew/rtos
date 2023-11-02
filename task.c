@@ -60,7 +60,6 @@ task_create(struct TaskDescriptor *parent, int priority, void (*function)()) {
   task->parent = parent;
   task->priority = priority;
   task->status = TASK_READY;
-  task->blocked = 0;
 
   for (int i = 0; i < NUM_REGISTERS; ++i) {
     context->registers[i] = i;

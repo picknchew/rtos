@@ -169,7 +169,6 @@ int syscall_send(
   if (receiver->status != TASK_SEND_BLOCKED) {
     // move from ready queue do not push
     sender->status = TASK_RECEIVE_BLOCKED;
-    sender->blocked = receiver->tid;
 
     // put mailNode to receiver's wait_for_receive queue
     mail_queue_add(&receiver->wait_for_receive, &sender->tempnode);

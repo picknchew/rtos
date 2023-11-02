@@ -120,9 +120,6 @@ init_exception_vector_table:
   b handle_invalid_exception
 .endm
 
-.global probe
-.global probe_end
-
 .balign 0x800 // Table is 2048 bytes in total
 exception_table:
   // Current EL with SP0

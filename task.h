@@ -45,7 +45,6 @@ struct TaskDescriptor {
 
   struct TaskDescriptor *parent;
   enum TaskStatus status;
-  int blocked;
 
   // block of memory allocated for this task
   uint64_t stack[STACK_SIZE];
