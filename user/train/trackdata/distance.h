@@ -2,8 +2,8 @@
 
 struct TrackDistance{
     int distance;
-    const char *begin;
-    const char *end;
+    char *begin;
+    char *end;
 };
 
 struct TrackDistance track_distance(struct TrackNode *track, struct TrackNode begin);

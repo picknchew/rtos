@@ -307,7 +307,7 @@ void terminal_update_idle(struct TerminalScreen *screen, uint64_t idle, int idle
       centiseconds);
 }
 
-void terminal_print_loop_distance(struct TerminalScreen *screen, int begin, int end, int distance){
+void terminal_print_loop_distance(struct TerminalScreen *screen, char * begin, char * end, int distance){
   save_cursor(screen);
   move_cursor(screen, DISTANCE_LINE, 1);
   printf(screen, "START FROM %s TO %s distance: %d ", begin, end, distance);

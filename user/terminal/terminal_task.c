@@ -88,6 +88,14 @@ void terminal_screen_task() {
         terminal_update_time(&screen, req.time);
         Reply(tid, NULL, 0);
         break;
+      case TERMINAL_DISTANCE:
+        terminal_update_time(&screen, req.time);
+        Reply(tid, NULL, 0);
+        break;
+      case TERMINAL_TIME_LOOP:
+        terminal_update_time(&screen, req.time);
+        Reply(tid, NULL, 0);
+        break;
     }
   }
 }
@@ -101,10 +109,10 @@ void terminal_task() {
   struct Terminal terminal;
   terminal_init(&terminal, terminal_screen);
 
-   #if VMEASUREMENT
-    struct VelocityMeasurementInfo info = {.train_tid = train_tid, .terminal = &terminal};
+  #if VMEASUREMENT
+    // struct VelocityMeasurementInfo info = {.train_tid = train_tid, .terminal = &terminal};
     int vtid = Create(63,velocity_measurement_task);
-    Send(vtid, (const char *)&info,sizeof(info),NULL,0);
+    // Send(vtid, (const char *)&info,sizeof(info),NULL,0);
   #else
   #endif
 
@@ -169,5 +177,17 @@ void TerminalUpdateMaxSensorDuration(int tid, unsigned int duration) {
 void TerminalUpdateCommand(int tid, char *command, size_t len) {
   struct TerminalRequest req = {
       .type = UPDATE_COMMAND, .update_command_req = {.command = command, .len = len}};
+  Send(tid, (const char *) &req, sizeof(req), NULL, 0);
+}
+
+void TerminalUpdateDistance(int tid, char *begin, char *end, int distance) {
+  struct TerminalRequest req = {
+      .type = TERMINAL_DISTANCE, .update_distance_req = {.begin = begin, .end = end, .distance = distance}};
+  Send(tid, (const char *) &req, sizeof(req), NULL, 0);
+}
+
+void TerminalUpdateVelocity(int tid, int train_num, int train_speed, int loop_time, int train_velocity) {
+  struct TerminalRequest req = {
+      .type = TERMINAL_TIME_LOOP, .update_velocity_req = {.train_num = train_num, .train_speed = train_speed, .loop_time = loop_time, .train_velocity = train_velocity}};
   Send(tid, (const char *) &req, sizeof(req), NULL, 0);
 }
