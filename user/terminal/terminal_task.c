@@ -9,6 +9,7 @@
 #include "user/server/io_server.h"
 #include "user/server/name_server.h"
 #include "user/train/trainset_task.h"
+#include "velocity_task.h"
 
 const int TERMINAL_TASK_PRIORITY = 3;
 
@@ -89,11 +90,13 @@ void terminal_screen_task() {
         Reply(tid, NULL, 0);
         break;
       case TERMINAL_DISTANCE:
-        terminal_update_time(&screen, req.time);
+        terminal_print_loop_distance(
+            &screen, req.update_distance_req.begin, req.update_distance_req.end, req.update_distance_req.distance);
         Reply(tid, NULL, 0);
         break;
       case TERMINAL_TIME_LOOP:
-        terminal_update_time(&screen, req.time);
+        terminal_print_loop_time(
+            &screen, req.update_velocity_req.train_num, req.update_velocity_req.train_speed, req.update_velocity_req.loop_time, req.update_velocity_req.train_velocity);
         Reply(tid, NULL, 0);
         break;
     }
@@ -111,7 +114,7 @@ void terminal_task() {
 
   #if VMEASUREMENT
     // struct VelocityMeasurementInfo info = {.train_tid = train_tid, .terminal = &terminal};
-    int vtid = Create(63,velocity_measurement_task);
+    int vtid = Create(TERMINAL_TASK_PRIORITY,velocity_measurement_task);
     // Send(vtid, (const char *)&info,sizeof(info),NULL,0);
   #else
   #endif
@@ -180,7 +183,7 @@ void TerminalUpdateCommand(int tid, char *command, size_t len) {
   Send(tid, (const char *) &req, sizeof(req), NULL, 0);
 }
 
-void TerminalUpdateDistance(int tid, char *begin, char *end, int distance) {
+void TerminalUpdateDistance(int tid, const char *begin, const char *end, int distance) {
   struct TerminalRequest req = {
       .type = TERMINAL_DISTANCE, .update_distance_req = {.begin = begin, .end = end, .distance = distance}};
   Send(tid, (const char *) &req, sizeof(req), NULL, 0);

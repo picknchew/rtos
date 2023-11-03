@@ -3,6 +3,8 @@
 #include "user/server/io_server.h"
 #include "user/train/trainset.h"
 #include "util.h"
+#include "../../syscall.h"
+#include "../server/name_server.h"
 
 static const char SEQ_CLEAR_SCREEN[] = "\033[2J";
 static const char SEQ_CURSOR_DELETE_LINE[] = "\033[K";
@@ -18,7 +20,7 @@ static const char SEQ_CURSOR_MOVE_TOP_LEFT[] = "\033[H";
 #define HOUR_IN_CENTISECONDS (MINUTE_IN_CENTISECONDS * 60)
 
 #define DISTANCE_LINE 22
-#define VELOCITY_BASE_LINE 23
+#define VELOCITY_BASE_LINE 24
 int velocity_offset = 0;
 
 const char TEXT_RESET[] = "\033[0m";
@@ -307,7 +309,7 @@ void terminal_update_idle(struct TerminalScreen *screen, uint64_t idle, int idle
       centiseconds);
 }
 
-void terminal_print_loop_distance(struct TerminalScreen *screen, char * begin, char * end, int distance){
+void terminal_print_loop_distance(struct TerminalScreen *screen, const char * begin, const char * end, int distance){
   save_cursor(screen);
   move_cursor(screen, DISTANCE_LINE, 1);
   printf(screen, "START FROM %s TO %s distance: %d ", begin, end, distance);

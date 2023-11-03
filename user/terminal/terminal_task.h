@@ -60,8 +60,8 @@ struct TerminalUpdateCommandRequest {
 
 
 struct TerminalUpdateDistanceRequest{
-  char * begin;
-  char * end;
+  const char * begin;
+  const char * end;
   int distance;
 };
 
@@ -101,5 +101,6 @@ void TerminalUpdateSwitchState(int tid, int switch_num, enum SwitchDirection dir
 void TerminalUpdateMaxSensorDuration(int tid, unsigned int duration);
 void TerminalUpdateIdle(int tid, uint64_t idle, int idle_pct);
 void TerminalUpdateCommand(int tid, char *command, size_t len);
-
+void TerminalUpdateDistance(int tid, const char *begin, const char *end, int distance);
+void TerminalUpdateVelocity(int tid, int train_num, int train_speed, int loop_time, int train_velocity);
 void terminal_task();

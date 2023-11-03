@@ -98,7 +98,7 @@ void task_yield_current_task() {
 
 void task_print() {
   for (int i = 0; i < 15; ++i) {
-    printf("task status %d, %d, %d\r\n", i, tasks[i].status, tasks[i].blocked);
+    printf("task status %d, %d\r\n", i, tasks[i].status);
   }
 }
 

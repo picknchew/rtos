@@ -3,7 +3,11 @@
 #include "../../server/name_server.h"
 #include "../trainset.h"
 #include <stdbool.h>
+#include "../trainset_task.h"
 
+#include <stdio.h>
+
+// TESTED
 struct TrackDistance track_distance(struct TrackNode *track, struct TrackNode begin){
     
     // struct TrackNode *track;
@@ -19,7 +23,7 @@ struct TrackDistance track_distance(struct TrackNode *track, struct TrackNode be
     while(true){
         // nextnode = *sensor.edge[DIR_AHEAD].dest;
         // dist+=sensor.edge[DIR_AHEAD].dist;
-        if ((dist!=0)&&(&node==&begin)){
+        if ((dist!=0)&&(node.num==begin.num)){
             // loop
             ret.distance = dist;
             ret.end = node.name;
@@ -27,19 +31,21 @@ struct TrackDistance track_distance(struct TrackNode *track, struct TrackNode be
         }
         
         if (node.type== NODE_BRANCH){
+            // printf("%s ",node.name);
             enum SwitchDirection direction= TrainGetSwitchState(train,node.num);
             if (direction==DIRECTION_CURVED){
-                node = *node.edge[DIR_CURVED].dest;
                 dist += node.edge[DIR_CURVED].dist;
+                node = *node.edge[DIR_CURVED].dest;
             }else if (direction==DIRECTION_STRAIGHT){
-                node = *node.edge[DIR_STRAIGHT].dest;
                 dist += node.edge[DIR_STRAIGHT].dist;
+                node = *node.edge[DIR_STRAIGHT].dest;
             }else {
                 return ret;
             }
         }else if (node.type == NODE_MERGE || node.type == NODE_SENSOR){
-            node = *node.edge[DIR_AHEAD].dest;
+            // printf("%s ",node.name);
             dist += node.edge[DIR_AHEAD].dist;
+            node = *node.edge[DIR_AHEAD].dest;
         }else if (node.type == NODE_EXIT){
             // reach the exit of the track
             ret.distance = dist;

@@ -29,5 +29,5 @@ void terminal_update_max_sensor_duration(
     unsigned int max_sensor_query_duration);
 void terminal_update_time(struct TerminalScreen *screen, uint64_t time);
 void terminal_update_command(struct TerminalScreen *screen, char *command, unsigned int len);
-void terminal_print_loop_distance(struct TerminalScreen *screen, char * begin, char * end, int distance);
+void terminal_print_loop_distance(struct TerminalScreen *screen, const char * begin, const char * end, int distance);
 void terminal_print_loop_time(struct TerminalScreen *screen, int train, int speed, int time, int velocity);
