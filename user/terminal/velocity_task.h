@@ -1,1 +1,0 @@
-void velocity_measurement_task();

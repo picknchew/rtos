@@ -22,9 +22,6 @@ static const unsigned char CMD_SENSOR_RESET_MODE = 0xC0;
 static const int SPEED_OFFSET_FUNCTION = 16;
 const int SPEED_REVERSE_DIRECTION = 15;
 
-const int TRAINSET_DIRECTION_STRAIGHT = 0x21;
-const int TRAINSET_DIRECTION_CURVED = 0x22;
-
 const int TRAINSET_TRAINS[] = {1, 2, 24, 47, 54, 58, 77, 78};
 
 int marklin_tx_server;

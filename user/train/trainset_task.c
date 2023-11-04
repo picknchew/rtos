@@ -5,6 +5,7 @@
 #include <stdio.h>
 
 #include "syscall.h"
+#include "train_calibrator.h"
 #include "train_dispatcher.h"
 #include "trainset.h"
 #include "user/server/clock_server.h"
@@ -22,7 +23,6 @@ void train_sensor_update_task() {
   int marklin_rx = WhoIs("marklin_io_rx");
   int marklin_tx = WhoIs("marklin_io_tx");
   int clock_server = WhoIs("clock_server");
-  int terminal = WhoIs("terminal");
 
   struct TrainRequest req = {.type = SENSOR_DATA_NOTIFY, .update_sensor_data_req = {0}};
 
@@ -85,6 +85,7 @@ void train_task() {
 
   int clock_server = WhoIs("clock_server");
   int marklin_tx = WhoIs("marklin_io_tx");
+  int train_calib = Create(TRAIN_TASK_PRIORITY, train_calibrator_task);
 
   struct Trainset trainset;
   trainset_init(&trainset, marklin_tx);
@@ -132,10 +133,12 @@ void train_task() {
       case SENSOR_DATA_NOTIFY:
         trainset_process_sensor_data(&trainset, req.update_sensor_data_req.raw_sensor_data);
 
-        TerminalUpdateSensors(
-            terminal,
-            trainset_get_sensor_data(&trainset),
-            TRAINSET_NUM_FEEDBACK_MODULES * TRAINSET_NUM_SENSORS_PER_MODULE);
+        bool *sensor_data = trainset_get_sensor_data(&trainset);
+        size_t sensors_len = TRAINSET_NUM_FEEDBACK_MODULES * TRAINSET_NUM_SENSORS_PER_MODULE;
+
+        // TerminalUpdateStatus(terminal, "calibrate sensor update %d\r\n", train_calib);
+        TrainCalibratorUpdateSensors(train_calib, sensor_data);
+        TerminalUpdateSensors(terminal, sensor_data, sensors_len);
 
         if (trainset.max_read_sensor_query_time < req.update_sensor_data_req.time_taken) {
           trainset.max_read_sensor_query_time = req.update_sensor_data_req.time_taken;

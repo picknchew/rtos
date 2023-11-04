@@ -8,8 +8,8 @@
 #include "user/server/clock_server.h"
 #include "user/server/io_server.h"
 #include "user/server/name_server.h"
+#include "user/train/train_calibrator.h"
 #include "user/train/trainset_task.h"
-#include "velocity_task.h"
 
 const int TERMINAL_TASK_PRIORITY = 3;
 
@@ -91,12 +91,19 @@ void terminal_screen_task() {
         break;
       case TERMINAL_DISTANCE:
         terminal_print_loop_distance(
-            &screen, req.update_distance_req.begin, req.update_distance_req.end, req.update_distance_req.distance);
+            &screen,
+            req.update_distance_req.begin,
+            req.update_distance_req.end,
+            req.update_distance_req.distance);
         Reply(tid, NULL, 0);
         break;
       case TERMINAL_TIME_LOOP:
         terminal_print_loop_time(
-            &screen, req.update_velocity_req.train_num, req.update_velocity_req.train_speed, req.update_velocity_req.loop_time, req.update_velocity_req.train_velocity);
+            &screen,
+            req.update_velocity_req.train_num,
+            req.update_velocity_req.train_speed,
+            req.update_velocity_req.loop_time,
+            req.update_velocity_req.train_velocity);
         Reply(tid, NULL, 0);
         break;
     }
@@ -111,13 +118,6 @@ void terminal_task() {
 
   struct Terminal terminal;
   terminal_init(&terminal, terminal_screen);
-
-  #if VMEASUREMENT
-    // struct VelocityMeasurementInfo info = {.train_tid = train_tid, .terminal = &terminal};
-    int vtid = Create(TERMINAL_TASK_PRIORITY,velocity_measurement_task);
-    // Send(vtid, (const char *)&info,sizeof(info),NULL,0);
-  #else
-  #endif
 
   int tid;
   char ch;
@@ -185,12 +185,23 @@ void TerminalUpdateCommand(int tid, char *command, size_t len) {
 
 void TerminalUpdateDistance(int tid, const char *begin, const char *end, int distance) {
   struct TerminalRequest req = {
-      .type = TERMINAL_DISTANCE, .update_distance_req = {.begin = begin, .end = end, .distance = distance}};
+      .type = TERMINAL_DISTANCE,
+      .update_distance_req = {.begin = begin, .end = end, .distance = distance}};
   Send(tid, (const char *) &req, sizeof(req), NULL, 0);
 }
 
-void TerminalUpdateVelocity(int tid, int train_num, int train_speed, int loop_time, int train_velocity) {
+void TerminalUpdateVelocity(
+    int tid,
+    int train_num,
+    int train_speed,
+    int loop_time,
+    int train_velocity) {
   struct TerminalRequest req = {
-      .type = TERMINAL_TIME_LOOP, .update_velocity_req = {.train_num = train_num, .train_speed = train_speed, .loop_time = loop_time, .train_velocity = train_velocity}};
+      .type = TERMINAL_TIME_LOOP,
+      .update_velocity_req = {
+          .train_num = train_num,
+          .train_speed = train_speed,
+          .loop_time = loop_time,
+          .train_velocity = train_velocity}};
   Send(tid, (const char *) &req, sizeof(req), NULL, 0);
 }
