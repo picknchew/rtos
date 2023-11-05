@@ -16,6 +16,7 @@
 #include "test/test_tasks.h"
 #include "timer.h"
 #include "train/train_dispatcher.h"
+#include "train/train_planner.h"
 
 void init_task() {
 #if BENCHMARK
@@ -35,7 +36,8 @@ void init_task() {
   Create(IO_TASK_PRIORITY, io_server_task);
   // // Create(19, train_dispatcher_task);
 
-  Create(TERMINAL_TASK_PRIORITY, terminal_task);
+  // Create(TERMINAL_TASK_PRIORITY, terminal_task);
+  Create (TERMINAL_TASK_PRIORITY,train_planner_task);
   Create(1, idle_task);
   // Create(1, replay_task);
   // task_print();

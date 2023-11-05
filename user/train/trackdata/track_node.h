@@ -25,4 +25,5 @@ struct TrackNode {
   int num;                   /* sensor or switch number */
   struct TrackNode *reverse; /* same location, but opposite direction */
   struct TrackEdge edge[2];
+  int index;
 };
