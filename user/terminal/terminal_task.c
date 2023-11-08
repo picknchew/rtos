@@ -2,6 +2,7 @@
 
 #include <stdarg.h>
 
+#include "shell_view.h"
 #include "syscall.h"
 #include "terminal.h"
 #include "terminal_screen.h"
@@ -9,7 +10,6 @@
 #include "user/server/io_server.h"
 #include "user/server/name_server.h"
 #include "user/train/train_calibrator.h"
-#include "user/train/trainset_task.h"
 
 const int TERMINAL_TASK_PRIORITY = 3;
 
@@ -43,7 +43,8 @@ void terminal_screen_task() {
   int console_tx = WhoIs("console_io_tx");
 
   struct TerminalScreen screen;
-  terminal_screen_init(&screen, console_tx);
+  struct TerminalView shell_view = shell_view_create();
+  terminal_screen_init(&screen, console_tx, shell_view);
 
   int tid;
   struct TerminalRequest req;
@@ -54,13 +55,13 @@ void terminal_screen_task() {
       case UPDATE_TRAIN_SPEED:
         Reply(tid, NULL, 0);
         terminal_update_train_speed(
-            &screen,
-            req.update_train_speed_req.train_index,
-            req.update_train_speed_req.train_speed);
+            &screen, req.update_train_speed_req.train_index, req.update_train_speed_req.train_speed
+        );
         break;
       case UPDATE_SENSORS:
         terminal_update_sensors(
-            &screen, req.update_sensors_req.sensors, req.update_sensors_req.sensors_len);
+            &screen, req.update_sensors_req.sensors, req.update_sensors_req.sensors_len
+        );
         Reply(tid, NULL, 0);
         break;
       case UPDATE_STATUS:
@@ -69,7 +70,8 @@ void terminal_screen_task() {
         break;
       case UPDATE_SWITCH_STATE:
         terminal_update_switch_state(
-            &screen, req.update_switch_state_req.switch_num, req.update_switch_state_req.dir);
+            &screen, req.update_switch_state_req.switch_num, req.update_switch_state_req.dir
+        );
         Reply(tid, NULL, 0);
         break;
       case UPDATE_MAX_SENSOR_DURATION:
@@ -82,7 +84,8 @@ void terminal_screen_task() {
         break;
       case UPDATE_COMMAND:
         terminal_update_command(
-            &screen, req.update_command_req.command, req.update_command_req.len);
+            &screen, req.update_command_req.command, req.update_command_req.len
+        );
         Reply(tid, NULL, 0);
         break;
       case TERMINAL_TIME_NOTIFY:
@@ -94,7 +97,8 @@ void terminal_screen_task() {
             &screen,
             req.update_distance_req.begin,
             req.update_distance_req.end,
-            req.update_distance_req.distance);
+            req.update_distance_req.distance
+        );
         Reply(tid, NULL, 0);
         break;
       case TERMINAL_TIME_LOOP:
@@ -103,7 +107,8 @@ void terminal_screen_task() {
             req.update_velocity_req.train_num,
             req.update_velocity_req.train_speed,
             req.update_velocity_req.loop_time,
-            req.update_velocity_req.train_velocity);
+            req.update_velocity_req.train_velocity
+        );
         Reply(tid, NULL, 0);
         break;
     }
@@ -111,9 +116,11 @@ void terminal_screen_task() {
 }
 
 void terminal_task() {
-  int terminal_screen = Create(TERMINAL_TASK_PRIORITY, terminal_screen_task);
+  int terminal_screen = WhoIs("terminal");
+  int train_tid = WhoIs("train");
+  int train_calib_tid = WhoIs("train_calib");
+  int train_router_tid = WhoIs("train_router");
 
-  int train_tid = Create(TRAIN_TASK_PRIORITY, train_task);
   Create(TERMINAL_TASK_PRIORITY, terminal_key_press_task);
 
   struct Terminal terminal;
@@ -124,7 +131,7 @@ void terminal_task() {
   while (true) {
     Receive(&tid, (char *) &ch, sizeof(ch));
 
-    if (terminal_handle_keypress(&terminal, train_tid, ch)) {
+    if (terminal_handle_keypress(&terminal, train_tid, train_calib_tid, train_router_tid, ch)) {
       TerminalUpdateStatus(terminal_screen, "Exited.");
       Exit();
     }
@@ -138,14 +145,15 @@ void terminal_task() {
 void TerminalUpdateTrainSpeed(int tid, int train_index, uint8_t train_speed) {
   struct TerminalRequest req = {
       .type = UPDATE_TRAIN_SPEED,
-      .update_train_speed_req = {.train_index = train_index, .train_speed = train_speed}};
+      .update_train_speed_req = {.train_index = train_index, .train_speed = train_speed}
+  };
   Send(tid, (const char *) &req, sizeof(req), NULL, 0);
 }
 
 void TerminalUpdateSensors(int tid, bool *sensors, size_t sensors_len) {
   struct TerminalRequest req = {
-      .type = UPDATE_SENSORS,
-      .update_sensors_req = {.sensors = sensors, .sensors_len = sensors_len}};
+      .type = UPDATE_SENSORS, .update_sensors_req = {.sensors = sensors, .sensors_len = sensors_len}
+  };
   Send(tid, (const char *) &req, sizeof(req), NULL, 0);
 }
 
@@ -160,33 +168,37 @@ void TerminalUpdateStatus(int tid, char *fmt, ...) {
 
 void TerminalUpdateSwitchState(int tid, int switch_num, enum SwitchDirection dir) {
   struct TerminalRequest req = {
-      .type = UPDATE_SWITCH_STATE,
-      .update_switch_state_req = {.switch_num = switch_num, .dir = dir}};
+      .type = UPDATE_SWITCH_STATE, .update_switch_state_req = {.switch_num = switch_num, .dir = dir}
+  };
   Send(tid, (const char *) &req, sizeof(req), NULL, 0);
 }
 
 void TerminalUpdateIdle(int tid, uint64_t idle, int idle_pct) {
   struct TerminalRequest req = {
-      .type = UPDATE_IDLE, .update_idle_req = {.idle = idle, .idle_pct = idle_pct}};
+      .type = UPDATE_IDLE, .update_idle_req = {.idle = idle, .idle_pct = idle_pct}
+  };
   Send(tid, (const char *) &req, sizeof(req), NULL, 0);
 }
 
 void TerminalUpdateMaxSensorDuration(int tid, unsigned int duration) {
   struct TerminalRequest req = {
-      .type = UPDATE_MAX_SENSOR_DURATION, .update_max_sensor_duration_req = {.duration = duration}};
+      .type = UPDATE_MAX_SENSOR_DURATION, .update_max_sensor_duration_req = {.duration = duration}
+  };
   Send(tid, (const char *) &req, sizeof(req), NULL, 0);
 }
 
 void TerminalUpdateCommand(int tid, char *command, size_t len) {
   struct TerminalRequest req = {
-      .type = UPDATE_COMMAND, .update_command_req = {.command = command, .len = len}};
+      .type = UPDATE_COMMAND, .update_command_req = {.command = command, .len = len}
+  };
   Send(tid, (const char *) &req, sizeof(req), NULL, 0);
 }
 
 void TerminalUpdateDistance(int tid, const char *begin, const char *end, int distance) {
   struct TerminalRequest req = {
       .type = TERMINAL_DISTANCE,
-      .update_distance_req = {.begin = begin, .end = end, .distance = distance}};
+      .update_distance_req = {.begin = begin, .end = end, .distance = distance}
+  };
   Send(tid, (const char *) &req, sizeof(req), NULL, 0);
 }
 
@@ -195,13 +207,15 @@ void TerminalUpdateVelocity(
     int train_num,
     int train_speed,
     int loop_time,
-    int train_velocity) {
+    int train_velocity
+) {
   struct TerminalRequest req = {
       .type = TERMINAL_TIME_LOOP,
-      .update_velocity_req = {
-          .train_num = train_num,
-          .train_speed = train_speed,
-          .loop_time = loop_time,
-          .train_velocity = train_velocity}};
+      .update_velocity_req =
+          {.train_num = train_num,
+           .train_speed = train_speed,
+           .loop_time = loop_time,
+           .train_velocity = train_velocity}
+  };
   Send(tid, (const char *) &req, sizeof(req), NULL, 0);
 }

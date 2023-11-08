@@ -33,7 +33,7 @@ void idle_task() {
     int idle_pct = time_elapsed * 100 / current_time;
 
     if (current_time > last_printed + PRINT_INTERVAL) {
-      //TerminalUpdateIdle(terminal, time_elapsed, idle_pct);
+      TerminalUpdateIdle(terminal, time_elapsed, idle_pct);
       last_printed = current_time;
     }
   }

@@ -26,7 +26,7 @@ const int TRAINSET_TRAINS[] = {1, 2, 24, 47, 54, 58, 77, 78};
 
 int marklin_tx_server;
 
-static int get_train_index(uint8_t train) {
+int trainset_get_train_index(uint8_t train) {
   for (int i = 0; i < TRAINSET_NUM_TRAINS; ++i) {
     if (train == TRAINSET_TRAINS[i]) {
       return i;
@@ -36,17 +36,17 @@ static int get_train_index(uint8_t train) {
   return 0;
 }
 
+int trainset_get_sensor_index(char *sensor) {
+  char bucket = sensor[0];
+  int offset = atoi(sensor + 1);
+
+  return (bucket - 'A') * 16 + offset - 1;
+}
+
 void trainset_init(struct Trainset *trainset, int train_dispatcher_tid) {
   trainset->last_track_switch_time = 0;
-  trainset->max_read_sensor_query_time = 0;
 
   trainset->train_dispatcher = train_dispatcher_tid;
-
-  for (unsigned int i = 0; i < TRAINSET_NUM_FEEDBACK_MODULES * TRAINSET_NUM_SENSORS_PER_MODULE;
-       ++i) {
-    trainset->sensors_occupied[i] = false;
-  }
-
   for (unsigned int i = 0; i < TRAINSET_NUM_MAX_SWITCHES; ++i) {
     trainset->switch_states[i] = DIRECTION_UNKNOWN;
   }
@@ -71,7 +71,7 @@ void trainset_set_train_speed(
     int terminal_tid,
     uint8_t train,
     uint8_t speed) {
-  int train_index = get_train_index(train);
+  int train_index = trainset_get_train_index(train);
 
   if (speed == SPEED_REVERSE_DIRECTION) {
     // reverse direction stops the train
@@ -96,7 +96,7 @@ bool trainset_is_valid_train(uint8_t train) {
 }
 
 uint8_t trainset_get_speed(struct Trainset *trainset, uint8_t train) {
-  return trainset->train_speeds[get_train_index(train)];
+  return trainset->train_speeds[trainset_get_train_index(train)];
 }
 
 void trainset_train_reverse(struct Trainset *trainset, int terminal_tid, uint8_t train) {
@@ -127,18 +127,8 @@ void trainset_set_switch_direction(
   Create(TRAIN_TASK_PRIORITY, train_off_solenoid_task);
 }
 
-void trainset_process_sensor_data(struct Trainset *trainset, char *raw_sensor_data) {
-  // each feedback module has 2 numbers (contacts 1 to 8) and (contacts 9 to 16)
-  for (int i = 0; i < TRAINSET_NUM_FEEDBACK_MODULES * 2; ++i) {
-    char ch = raw_sensor_data[i];
-
-    // 1 byte (8 bits) and each char represents 8 sensors
-    // the most significant bit represents the lowest sensor
-    for (int j = 0; j < 8; ++j) {
-      // take last bit each time
-      trainset->sensors_occupied[i * 8 + j] = (ch >> (7 - j)) & 1;
-    }
-  }
+void trainset_update_sensor_data(struct Trainset *trainset, bool *sensor_data) {
+  trainset->sensors_occupied = sensor_data;
 }
 
 bool *trainset_get_sensor_data(struct Trainset *trainset) {

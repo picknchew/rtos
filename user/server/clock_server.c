@@ -3,12 +3,12 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
-#include <stdio.h>
 
 #include "irq.h"
 #include "name_server.h"
 #include "syscall.h"
 #include "task.h"
+#include "rpi.h"
 
 static int clock_server_tid = -1;
 

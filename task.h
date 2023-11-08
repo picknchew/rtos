@@ -8,7 +8,7 @@
 #define TASKS_MAX 128
 #define NUM_REGISTERS 31
 
-#define STACK_SIZE 8192
+#define STACK_SIZE 16384
 
 enum TaskStatus {
   TASK_ACTIVE,
@@ -59,7 +59,6 @@ struct TaskDescriptor {
 };
 
 void tasks_init();
-void task_print();
 struct TaskDescriptor *task_create(struct TaskDescriptor *parent, int priority, void (*function)());
 struct TaskDescriptor *task_get_current_task();
 struct TaskDescriptor *task_get_by_tid();

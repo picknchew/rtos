@@ -19,8 +19,7 @@ enum TrainRequestType {
 extern const int TRAIN_TASK_PRIORITY;
 
 struct TrainUpdateSensorDataRequest {
-  uint64_t time_taken;
-  char raw_sensor_data[TRAINSET_NUM_FEEDBACK_MODULES * 2];
+  bool *sensor_data;
 };
 
 struct TrainReverseNotifyRequest {
@@ -73,11 +72,11 @@ struct TrainRequest {
 
 void train_task();
 void train_reverse_task();
+void train_off_solenoid_task();
 
-void TrainUpdateSensorData();
+void TrainUpdateSensorData(int tid, bool *sensor_data);
 void TrainReverse(int tid, uint8_t train);
 void TrainSetSpeed(int tid, uint8_t train, uint8_t speed);
 void TrainSetSwitchDir(int tid, int switch_num, int dir);
 bool TrainIsValidTrain(int tid, uint8_t train);
 enum SwitchDirection TrainGetSwitchState(int tid, uint8_t switch_num);
-void train_off_solenoid_task();

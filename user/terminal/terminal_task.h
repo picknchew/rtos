@@ -104,3 +104,4 @@ void TerminalUpdateCommand(int tid, char *command, size_t len);
 void TerminalUpdateDistance(int tid, const char *begin, const char *end, int distance);
 void TerminalUpdateVelocity(int tid, int train_num, int train_speed, int loop_time, int train_velocity);
 void terminal_task();
+void terminal_screen_task();

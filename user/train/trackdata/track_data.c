@@ -12,6 +12,11 @@ static void *memset(void *s, int c, unsigned int n) {
 
 void tracka_init(struct TrackNode *track) {
   memset(track, 0, TRACK_MAX * sizeof(struct TrackNode));
+
+  for (int i = 0; i < TRACK_MAX; i++) {
+    track[i].index = i;
+  }
+
   track[0].name = "A1";
   track[0].type = NODE_SENSOR;
   track[0].num = 0;
@@ -1192,13 +1197,15 @@ void tracka_init(struct TrackNode *track) {
   track[143].name = "EX10";
   track[143].type = NODE_EXIT;
   track[143].reverse = &track[142];
-  for(int i=0;i<TRACK_MAX;i++){
-    track[i].index=i;
-  }
 }
 
 void trackb_init(struct TrackNode *track) {
   memset(track, 0, TRACK_MAX * sizeof(struct TrackNode));
+
+  for (int i = 0; i < TRACK_MAX; i++) {
+    track[i].index = i;
+  }
+
   track[0].name = "A1";
   track[0].type = NODE_SENSOR;
   track[0].num = 0;
@@ -2359,7 +2366,4 @@ void trackb_init(struct TrackNode *track) {
   track[139].name = "EX10";
   track[139].type = NODE_EXIT;
   track[139].reverse = &track[138];
-  for(int i=0;i<TRACK_MAX;i++){
-    track[i].index=i;
-  }
 }

@@ -1,7 +1,6 @@
 #include "timer.h"
 
 #include <stdint.h>
-#include <stdio.h>
 
 #include "irq.h"
 

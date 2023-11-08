@@ -5,9 +5,6 @@
 
 #include "circular_buffer.h"
 
-#define TRAINSET_NUM_FEEDBACK_MODULES 5
-#define TRAINSET_NUM_SENSORS_PER_MODULE 16
-
 #define TRAINSET_NUM_MAX_SWITCHES 255
 #define TRAINSET_NUM_TRAINS 8
 
@@ -24,18 +21,19 @@ extern const int SPEED_REVERSE_DIRECTION;
 
 struct Trainset {
   enum SwitchDirection switch_states[TRAINSET_NUM_MAX_SWITCHES];
-  bool sensors_occupied[TRAINSET_NUM_FEEDBACK_MODULES * TRAINSET_NUM_SENSORS_PER_MODULE];
+  bool *sensors_occupied;
 
   uint8_t train_speeds[TRAINSET_NUM_TRAINS];
 
   uint64_t last_track_switch_time;
-  uint64_t max_read_sensor_query_time;
 
   // task tids
   int train_dispatcher;
 };
 
 void trainset_init(struct Trainset *trainset, int train_dispatcher_tid);
+int trainset_get_train_index(uint8_t train);
+int trainset_get_sensor_index(char *sensor);
 void trainset_set_train_speed(
     struct Trainset *trainset,
     int terminal_tid,
@@ -49,8 +47,8 @@ void trainset_set_switch_direction(
     int switch_number,
     int direction,
     uint64_t time);
+void trainset_update_sensor_data(struct Trainset *trainset, bool *sensor_data);
 bool *trainset_get_sensor_data(struct Trainset *trainset);
 bool trainset_is_valid_train(uint8_t train);
 enum SwitchDirection trainset_get_switch_state(struct Trainset *trainset, uint8_t switch_number);
-void trainset_process_sensor_data(struct Trainset *trainset, char *raw_sensor_data);
 void train_task();

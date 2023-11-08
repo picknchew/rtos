@@ -96,12 +96,6 @@ void task_yield_current_task() {
   }
 }
 
-void task_print() {
-  for (int i = 0; i < 15; ++i) {
-    printf("task status %d, %d\r\n", i, tasks[i].status);
-  }
-}
-
 void task_schedule(struct TaskDescriptor *task) {
   task->status = TASK_READY;
   priority_task_queue_push(&ready_queue, task);

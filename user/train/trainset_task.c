@@ -2,7 +2,6 @@
 
 #include <stdbool.h>
 #include <stdint.h>
-#include <stdio.h>
 
 #include "syscall.h"
 #include "train_calibrator.h"
@@ -14,37 +13,8 @@
 #include "user/terminal/terminal_task.h"
 
 const unsigned char CMD_OFF_LAST_SOLENOID[] = {0x20};
-const unsigned char CMD_READ_ALL_SENSORS[] = {0x80 + TRAINSET_NUM_FEEDBACK_MODULES};
 
 const int TRAIN_TASK_PRIORITY = 3;
-
-void train_sensor_update_task() {
-  int train = MyParentTid();
-  int marklin_rx = WhoIs("marklin_io_rx");
-  int marklin_tx = WhoIs("marklin_io_tx");
-  int clock_server = WhoIs("clock_server");
-
-  struct TrainRequest req = {.type = SENSOR_DATA_NOTIFY, .update_sensor_data_req = {0}};
-
-  while (true) {
-    uint64_t start_time = Time(clock_server);
-
-    DispatchTrainCommand(marklin_tx, CMD_READ_ALL_SENSORS, 1);
-
-    for (int i = 0; i < TRAINSET_NUM_FEEDBACK_MODULES * 2; ++i) {
-      req.update_sensor_data_req.raw_sensor_data[i] = Getc(marklin_rx);
-    }
-    NotifyMarklinRead(marklin_tx);
-
-    uint64_t end_time = Time(clock_server);
-    // get in microseconds
-    req.update_sensor_data_req.time_taken = end_time - start_time;
-
-    Send(train, (const char *) &req, sizeof(req), NULL, 0);
-  }
-
-  Exit();
-}
 
 void train_reverse_task() {
   int train_controller = WhoIs("train");
@@ -85,15 +55,12 @@ void train_task() {
 
   int clock_server = WhoIs("clock_server");
   int marklin_tx = WhoIs("marklin_io_tx");
-  int train_calib = Create(TRAIN_TASK_PRIORITY, train_calibrator_task);
+  int terminal = WhoIs("terminal");
 
   struct Trainset trainset;
   trainset_init(&trainset, marklin_tx);
 
-  int terminal = WhoIs("terminal");
-
-  // create sensor update task
-  Create(TRAIN_TASK_PRIORITY, train_sensor_update_task);
+  Create(TRAIN_TASK_PRIORITY, train_calibrator_task);
 
   int tid;
   struct TrainRequest req;
@@ -131,20 +98,7 @@ void train_task() {
         Reply(tid, (const char *) &res, sizeof(res));
         break;
       case SENSOR_DATA_NOTIFY:
-        trainset_process_sensor_data(&trainset, req.update_sensor_data_req.raw_sensor_data);
-
-        bool *sensor_data = trainset_get_sensor_data(&trainset);
-        size_t sensors_len = TRAINSET_NUM_FEEDBACK_MODULES * TRAINSET_NUM_SENSORS_PER_MODULE;
-
-        // TerminalUpdateStatus(terminal, "calibrate sensor update %d\r\n", train_calib);
-        TrainCalibratorUpdateSensors(train_calib, sensor_data);
-        TerminalUpdateSensors(terminal, sensor_data, sensors_len);
-
-        if (trainset.max_read_sensor_query_time < req.update_sensor_data_req.time_taken) {
-          trainset.max_read_sensor_query_time = req.update_sensor_data_req.time_taken;
-          TerminalUpdateMaxSensorDuration(terminal, trainset.max_read_sensor_query_time);
-        }
-
+        trainset_update_sensor_data(&trainset, req.update_sensor_data_req.sensor_data);
         Reply(tid, NULL, 0);
         break;
       case REVERSE_TRAIN_NOTIFY:
@@ -195,4 +149,10 @@ enum SwitchDirection TrainGetSwitchState(int tid, uint8_t switch_num) {
   Send(tid, (const char *) &req, sizeof(req), (char *) &res, sizeof(res));
 
   return res.switch_state;
+}
+
+void TrainUpdateSensorData(int tid, bool *sensor_data) {
+  struct TrainRequest req = {
+      .type = SENSOR_DATA_NOTIFY, .update_sensor_data_req = {.sensor_data = sensor_data}};
+  Send(tid, (const char *) &req, sizeof(req), NULL, 0);
 }

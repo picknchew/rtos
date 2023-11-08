@@ -1,7 +1,5 @@
 #include "init_task.h"
 
-#include <stdio.h>
-
 #include "idle_task.h"
 #include "server/clock_server.h"
 #include "server/io_server.h"
@@ -12,11 +10,14 @@
 #include "test/msg_perf_test.h"
 #include "test/replay_task.h"
 #include "test/rps/rps_test_task.h"
-#include "test/testk3.h"
 #include "test/test_tasks.h"
+#include "test/testk3.h"
 #include "timer.h"
 #include "train/train_dispatcher.h"
 #include "train/train_planner.h"
+#include "train/train_router.h"
+#include "train/train_sensor_notifier.h"
+#include "train/trainset_task.h"
 
 void init_task() {
 #if BENCHMARK
@@ -36,11 +37,17 @@ void init_task() {
   Create(IO_TASK_PRIORITY, io_server_task);
   // // Create(19, train_dispatcher_task);
 
-  // Create(TERMINAL_TASK_PRIORITY, terminal_task);
-  Create (TERMINAL_TASK_PRIORITY,train_planner_task);
+  // Create(TERMINAL_TASK_PRIORITY, train_planner_task);
+  Create(TERMINAL_TASK_PRIORITY, terminal_screen_task);
+
+  Create(TRAIN_TASK_PRIORITY, train_task);
+  Create(TRAIN_TASK_PRIORITY, train_router_task);
+
+  Create(TRAIN_TASK_PRIORITY, train_sensor_notifier_task);
+
+  Create(TERMINAL_TASK_PRIORITY, terminal_task);
+
   Create(1, idle_task);
   // Create(1, replay_task);
-  // task_print();
-  // printf("spin\r\n");
   for (;;) {}  // spin forever when no other tasks are running
 }

@@ -300,7 +300,14 @@ void io_rx_task() {
           Reply(tid, &ch, sizeof(char));
         } else {
           // block task and put it in a queue for when data is available
-          tid_queue_add(&rx_queue, tid);
+          if (line == UART_CONSOLE) {
+            while (!uart_hasc(line))
+              ;
+            char ch = uart_getc(line);
+            Reply(tid, &ch, sizeof(char));
+          } else {
+            tid_queue_add(&rx_queue, tid);
+          }
         }
     }
   }
