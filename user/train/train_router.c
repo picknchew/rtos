@@ -33,6 +33,7 @@ static void init_measured_speeds() {
 enum TrainRouterRequestType {
   TRAIN_ROUTER_BEGIN_ROUTE,
   TRAIN_ROUTER_UPDATE_SENSORS,
+  TRAIN_ROUTER_TICK
 };
 
 struct TrainRouterBeginRouteRequest {
@@ -77,11 +78,14 @@ struct TrackPosition {
   struct TrackNode *node;
 };
 
-enum PlanState {
-  PLAN_ACCELERATING,
-  PLAN_CALCULATING_PATH,
-  PLAN_SWITCHES_SET,
-  PLAN_WAITING_TO_STOP
+enum PlanState { PLAN_NONE, PLAN_ACCELERATING, PLAN_CALCULATING_PATH, PLAN_WAITING_TO_STOP };
+
+struct Path {
+  // nodes starting from destination
+  struct TrackNode *nodes[TRACK_MAX];
+  int directions[TRACK_MAX];
+  int nodes_len;
+  int distance;
 };
 
 struct Plan {
@@ -90,7 +94,10 @@ struct Plan {
 
   struct Path path;
   struct TrackPosition dest;
-  struct TrackPosition stopping_point;
+  struct TrackPosition stopping_pos;
+
+  int time_to_stop;
+  int last_sensor_index;
 };
 
 struct TrainState {
@@ -103,7 +110,6 @@ struct TrainState {
   struct Plan plan;
 
   int speed;
-  bool moving;
 };
 
 void trainstate_init(struct TrainState *state, int train) {
@@ -130,38 +136,12 @@ static int trainstate_get_current_offset(struct TrainState *state, int current_t
   return TRAINSET_MEASURED_SPEEDS[state->train][state->speed] * current_time;
 }
 
-static struct TrackNode *trackstate_get_next_sensor(struct TrainState *state) {
-  struct TrackNode *node = state->last_known_pos.node;
-  int dist = 0;
-
-  while (node->type != NODE_SENSOR || node == state->last_known_pos.node) {
-    dist += node->edge->dist;
-    node = node->edge->dest;
-
-    if (node->type == NODE_EXIT) {
-      return NULL;
-    }
-  }
-
-  return node;
-}
-
-struct Path {
-  // nodes starting from destination
-  struct TrackNode *nodes[TRACK_MAX];
-  int directions[TRACK_MAX];
-  int nodes_len;
-  int distance;
-};
-
 static void path_set_switches(struct Path *path, int train_tid) {
   for (int i = path->nodes_len - 1; i >= 0; --i) {
     struct TrackNode *node = path->nodes[i];
 
     // switch
     if (node->type == NODE_BRANCH) {
-      printf("switch %s dir: %d\r\n", node->name, path->directions[i]);
-
       switch (path->directions[i]) {
         case DIR_AHEAD:
           TrainSetSwitchDir(train_tid, node->num, TRAINSET_DIRECTION_STRAIGHT);
@@ -267,6 +247,84 @@ static struct Path get_shortest_path(struct TrainState *state, struct TrackNode 
   return path;
 }
 
+static int get_next_sensor(struct Plan *plan, struct Path *path) {
+  for (int i = plan->last_sensor_index - 1; i >= 0; --i) {
+    struct TrackNode *node = path->nodes[i];
+
+    if (node->type == NODE_SENSOR) {
+      return i;
+    }
+  }
+
+  return -1;
+}
+
+static int
+get_distance_between(struct Path *path, struct TrackPosition *src, struct TrackPosition *dest) {
+  int dist = -src->offset + dest->offset;
+
+  int pos1_index = 0;
+  // find pos1 index in path
+  for (int i = path->nodes_len - 1; i >= 0; --i) {
+    if (src->node == path->nodes[i]) {
+      pos1_index = i;
+    }
+  }
+
+  // find distance from pos1 to pos2
+  for (int i = pos1_index; i >= 0; --i) {
+    struct TrackNode *node = path->nodes[i];
+    int edge_dir = path->directions[i];
+
+    if (node == dest->node) {
+      break;
+    }
+
+    dist += node->edge[edge_dir].dist;
+  }
+
+  return dist;
+}
+
+static int get_travel_time_between(
+    struct Path *path,
+    struct TrainState *state,
+    struct TrackPosition *pos1,
+    struct TrackPosition *pos2
+) {
+  int dist = get_distance_between(path, pos1, pos2);
+  return dist / TRAINSET_MEASURED_SPEEDS[state->train][state->speed];
+}
+
+static struct TrackPosition plan_get_stopping_pos(struct Plan *plan, struct TrainState *state) {
+  struct Path *path = &plan->path;
+  // distance from train position
+  int stopping_offset = path->distance - state->last_known_pos.offset + plan->dest.offset -
+                        TRAINSET_STOPPING_DISTANCES[state->train][state->speed];
+
+  struct TrackNode *last_node = NULL;
+  int offset_from_last_node = stopping_offset;
+  // traverse path to see which node is before the stopping_offset
+  for (int i = path->nodes_len - 1; i >= 0; ++i) {
+    struct TrackNode *cur_node = path->nodes[i];
+    int edge_dir = path->directions[i];
+
+    if (offset_from_last_node < cur_node->edge[edge_dir].dist) {
+      last_node = cur_node;
+      break;
+    }
+  }
+
+  // our offset is not covered by the edge after the last node
+  if (last_node == NULL) {
+    // set to last node
+    last_node = plan->path.nodes[plan->path.nodes_len - 1];
+  }
+
+  struct TrackPosition pos = {.node = last_node, .offset = offset_from_last_node};
+  return pos;
+}
+
 // static void *set_switches_to_dest() {}
 
 static int current_train = 0;
@@ -277,19 +335,17 @@ static void handle_begin_route_request(
     struct TrainState *train_states,
     struct TrainRouterBeginRouteRequest *req
 ) {
-  struct TrainState *trainstate = &train_states[trainset_get_train_index(req->train)];
-  struct Plan plan = {
-      .state = PLAN_ACCELERATING,
-      .state_update_time = Time(clock_server),
-      .dest = {.node = req->sensor, .offset = req->sensor_offset}
-  };
-
   current_train = req->train;
 
+  struct TrainState *trainstate = &train_states[trainset_get_train_index(req->train)];
   trainstate_init(trainstate, req->train);
 
-  trainstate->dest.node = req->sensor;
-  trainstate->dest.offset = req->sensor_offset;
+  struct Plan *plan = &trainstate->plan;
+  plan->state = PLAN_ACCELERATING;
+  plan->state_update_time = Time(clock_server);
+  plan->dest.node = track_get_sensor(req->sensor);
+  plan->dest.offset = req->sensor_offset;
+  plan->time_to_stop = INT_MAX;
 
   // begin acceleration from stopped position
   trainstate->speed = req->speed;
@@ -309,6 +365,7 @@ static void handle_update_sensors_request(
 
   // currently can only route one train at a time.
   struct TrainState *trainstate = &train_states[trainset_get_train_index(current_train)];
+  struct Plan *plan = &trainstate->plan;
 
   int triggered_sensor = 0;
   for (int i = 0; i < TRAINSET_SENSORS_LEN; ++i) {
@@ -321,29 +378,93 @@ static void handle_update_sensors_request(
     }
   }
 
-  // position is now known
-  if (trainstate->direction == TRAINDIR_UNKNOWN) {
-    // compute path and set switches on track
-    struct TrackNodeQueue path_nodes;
-    track_node_queue_init(&path_nodes, track);
-
-    struct Path path = get_shortest_path(trainstate, trainstate->dest.node);
-
-    while (!track_node_queue_empty(&path_nodes)) {
-      struct TrackNode *node = track_node_queue_poll(&path_nodes);
-
-      printf("node %s\r\n", node->name);
-    }
-  }
-
   trainstate->last_known_pos.node = &track[triggered_sensor];
   trainstate->last_known_pos.offset = 0;
 
-  // TODO: wait for train time to accelerate, must manually set speed before hand for now.
+  trainstate->direction = trainstate_get_direction(trainstate);
 
+  switch (plan->state) {
+    case PLAN_NONE:
+      break;
+    case PLAN_ACCELERATING:
+      // check if time since start of acceleration has been long enough
+      if (Time(clock_server) - plan->state_update_time >= ACCELERATION_DURATION) {
+        // TODO: should figure out if the dest offset is past another sensor, if it is we should
+        // move dest.node to be the last sensor. that is, the sensor right before dest.node + offset
+        plan->path = get_shortest_path(trainstate, plan->dest.node);
+
+        path_set_switches(&plan->path, train_tid);
+        plan->state = PLAN_WAITING_TO_STOP;
+        plan->state_update_time = Time(clock_server);
+
+        // update stopping point
+        plan->stopping_pos = plan_get_stopping_pos(plan, trainstate);
+        plan->time_to_stop = Time(clock_server) +
+                             get_travel_time_between(
+                                 &plan->path, trainstate, &trainstate->last_known_pos, &plan->dest
+                             );
+
+        // the first node in our path is always a sensor.
+        plan->last_sensor_index = plan->path.nodes_len - 1;
+      }
+      break;
+    case PLAN_CALCULATING_PATH:
+      // TODO: move to different task?
+      break;
+    case PLAN_WAITING_TO_STOP: {
+      // update terminal with time to reach next sensor
+      // search path for previous sensor triggered
+      int next_sensor_index = get_next_sensor(plan, &plan->path);
+
+      if (next_sensor_index == -1) {
+        // should never happen
+        printf("train_router: ERROR EXPECTED A NEXT SENSOR\r\n");
+      }
+
+      // update time to stop
+      plan->time_to_stop =
+          Time(clock_server) + get_travel_time_between(
+                                   &plan->path, trainstate, &trainstate->last_known_pos, &plan->dest
+                               );
+    }
+
+    // TODO: maybe we should stop here instead of in the timer request?
+
+    break;
+  }
   // get next sensor and distance to next sensor
   // get stopping distance (sensor and offset)
-  trainstate->direction = trainstate_get_direction(trainstate);
+}
+
+void handle_tick(int train_tid, int clock_server, struct TrainState *train_states) {
+  struct TrainState *trainstate = &train_states[current_train];
+  struct Plan *plan = &trainstate->plan;
+
+  // TODO: we want to check every train eventually not just one train to see if we should stop it
+  if (current_train != 0 && plan->state == PLAN_WAITING_TO_STOP) {
+    // not time to stop yet
+    if (Time(clock_server) < plan->time_to_stop) {
+      return;
+    }
+
+    // stop the train
+    TrainSetSpeed(train_tid, trainstate->train, 0);
+    trainstate->plan.state = PLAN_NONE;
+    // reset
+    current_train = 0;
+  }
+}
+
+void train_router_tick_notifier() {
+  int train_router = MyParentTid();
+  int clock_server = WhoIs("clock_server");
+
+  struct TrainRouterRequest req = {.type = TRAIN_ROUTER_TICK};
+
+  while (true) {
+    Delay(clock_server, 1);
+    Send(train_router, (const char *) &req, sizeof(req), NULL, 0);
+  }
 }
 
 void train_router_task() {
@@ -363,16 +484,18 @@ void train_router_task() {
 
   current_train = 0;
 
-  // currently routing a train
-  bool routing = false;
-
   struct TrainState fake_train_state = {
-      .dest = {.node = &track[113], .offset = 3},
+      .plan =
+          {
+              .state = PLAN_WAITING_TO_STOP,
+              .state_update_time = Time(clock_server),
+              .dest = {.node = &track[113], .offset = 3},
+              .last_sensor_index = 7,
+          },
+
       .last_known_pos = {.node = &track[3], .offset = 0},
       .direction = TRAINDIR_FORWARD,
-      .moving = true,
       .speed = 12,
-      .start_accel_time = 0,
       .train = 2
   };
 
@@ -382,16 +505,28 @@ void train_router_task() {
   while (true) {
     Receive(&tid, (char *) &req, sizeof(req));
 
-    printf("received\r\n");
-    struct Path path = get_shortest_path(&fake_train_state, fake_train_state.dest.node);
-    path_set_switches(&path, train_tid);
-    printf("done shortest path\r\n");
+    // printf("received\r\n");
+    // struct Path path = get_shortest_path(&fake_train_state, fake_train_state.plan.dest.node);
+    // fake_train_state.plan.path = path;
+    // // path_set_switches(&path, train_tid);
+    // printf("done shortest path\r\n");
 
-    for (int i = path.nodes_len - 1; i >= 0; --i) {
-      struct TrackNode *node = path.nodes[i];
+    // for (int i = path.nodes_len - 1; i >= 0; --i) {
+    //   struct TrackNode *node = path.nodes[i];
+    //   int dir = path.directions[i];
+    //   int dist = path.nodes[i]->edge[dir].dist;
 
-      printf("node %s dir: %d\r\n", node->name, path.directions[i]);
-    }
+    //   printf("node %s dir: %d dist: %d\r\n", node->name, path.directions[i], dist);
+    // }
+
+    // struct TrackNode *a4 = path.nodes[7];
+    // struct TrackNode *br15 = path.nodes[5];
+
+    // struct TrackPosition src = {.node = a4, .offset = 3};
+    // struct TrackPosition dest = {.node = br15, .offset = 5};
+
+    // printf("from %s to %s: %d\r\n", a4->name, br15->name, get_distance_between(&path, &src,
+    // &dest));
 
     switch (req.type) {
       case TRAIN_ROUTER_BEGIN_ROUTE:
@@ -404,6 +539,9 @@ void train_router_task() {
         // should make another server that will notify this server of periodic time changes.
         // then this server should check if enough time has passed for the train to stop.
         break;
+      case TRAIN_ROUTER_TICK:
+        handle_tick(train_tid, clock_server, train_states);
+        Reply(tid, NULL, 0);
     }
   }
 
