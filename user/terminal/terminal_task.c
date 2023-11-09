@@ -68,6 +68,10 @@ void terminal_screen_task() {
         terminal_update_status_va(&screen, req.update_status_req.fmt, req.update_status_req.va);
         Reply(tid, NULL, 0);
         break;
+      case LOG_PRINT:
+        terminal_log_print_va(&screen, req.log_print_req.fmt, req.log_print_req.va);
+        Reply(tid, NULL, 0);
+        break;
       case UPDATE_SWITCH_STATE:
         terminal_update_switch_state(
             &screen, req.update_switch_state_req.switch_num, req.update_switch_state_req.dir
@@ -162,6 +166,15 @@ void TerminalUpdateStatus(int tid, char *fmt, ...) {
 
   va_start(va, fmt);
   struct TerminalRequest req = {.type = UPDATE_STATUS, .update_status_req = {.fmt = fmt, .va = va}};
+  Send(tid, (const char *) &req, sizeof(req), NULL, 0);
+  va_end(va);
+}
+
+void TerminalLogPrint(int tid, char *fmt, ...) {
+  va_list va;
+
+  va_start(va, fmt);
+  struct TerminalRequest req = {.type = LOG_PRINT, .log_print_req = {.fmt = fmt, .va = va}};
   Send(tid, (const char *) &req, sizeof(req), NULL, 0);
   va_end(va);
 }

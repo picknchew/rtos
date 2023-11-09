@@ -10,12 +10,17 @@
 
 #define DISTANCE_LINE 22
 #define VELOCITY_BASE_LINE 24
-int velocity_offset = 0;
+static int velocity_offset = 0;
+
+#define LOG_BASE_LINE 22
+static int log_offset = 0;
 
 static const int SWITCHES_TITLE_ROW = 5;
 static const int SWITCHES_ROW = 6;
 
 static void init_switch_states(struct TerminalScreen *screen) {
+  velocity_offset = 0;
+  log_offset = 0;
   terminal_save_cursor(screen);
   terminal_move_cursor(screen, SWITCHES_TITLE_ROW, 1);
   terminal_print_title(screen, "Switch States:");
@@ -81,11 +86,11 @@ static char get_switch_dir_char(enum SwitchDirection dir) {
 static void update_status_va(struct TerminalScreen *screen, char *fmt, va_list va) {
   terminal_save_cursor(screen);
   terminal_move_cursor(screen, 20, 1);
+  terminal_cursor_delete_line(screen);
   terminal_puts(screen, "\033[32m");
 
   terminal_format_print(screen, fmt, va);
 
-  terminal_cursor_delete_line(screen);
   terminal_cursor_reset_text(screen);
   terminal_restore_cursor(screen);
 }
@@ -206,8 +211,32 @@ static void
 print_loop_time(struct TerminalScreen *screen, int train, int speed, int time, int velocity) {
   terminal_save_cursor(screen);
   terminal_move_cursor(screen, VELOCITY_BASE_LINE + velocity_offset, 1);
-  velocity_offset++;
+  ++velocity_offset;
   terminal_printf(screen, "train %d at %d looptime %d velocity %d", train, speed, time, velocity);
+  terminal_restore_cursor(screen);
+}
+
+int logOffset = 0;
+
+static void log_print_va(struct TerminalScreen *screen, char *fmt, va_list va) {
+  terminal_save_cursor(screen);
+  terminal_move_cursor(screen, LOG_BASE_LINE + log_offset, 1);
+  terminal_cursor_delete_line(screen);
+  ++log_offset;
+  terminal_format_print(screen, fmt, va);
+  terminal_restore_cursor(screen);
+
+  // restart at the top and overwrite
+  if (log_offset == 61) {
+    log_offset = 0;
+  }
+}
+
+static void print_next_sensor_time(struct TerminalScreen *screen, int time) {
+  terminal_save_cursor(screen);
+  terminal_move_cursor(screen, 0, 70);
+  terminal_print_title(screen, "Time to next sensor (ticks): ");
+  terminal_printf(screen, "%d", time);
   terminal_restore_cursor(screen);
 }
 
@@ -228,6 +257,7 @@ struct TerminalView shell_view_create() {
       update_train_speed,
       update_sensors,
       update_status_va,
+      log_print_va,
       update_switch_state,
       update_idle,
       update_max_sensor_duration,

@@ -200,6 +200,21 @@ bool terminal_execute_command(
         dest_offset
     );
 
+    static const int loop_switches[] = {14, 13, 10, 9, 8, 17, 16, 15};
+    static int loop_switch_dirs[] = {
+        TRAINSET_DIRECTION_CURVED,
+        TRAINSET_DIRECTION_STRAIGHT,
+        TRAINSET_DIRECTION_STRAIGHT,
+        TRAINSET_DIRECTION_CURVED,
+        TRAINSET_DIRECTION_CURVED,
+        TRAINSET_DIRECTION_STRAIGHT,
+        TRAINSET_DIRECTION_STRAIGHT,
+        TRAINSET_DIRECTION_CURVED
+    };
+    for (int i = 0; i < 8; i++) {
+      TrainSetSwitchDir(train_tid, loop_switches[i], loop_switch_dirs[i]);
+    }
+
     TrainRouterRouteTrain(
         train_router_tid, train_number, train_speed, str_dest_sensor, dest_offset
     );

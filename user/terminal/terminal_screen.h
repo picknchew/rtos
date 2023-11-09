@@ -14,6 +14,7 @@ struct TerminalView {
   void (*update_train_speed)(struct TerminalScreen *, int, uint8_t);
   void (*update_sensors)(struct TerminalScreen *, bool *, size_t);
   void (*update_status_va)(struct TerminalScreen *, char *, va_list);
+  void (*log_print_va)(struct TerminalScreen *, char *, va_list);
   void (*update_switch_state)(struct TerminalScreen *, int, enum SwitchDirection);
   void (*update_idle)(struct TerminalScreen *, uint64_t, int);
   void (*update_max_sensor_duration)(struct TerminalScreen *, unsigned int);
@@ -21,6 +22,7 @@ struct TerminalView {
   void (*update_command)(struct TerminalScreen *, char *, unsigned int);
   void (*print_loop_distance)(struct TerminalScreen *, const char *, const char *, int);
   void (*print_loop_time)(struct TerminalScreen *, int, int, int, int);
+  // void (*print_next_sensor)(struct TerminalScreen *, int);
 };
 
 struct TerminalScreen {
@@ -63,6 +65,10 @@ terminal_update_sensors(struct TerminalScreen *screen, bool *sensors, size_t sen
 
 inline void terminal_update_status_va(struct TerminalScreen *screen, char *fmt, va_list va) {
   screen->view.update_status_va(screen, fmt, va);
+}
+
+inline void terminal_log_print_va(struct TerminalScreen *screen, char *fmt, va_list va) {
+  screen->view.log_print_va(screen, fmt, va);
 }
 
 inline void terminal_update_switch_state(

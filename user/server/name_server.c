@@ -62,7 +62,7 @@ void name_server_task() {
           name_map_clear_entry(existing_tid);
         }
 
-        printf("name_server: registered %d as %s\r\n", tid, req.register_as_req.name);
+        // printf("name_server: registered %d as %s\r\n", tid, req.register_as_req.name);
 
         memcpy(name_map[tid].name, req.register_as_req.name, NAME_SERVER_NAME_MAX);
 

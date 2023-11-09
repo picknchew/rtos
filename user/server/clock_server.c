@@ -86,6 +86,8 @@ struct DelayQueueNode *delay_queue_peek() {
 static int time = 0;
 
 void clock_notifier_task() {
+  time = 0;
+
   while (true) {
     AwaitEvent(EVENT_TIMER);
 

@@ -76,6 +76,8 @@ void train_task() {
         break;
       case SET_SWITCH_DIR:
         Reply(tid, NULL, 0);
+        // if 0x99 == C, then 0x9A = S
+        // if 0x9C == S, then 0x9B = C
         trainset_set_switch_direction(
             &trainset,
             terminal,

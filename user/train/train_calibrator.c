@@ -25,7 +25,6 @@ static unsigned int get_sensor_index(char ch, int offset) {
   return (ch - 'A') * 16 + offset - 1;
 }
 
-
 enum TrainCalibrationRequestType { CALIBRATOR_BEGIN_CALIBRATION, CALIBRATOR_SENSOR_UPDATE };
 
 struct TrainCalibrationBeginCalibrationRequest {
@@ -56,9 +55,10 @@ void train_calibrator_task() {
   int terminal_tid = WhoIs("terminal");
   int clock_server = WhoIs("clock_server");
 
-  tracka_init(track);
+  // tracka_init(track);
+  trackb_init(track);
 
-  bool calibrating = true;
+  bool calibrating = false;
 
   int train = 0;
   int speed = 0;
@@ -68,9 +68,6 @@ void train_calibrator_task() {
   bool prev_sensor_state = false;
   bool began_measurement = false;
   int loops = 0;
-
-  struct TrackDistance info = track_distance(track, track[2]);
-  TerminalUpdateDistance(terminal_tid, info.begin, info.end, info.distance);
 
   int total_time = 0;
   int t1 = 0;
@@ -89,6 +86,8 @@ void train_calibrator_task() {
           break;
         }
 
+        calibrating = true;
+
         train = req.begin_req.train;
         speed = req.begin_req.speed;
 
@@ -98,6 +97,9 @@ void train_calibrator_task() {
         for (int i = 0; i < 8; i++) {
           TrainSetSwitchDir(train_tid, loop_switches[i], loop_switch_dirs[i]);
         }
+
+        struct TrackDistance info = track_distance(track, track[2]);
+        TerminalUpdateDistance(terminal_tid, info.begin, info.end, info.distance);
 
         TrainSetSpeed(train_tid, train, speed);
         Reply(tid, 0, NULL);
@@ -111,8 +113,8 @@ void train_calibrator_task() {
 
         bool *sensors = req.update_sensor_req.sensors;
 
-        // debounce sensor triggers
-        if (prev_sensor_state != sensors[sensor] && sensors[sensor]) {
+        // only respond to sensor triggers
+        if (sensors[sensor]) {
           if (began_measurement) {
             t2 = Time(clock_server);
             int tdelta = t2 - t1;
@@ -123,7 +125,7 @@ void train_calibrator_task() {
             }
 
             TerminalUpdateVelocity(
-                terminal_tid, train, speed, tdelta, (info.distance * 100) / (tdelta * 100)
+                terminal_tid, train, speed, tdelta, (info.distance * 100) / (tdelta)
             );
 
             // TODO: print delta
@@ -145,7 +147,6 @@ void train_calibrator_task() {
             total_time = 0;
             loops = 0;
             began_measurement = false;
-            prev_sensor_state = false;
             calibrating = false;
           }
         }
@@ -158,10 +159,6 @@ void train_calibrator_task() {
 
   Exit();
 }
-
-// potential stopping distance
-// d = v^2 / (2 * mu * g)
-// mu = coefficient of friction
 
 /**
  * train 77 at velocity 7
@@ -181,6 +178,8 @@ void train_calibrator_task() {
  * 2529
  * 2523
  * avg time = 2526.466667
+ * distance = 4665
+ * 1520
  */
 
 void TrainCalibratorBeginCalibration(int tid, int train, int speed) {

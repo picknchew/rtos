@@ -16,7 +16,8 @@ enum TerminalRequestType {
   UPDATE_COMMAND,
   TERMINAL_TIME_NOTIFY,
   TERMINAL_DISTANCE,
-  TERMINAL_TIME_LOOP
+  TERMINAL_TIME_LOOP,
+  LOG_PRINT
 };
 
 // struct VelocityMeasurementInfo{
@@ -44,6 +45,11 @@ struct TerminalUpdateStatusRequest {
   va_list va;
 };
 
+struct TerminalLogPrintRequest {
+  char *fmt;
+  va_list va;
+};
+
 struct TerminalUpdateSwitchRequest {
   int switch_num;
   enum SwitchDirection dir;
@@ -58,14 +64,13 @@ struct TerminalUpdateCommandRequest {
   size_t len;
 };
 
-
-struct TerminalUpdateDistanceRequest{
-  const char * begin;
-  const char * end;
+struct TerminalUpdateDistanceRequest {
+  const char *begin;
+  const char *end;
   int distance;
 };
 
-struct TerminalUpdateVelocityRequest{
+struct TerminalUpdateVelocityRequest {
   int train_num;
   int train_speed;
   int loop_time;
@@ -88,7 +93,7 @@ struct TerminalRequest {
     struct TerminalUpdateCommandRequest update_command_req;
     struct TerminalUpdateDistanceRequest update_distance_req;
     struct TerminalUpdateVelocityRequest update_velocity_req;
-    
+    struct TerminalLogPrintRequest log_print_req;
   };
 };
 
@@ -102,6 +107,13 @@ void TerminalUpdateMaxSensorDuration(int tid, unsigned int duration);
 void TerminalUpdateIdle(int tid, uint64_t idle, int idle_pct);
 void TerminalUpdateCommand(int tid, char *command, size_t len);
 void TerminalUpdateDistance(int tid, const char *begin, const char *end, int distance);
-void TerminalUpdateVelocity(int tid, int train_num, int train_speed, int loop_time, int train_velocity);
+void TerminalUpdateVelocity(
+    int tid,
+    int train_num,
+    int train_speed,
+    int loop_time,
+    int train_velocity
+);
+void TerminalLogPrint(int tid, char *fmt, ...);
 void terminal_task();
 void terminal_screen_task();
