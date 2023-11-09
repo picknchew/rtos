@@ -84,7 +84,12 @@ void terminal_screen_task() {
         break;
       case UPDATE_IDLE:
         Reply(tid, NULL, 0);
-        terminal_update_idle(&screen, req.update_idle_req.idle, req.update_idle_req.idle_pct);
+        terminal_update_idle(
+            &screen,
+            req.update_idle_req.idle,
+            req.update_idle_req.idle_pct,
+            req.update_idle_req.recent_idle_pct
+        );
         break;
       case UPDATE_COMMAND:
         terminal_update_command(
@@ -186,9 +191,10 @@ void TerminalUpdateSwitchState(int tid, int switch_num, enum SwitchDirection dir
   Send(tid, (const char *) &req, sizeof(req), NULL, 0);
 }
 
-void TerminalUpdateIdle(int tid, uint64_t idle, int idle_pct) {
+void TerminalUpdateIdle(int tid, uint64_t idle, int idle_pct, int recent_idle_pct) {
   struct TerminalRequest req = {
-      .type = UPDATE_IDLE, .update_idle_req = {.idle = idle, .idle_pct = idle_pct}
+      .type = UPDATE_IDLE,
+      .update_idle_req = {.idle = idle, .idle_pct = idle_pct, .recent_idle_pct = recent_idle_pct}
   };
   Send(tid, (const char *) &req, sizeof(req), NULL, 0);
 }

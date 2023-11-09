@@ -16,7 +16,7 @@ struct TerminalView {
   void (*update_status_va)(struct TerminalScreen *, char *, va_list);
   void (*log_print_va)(struct TerminalScreen *, char *, va_list);
   void (*update_switch_state)(struct TerminalScreen *, int, enum SwitchDirection);
-  void (*update_idle)(struct TerminalScreen *, uint64_t, int);
+  void (*update_idle)(struct TerminalScreen *, uint64_t, int, int);
   void (*update_max_sensor_duration)(struct TerminalScreen *, unsigned int);
   void (*update_time)(struct TerminalScreen *, uint64_t);
   void (*update_command)(struct TerminalScreen *, char *, unsigned int);
@@ -79,8 +79,8 @@ inline void terminal_update_switch_state(
   screen->view.update_switch_state(screen, switch_num, dir);
 }
 
-inline void terminal_update_idle(struct TerminalScreen *screen, uint64_t idle, int idle_pct) {
-  screen->view.update_idle(screen, idle, idle_pct);
+inline void terminal_update_idle(struct TerminalScreen *screen, uint64_t idle, int idle_pct, int recent_idle_pct) {
+  screen->view.update_idle(screen, idle, idle_pct, recent_idle_pct);
 }
 
 inline void terminal_update_max_sensor_duration(

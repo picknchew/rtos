@@ -18,6 +18,8 @@ static int log_offset = 0;
 static const int SWITCHES_TITLE_ROW = 5;
 static const int SWITCHES_ROW = 6;
 
+static const int IDLE_COL = 40;
+
 static void init_switch_states(struct TerminalScreen *screen) {
   velocity_offset = 0;
   log_offset = 0;
@@ -177,22 +179,24 @@ static void update_sensors(struct TerminalScreen *screen, bool *sensors, size_t 
 #define MINUTE_IN_MICROSECONDS (SECOND_IN_MICROSECONDS * 60)
 #define HOUR_IN_MICROSECONDS (MINUTE_IN_MICROSECONDS * 60)
 
-static void update_idle(struct TerminalScreen *screen, uint64_t idle, int idle_pct) {
+static void
+update_idle(struct TerminalScreen *screen, uint64_t idle, int idle_pct, int recent_idle_pct) {
   // guaranteed to be less than 64 bits
   unsigned int hours = idle / HOUR_IN_MICROSECONDS;
   unsigned int minutes = (idle % HOUR_IN_MICROSECONDS) / MINUTE_IN_MICROSECONDS;
   unsigned int seconds = (idle % MINUTE_IN_MICROSECONDS) / SECOND_IN_MICROSECONDS;
   unsigned int centiseconds = (idle % SECOND_IN_MICROSECONDS) / CENTISECOND_IN_MICROSECONDS;
 
-  terminal_update_status(
-      screen,
-      "idle_task: idle time (%u%% of uptime) %u:%u:%u:%u\r\n",
-      idle_pct,
-      hours,
-      minutes,
-      seconds,
-      centiseconds
+  terminal_save_cursor(screen);
+  terminal_move_cursor(screen, 0, IDLE_COL);
+
+  terminal_print_title(screen, "Idle time: ");
+  terminal_printf(
+      screen, "(%u%% of uptime) %u:%u:%u:%u\r\n", idle_pct, hours, minutes, seconds, centiseconds
   );
+
+  terminal_cursor_delete_line(screen);
+  terminal_restore_cursor(screen);
 }
 
 static void print_loop_distance(

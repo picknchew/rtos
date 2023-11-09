@@ -21,10 +21,6 @@ static int loop_switch_dirs[] = {
     TRAINSET_DIRECTION_CURVED
 };
 
-static unsigned int get_sensor_index(char ch, int offset) {
-  return (ch - 'A') * 16 + offset - 1;
-}
-
 enum TrainCalibrationRequestType { CALIBRATOR_BEGIN_CALIBRATION, CALIBRATOR_SENSOR_UPDATE };
 
 struct TrainCalibrationBeginCalibrationRequest {
@@ -64,8 +60,6 @@ void train_calibrator_task() {
   int speed = 0;
 
   int sensor = trainset_get_sensor_index("A3");
-  // false = not triggered
-  bool prev_sensor_state = false;
   bool began_measurement = false;
   int loops = 0;
 
@@ -82,7 +76,7 @@ void train_calibrator_task() {
       case CALIBRATOR_BEGIN_CALIBRATION:
         // calibration already running
         if (calibrating) {
-          Reply(tid, 0, NULL);
+          Reply(tid, NULL, 0);
           break;
         }
 
@@ -102,11 +96,11 @@ void train_calibrator_task() {
         TerminalUpdateDistance(terminal_tid, info.begin, info.end, info.distance);
 
         TrainSetSpeed(train_tid, train, speed);
-        Reply(tid, 0, NULL);
+        Reply(tid, NULL, 0);
         break;
       case CALIBRATOR_SENSOR_UPDATE:
         if (!calibrating) {
-          Reply(tid, 0, NULL);
+          Reply(tid, NULL, 0);
           // do nothing
           break;
         }
@@ -151,8 +145,7 @@ void train_calibrator_task() {
           }
         }
 
-        prev_sensor_state = sensors[sensor];
-        Reply(tid, 0, NULL);
+        Reply(tid, NULL, 0);
         break;
     }
   }

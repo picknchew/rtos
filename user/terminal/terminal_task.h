@@ -38,6 +38,7 @@ struct TerminalUpdateSensorsRequest {
 struct TerminalUpdateIdleRequest {
   uint64_t idle;
   int idle_pct;
+  int recent_idle_pct;
 };
 
 struct TerminalUpdateStatusRequest {
@@ -104,7 +105,7 @@ void TerminalUpdateSensors(int tid, bool *sensors, size_t sensors_len);
 void TerminalUpdateStatus(int tid, char *status, ...);
 void TerminalUpdateSwitchState(int tid, int switch_num, enum SwitchDirection dir);
 void TerminalUpdateMaxSensorDuration(int tid, unsigned int duration);
-void TerminalUpdateIdle(int tid, uint64_t idle, int idle_pct);
+void TerminalUpdateIdle(int tid, uint64_t idle, int idle_pct, int recent_idle_pct);
 void TerminalUpdateCommand(int tid, char *command, size_t len);
 void TerminalUpdateDistance(int tid, const char *begin, const char *end, int distance);
 void TerminalUpdateVelocity(

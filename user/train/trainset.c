@@ -8,6 +8,7 @@
 #include "uart.h"
 #include "user/server/io_server.h"
 #include "user/terminal/terminal_task.h"
+#include "util.h"
 
 static const int BAUD_RATE = 2400;
 
@@ -70,7 +71,8 @@ void trainset_set_train_speed(
     struct Trainset *trainset,
     int terminal_tid,
     uint8_t train,
-    uint8_t speed) {
+    uint8_t speed
+) {
   int train_index = trainset_get_train_index(train);
 
   if (speed == SPEED_REVERSE_DIRECTION) {
@@ -113,7 +115,8 @@ void trainset_set_switch_direction(
     int terminal_tid,
     int switch_number,
     int direction,
-    uint64_t time) {
+    uint64_t time
+) {
   send_command(trainset, direction, switch_number);
 
   enum SwitchDirection switch_direction =

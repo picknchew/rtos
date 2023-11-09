@@ -47,7 +47,7 @@ void init_task() {
 
   Create(TERMINAL_TASK_PRIORITY, terminal_task);
 
-  //Create(1, idle_task);
+  Create(1, idle_task);
   // Create(1, replay_task);
   for (;;) {}  // spin forever when no other tasks are running
 }
