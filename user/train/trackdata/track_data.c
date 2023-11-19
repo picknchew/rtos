@@ -13,8 +13,15 @@ static void *memset(void *s, int c, unsigned int n) {
 void tracka_init(struct TrackNode *track) {
   memset(track, 0, TRACK_MAX * sizeof(struct TrackNode));
 
-  for (int i = 0; i < TRACK_MAX; i++) {
+  // initialize TrackNode indices
+  for (int i = 0; i < TRACK_MAX; ++i) {
     track[i].index = i;
+  }
+
+  // initialize TrackEdge indices
+  for (int i = 0; i < TRACK_MAX; ++i) {
+    track[i].edge[DIR_AHEAD].index = i * 2;
+    track[i].edge[DIR_CURVED].index = i * 2 + 1;
   }
 
   track[0].name = "A1";
@@ -1202,8 +1209,15 @@ void tracka_init(struct TrackNode *track) {
 void trackb_init(struct TrackNode *track) {
   memset(track, 0, TRACK_MAX * sizeof(struct TrackNode));
 
-  for (int i = 0; i < TRACK_MAX; i++) {
+  // initialize TrackNode indices
+  for (int i = 0; i < TRACK_MAX; ++i) {
     track[i].index = i;
+  }
+
+  // initialize TrackEdge indices
+  for (int i = 0; i < TRACK_MAX; ++i) {
+    track[i].edge[DIR_AHEAD].index = i * 2;
+    track[i].edge[DIR_CURVED].index = i * 2 + 1;
   }
 
   track[0].name = "A1";

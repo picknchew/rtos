@@ -1,6 +1,7 @@
 #include "util.h"
 
 #include <stdbool.h>
+#include <stdint.h>
 
 // ascii digit to integer
 int a2d(char ch) {
@@ -146,7 +147,12 @@ char* strtok_r(char* str, char delim, char** saveptr) {
   return str;
 }
 
-char *strcat (char *dest, const char *src,int len){
-  memcpy (dest + strlen (dest), src,len);
-  return dest;
+uint64_t rand() {
+  static uint64_t seed = 77;
+
+  seed ^= (seed << 21);
+  seed ^= (seed >> 35);
+  seed ^= (seed << 4);
+
+  return seed;
 }

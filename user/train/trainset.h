@@ -4,6 +4,7 @@
 #include <stdint.h>
 
 #include "circular_buffer.h"
+#include "trackdata/track_data.h"
 
 #define TRAINSET_NUM_MAX_SWITCHES 255
 #define TRAINSET_NUM_TRAINS 8
@@ -38,7 +39,8 @@ void trainset_set_train_speed(
     struct Trainset *trainset,
     int terminal_tid,
     uint8_t train,
-    uint8_t speed);
+    uint8_t speed
+);
 uint8_t trainset_get_speed(struct Trainset *trainset, uint8_t train);
 void trainset_train_reverse(struct Trainset *trainset, int terminal_tid, uint8_t train);
 void trainset_set_switch_direction(
@@ -46,7 +48,8 @@ void trainset_set_switch_direction(
     int terminal_tid,
     int switch_number,
     int direction,
-    uint64_t time);
+    uint64_t time
+);
 void trainset_update_sensor_data(struct Trainset *trainset, bool *sensor_data);
 bool *trainset_get_sensor_data(struct Trainset *trainset);
 bool trainset_is_valid_train(uint8_t train);

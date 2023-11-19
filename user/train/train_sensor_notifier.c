@@ -3,6 +3,7 @@
 #include "syscall.h"
 #include "train_calibrator.h"
 #include "train_dispatcher.h"
+#include "train_manager.h"
 #include "train_router.h"
 #include "trainset.h"
 #include "trainset_task.h"
@@ -46,6 +47,7 @@ void train_sensor_notifier_task() {
   int terminal = WhoIs("terminal");
   int train_calib = WhoIs("train_calib");
   int train_router = WhoIs("train_router");
+  int train_manager = WhoIs("train_manager");
 
   bool sensors[TRAINSET_SENSORS_LEN] = {0};
   char raw_sensor_data[TRAINSET_NUM_FEEDBACK_MODULES * 2] = {0};
@@ -66,6 +68,7 @@ void train_sensor_notifier_task() {
     if (process_sensor_data(raw_sensor_data, sensors)) {
       TrainCalibratorUpdateSensors(train_calib, sensors);
       TrainRouterUpdateSensors(train_router, sensors);
+      TrainManagerUpdateSensors(train_manager, sensors);
       TerminalUpdateSensors(terminal, sensors, TRAINSET_SENSORS_LEN);
       TrainUpdateSensorData(train, sensors);
     }

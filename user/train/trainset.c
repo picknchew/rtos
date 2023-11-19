@@ -2,6 +2,7 @@
 
 #include <stdbool.h>
 
+#include "selected_track.h"
 #include "syscall.h"
 #include "train_dispatcher.h"
 #include "trainset_task.h"
@@ -25,6 +26,8 @@ const int SPEED_REVERSE_DIRECTION = 15;
 
 const int TRAINSET_TRAINS[] = {1, 2, 24, 47, 54, 58, 77, 78};
 
+struct TrackNode track[TRACK_MAX];
+
 int marklin_tx_server;
 
 int trainset_get_train_index(uint8_t train) {
@@ -45,6 +48,8 @@ int trainset_get_sensor_index(char *sensor) {
 }
 
 void trainset_init(struct Trainset *trainset, int train_dispatcher_tid) {
+  tracka_init(track);
+
   trainset->last_track_switch_time = 0;
 
   trainset->train_dispatcher = train_dispatcher_tid;

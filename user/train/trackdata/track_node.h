@@ -12,11 +12,13 @@ enum NodeType {
 #define DIR_AHEAD 0
 #define DIR_STRAIGHT 0
 #define DIR_CURVED 1
+#define DIR_REVERSE 2
 
 struct TrackEdge {
   struct TrackEdge *reverse;
   struct TrackNode *src, *dest;
   int dist; /* in millimetres */
+  int index;
 };
 
 struct TrackNode {

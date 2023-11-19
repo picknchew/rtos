@@ -1,5 +1,6 @@
 #include "train_calibrator.h"
 
+#include "selected_track.h"
 #include "syscall.h"
 #include "trackdata/distance.h"
 #include "trackdata/track_data.h"
@@ -42,7 +43,6 @@ struct TrainCalibrationRequest {
 };
 
 static const int CALIBRATION_LOOPS = 10;
-static struct TrackNode track[TRACK_MAX];
 
 void train_calibrator_task() {
   RegisterAs("train_calib");
@@ -50,9 +50,6 @@ void train_calibrator_task() {
   int train_tid = WhoIs("train");
   int terminal_tid = WhoIs("terminal");
   int clock_server = WhoIs("clock_server");
-
-  // tracka_init(track);
-  trackb_init(track);
 
   bool calibrating = false;
 

@@ -18,6 +18,7 @@
 #include "train/train_router.h"
 #include "train/train_sensor_notifier.h"
 #include "train/trainset_task.h"
+#include "train/train_manager.h"
 
 void init_task() {
 #if BENCHMARK
@@ -44,6 +45,9 @@ void init_task() {
   Create(TRAIN_TASK_PRIORITY, train_router_task);
 
   Create(TRAIN_TASK_PRIORITY, train_sensor_notifier_task);
+
+  Create(TRAIN_TASK_PRIORITY, train_planner_task);
+  Create(TRAIN_TASK_PRIORITY, train_manager_task);
 
   Create(TERMINAL_TASK_PRIORITY, terminal_task);
 

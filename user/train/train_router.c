@@ -3,6 +3,7 @@
 #include <limits.h>
 
 #include "rpi.h"
+#include "selected_track.h"
 #include "syscall.h"
 #include "trackdata/track_data.h"
 #include "trackdata/track_node_priority_queue.h"
@@ -135,8 +136,6 @@ struct TrainRouterRequest {
 // time to wait for train to hit constant speed (5s) in ticks
 static const int ACCELERATION_DURATION = 500;
 
-static struct TrackNode track[TRACK_MAX];
-
 static struct TrackNode *track_get_sensor(char *sensor) {
   int index = trainset_get_sensor_index(sensor);
   // first nodes are all sensors
@@ -267,7 +266,6 @@ static struct Path get_shortest_path(struct TrainState *state, struct TrackNode 
 
     switch (node->type) {
       case NODE_BRANCH:
-        // printf("curved %s ",node->name);
         neighbour = node->edge[DIR_CURVED].dest;
         alt = dist[node->index] + node->edge[DIR_CURVED].dist;
 
@@ -288,6 +286,7 @@ static struct Path get_shortest_path(struct TrainState *state, struct TrackNode 
           track_node_priority_queue_decrease_priority(&queue, neighbour, alt);
         }
         break;
+      case NODE_ENTER:
       case NODE_MERGE:
       case NODE_SENSOR:
         neighbour = node->edge[DIR_AHEAD].dest;
@@ -407,8 +406,6 @@ static struct TrackPosition plan_get_stopping_pos(struct Plan *plan, struct Trai
   struct TrackPosition pos = {.node = last_node, .offset = offset_from_last_node};
   return pos;
 }
-
-// static void *set_switches_to_dest() {}
 
 static int current_train = 0;
 
@@ -579,7 +576,7 @@ static void handle_update_sensors_request(
   // get stopping distance (sensor and offset)
 }
 
-void handle_tick(int terminal, int train_tid, int clock_server, struct TrainState *train_states) {
+static void handle_tick(int terminal, int train_tid, int clock_server, struct TrainState *train_states) {
   struct TrainState *trainstate = &train_states[trainset_get_train_index(current_train)];
   struct Plan *plan = &trainstate->plan;
 
@@ -621,9 +618,7 @@ void train_router_task() {
 
   init_measured_speeds();
 
-  // tracka_init(track);
-  trackb_init(track);
-
+  // TODO: one for each track.
   track_node_priority_queue_init(&queue, track);
 
   struct TrainState train_states[TRAINSET_NUM_TRAINS];
@@ -650,8 +645,6 @@ void train_router_task() {
             terminal, train_tid, clock_server, train_states, &req.update_sens_req
         );
         Reply(tid, NULL, 0);
-        // should make another server that will notify this server of periodic time changes.
-        // then this server should check if enough time has passed for the train to stop.
         break;
       case TRAIN_ROUTER_TICK:
         handle_tick(terminal, train_tid, clock_server, train_states);
@@ -676,3 +669,19 @@ void TrainRouterUpdateSensors(int tid, bool *sensors) {
   };
   Send(tid, (const char *) &req, sizeof(req), NULL, 0);
 }
+
+// for every train plan, we need to change the execution of the plan:
+// 1. we generate a plan for a train (random location).
+// 2. train router runs it.
+// 3. on track change/location update, train router reserves the current track the train is on and
+// the next few
+//    depending on stopping distance (reserve tracks of current + tracks that are within stopping
+//    distance).
+// 4. when a track is reserved, we need to check if the track has already been reserved. if it has
+// already been
+//    reserved we must stop at the track before the reserved track.
+// 5. when a track becomes unreserved (track is no longer under train or no longer in front of
+// train),
+//    (either queue reservations) or notify trains that it's been unreserved
+//    and first come first serve.
+// 6.

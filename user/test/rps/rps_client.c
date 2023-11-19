@@ -6,17 +6,7 @@
 #include "rps_server.h"
 #include "syscall.h"
 #include "user/server/name_server.h"
-
-// https://www.javamex.com/tutorials/random_numbers/xorshift.shtml
-static uint64_t rand() {
-  static uint64_t seed = 77;
-
-  seed ^= (seed << 21);
-  seed ^= (seed >> 35);
-  seed ^= (seed << 4);
-
-  return seed;
-}
+#include "util.h"
 
 void rps_client_task() {
   // queue up for game (blocks until opponent found)
