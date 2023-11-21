@@ -17,6 +17,7 @@ void trainset_calib_data_init() {
     TRAINSET_ACCEL_TIMES[i][0] = 300;
     // default 5s
     TRAINSET_DECEL_TIMES[i][0] = 500;
+    TRAINSET_DECEL_TIMES[i][10] = 500;
   }
 
   // mm/s
@@ -30,6 +31,7 @@ void trainset_calib_data_init() {
   TRAINSET_MEASURED_SPEEDS[trainset_get_train_index(58)][10] = 308;
   TRAINSET_STOPPING_DISTANCES[trainset_get_train_index(58)][10] = 440;
   TRAINSET_ACCEL_DISTANCES[trainset_get_train_index(58)][10] = 289;
+  TRAINSET_ACCEL_TIMES[trainset_get_train_index(58)][10] = 290;
 
   TRAINSET_MEASURED_SPEEDS[trainset_get_train_index(58)][7] = 334;
   TRAINSET_STOPPING_DISTANCES[trainset_get_train_index(58)][7] = 145;
@@ -50,6 +52,7 @@ void trainset_calib_data_init() {
   TRAINSET_MEASURED_SPEEDS[trainset_get_train_index(54)][10] = 483;
   TRAINSET_STOPPING_DISTANCES[trainset_get_train_index(54)][10] = 705;
   TRAINSET_ACCEL_DISTANCES[trainset_get_train_index(54)][10] = 499;
+  TRAINSET_ACCEL_TIMES[trainset_get_train_index(54)][10] = 390;
 
   TRAINSET_MEASURED_SPEEDS[trainset_get_train_index(54)][9] = 432;
   TRAINSET_STOPPING_DISTANCES[trainset_get_train_index(54)][9] = 635;
@@ -82,6 +85,7 @@ void trainset_calib_data_init() {
   TRAINSET_MEASURED_SPEEDS[trainset_get_train_index(47)][10] = 477;
   TRAINSET_STOPPING_DISTANCES[trainset_get_train_index(47)][10] = 885;
   TRAINSET_ACCEL_DISTANCES[trainset_get_train_index(47)][10] = 379;
+  TRAINSET_ACCEL_TIMES[trainset_get_train_index(47)][10] = 436;
 
   TRAINSET_MEASURED_SPEEDS[trainset_get_train_index(47)][7] = 351;
   TRAINSET_STOPPING_DISTANCES[trainset_get_train_index(47)][7] = 615;
@@ -89,25 +93,26 @@ void trainset_calib_data_init() {
 
 // first two points are for the line
 int interpolate_linear(FixedPointInt x1, int y1, FixedPointInt x2, int y2, int interpolate_x) {
-  int slope = fixed_point_int_from(y2 - y1) / (x2 - x1);
-  int b = fixed_point_int_from(y1) / (slope * x1);
+  int slope = fixed_point_int_from(y2 - y1) * 10000 / (x2 - x1);
+  int b = fixed_point_int_get(fixed_point_int_from(y1) * 10000 - (slope * x1));
 
-  return slope * interpolate_x + b;
+  // fixed point precision isn't enough so we scale by 1000
+  return (slope * interpolate_x + b) / 10000;
 }
 
-int interpolate(FixedPointInt *dists, FixedPointInt *speeds, int len, int x) {
-  int index = 0;
+int interpolate(FixedPointInt *dists, int *delays, int len, int x) {
+  int index = len - 2;
   for (int i = 0; i < len - 1; ++i) {
-    if (dists[i + 1] > x) {
+    if (dists[i + 1] > fixed_point_int_from(x)) {
       index = i;
       break;
     }
   }
 
   FixedPointInt x1 = dists[index];
-  int y1 = speeds[index];
+  int y1 = delays[index];
   FixedPointInt x2 = dists[index + 1];
-  int y2 = speeds[index + 2];
+  int y2 = delays[index + 1];
 
   return interpolate_linear(x1, y1, x2, y2, x);
 }
@@ -118,6 +123,9 @@ static int train58_delays[] = {40, 50, 75, 100, 200};
 
 static FixedPointInt train47_dists[] = {105 * 10, 175 * 10, 528 * 10, 945 * 10, 4576 * 10};
 static int train47_delays[] = {40, 50, 75, 100, 200};
+
+// static FixedPointInt train54_dists[] = {};
+static int train54_delays[] = {40, 50, 75, 100, 200};
 
 int get_shortmove_duration(int train, int speed, int dist) {
   // assume train is speed 10 for now.
