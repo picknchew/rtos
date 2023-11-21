@@ -687,20 +687,40 @@ static void handle_tick(
 // train 2 - A13
 // train 24 - A15
 // train 47 - A11
-// train 54 - B7
-// train 58 - B11
+// train 54 - A5
+// train 58 - C4
 // train 77 - B9
 // train 78 - C3
-int initial_sensors[] = {0, 12, 14, 10, 22, 26, 24, 34};
+int initial_sensors[] = {0, 12, 14, 10, 4, 35, 24, 34};
 int active_trains[] = {58};
 int train_speeds[] = {10, 10, 10, 10, 10, 10, 10, 10};
 
 // get train associated with sensor trigger. null if spurious.
-struct Train *sensor_get_train(struct Train *train_states, int sensor) {
+struct Train *sensor_get_train(struct Train *trains, int sensor) {
   // check if previous train location update was this sensor.
   // if so, return null because it means the train is sitting on top of it still since the last
   // sensor trigger.
   // check initial sensors to see if they're for one of the trains that are inactive.
+  // TODO: we currently just check if it's the initial train sensor or if the sensor is in a train's
+  //   path.
+
+  for (int i = 0; i < TRAINSET_NUM_TRAINS; ++i) {
+    struct Train *train = &trains[i];
+
+    if (!train->active) {
+      if (initial_sensors[train->train_index] == sensor) {
+        return train;
+      }
+
+      continue;
+    }
+
+    for (int i = train->plan.path.nodes_len - 1; i >= 0; --i) {
+      if (train->plan.path.nodes[i] == &track[sensor]) {
+        return train;
+      }
+    }
+  }
 
   return NULL;
 }
@@ -760,6 +780,8 @@ static void handle_update_sensors_request(
       set_train_active(train, train_speeds[train->train_index]);
       route_train_randomly(terminal, train_planner, train);
       train->last_sensor_index = train->plan.path.nodes_len - 1;
+      TerminalLogPrint(terminal, "Train active....");
+      train_log(terminal, train);
       return;
     }
 
