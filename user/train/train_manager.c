@@ -164,6 +164,11 @@ void train_init(struct Train *train, int train_num) {
   train->speed = 0;
 }
 
+static inline int get_travel_time(struct Train *train, int dist) {
+  // in ticks (per 10ms)
+  return fixed_point_int_from(dist) / TRAINSET_MEASURED_SPEEDS[train->train_index][train->speed];
+}
+
 static int get_travel_time_between(
     struct Train *train,
     struct TrackPosition *pos1,
@@ -172,8 +177,7 @@ static int get_travel_time_between(
   // mm
   int dist = get_distance_between(&train->plan.path, pos1, pos2);
 
-  // in ticks (per 10ms)
-  return fixed_point_int_from(dist) / TRAINSET_MEASURED_SPEEDS[train->train_index][train->speed];
+  return get_travel_time(train, dist);
 }
 
 static struct TrackPosition
@@ -236,9 +240,9 @@ int get_move_time(struct Train *train, int distance) {
     return sqrt(2 * distance / accel);
   }
 
-  int constant_velocity_time =
-      (distance - TRAINSET_ACCEL_DISTANCES[train->train_index][train->speed]) /
-      TRAINSET_MEASURED_SPEEDS[train->train_index][train->speed];
+  int constant_velocity_time = get_travel_time(
+      train, (distance - TRAINSET_ACCEL_DISTANCES[train->train_index][train->speed])
+  );
 
   return TRAINSET_ACCEL_TIMES[train->train_index][train->speed] + constant_velocity_time;
 }
