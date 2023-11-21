@@ -1,8 +1,9 @@
 #include "track_position.h"
 
 #include "selected_track.h"
-#include "trackdata/track_data.h";
+#include "trackdata/track_data.h"
 #include "train_planner.h"
+#include "util.h"
 
 struct TrackPosition track_position_random() {
   struct TrackNode *node = &track[rand() % TRACK_MAX];
@@ -32,9 +33,11 @@ struct TrackPosition track_position_add(struct TrackPosition pos, struct Path *p
   }
 
   // we need path to determine the next node that we'll be on.
-  while (node_index >= 0 && node->dist >= new_offset) {
-    new_offset -= node->edge[path->directions[node_index]].dist;
-    node = node->edge[path->directions[node_index]].dest;
+  while (node_index >= 0 && node->edge[path->directions[node_index]].dist >= new_offset) {
+    int dir = path->directions[node_index];
+
+    new_offset -= node->edge[dir].dist;
+    node = node->edge[dir].dest;
 
     ++node_index;
   }

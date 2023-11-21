@@ -527,8 +527,6 @@ void train_router_task() {
   int clock_server = WhoIs("clock_server");
   int terminal = WhoIs("terminal");
 
-  init_measured_speeds();
-
   // TODO: one for each track.
   track_node_priority_queue_init(&queue, track);
 

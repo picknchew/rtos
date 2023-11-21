@@ -5,6 +5,7 @@
 #include "selected_track.h"
 #include "syscall.h"
 #include "train_dispatcher.h"
+#include "trainset_calib_data.h"
 #include "trainset_task.h"
 #include "uart.h"
 #include "user/server/io_server.h"
@@ -49,6 +50,8 @@ int trainset_get_sensor_index(char *sensor) {
 
 void trainset_init(struct Trainset *trainset, int train_dispatcher_tid) {
   tracka_init(track);
+
+  trainset_calib_data_init();
 
   trainset->last_track_switch_time = 0;
 
