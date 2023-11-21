@@ -11,6 +11,7 @@
 #include "user/server/clock_server.h"
 #include "user/server/name_server.h"
 #include "user/terminal/terminal_task.h"
+#include "util.h"
 
 enum TrainState {
   PLAN_BEGIN,
@@ -59,99 +60,6 @@ struct Train {
   int speed;
 };
 
-void train_init(struct Train *train, int train_num) {
-  train->active = false;
-  train->started = false;
-
-  train->train = train_num;
-  train->train_index = trainset_get_train_index(train_num);
-
-  train->state = WAITING_FOR_INITIAL_POS;
-  train->move_start_time = 0;
-  train->move_duration = 0;
-
-  train->last_sensor_index = 0;
-  train->last_switch_index = 0;
-
-  train->plan.path_found = false;
-  train->path_index = 0;
-  train->path_node_index = 0;
-
-  train->current_pos_update_time = 0;
-  train->last_known_pos_time = 0;
-
-  train->speed = 0;
-}
-
-// static int get_travel_time_between(
-//     struct Path *path,
-//     struct Train *state,
-//     struct TrackPosition *pos1,
-//     struct TrackPosition *pos2
-// ) {
-//   // mm
-//   int dist = get_distance_between(path, pos1, pos2);
-
-//   // in ticks (per 10ms)
-//   return fixed_point_int_from(dist) / TRAINSET_MEASURED_SPEEDS[state->train_index][state->speed];
-// }
-
-// static struct TrackPosition plan_get_stopping_pos(struct Plan *plan, struct Train *state) {
-//   struct Path *path = &plan->path;
-//   // distance from train position
-//   int stopping_offset = path->distance - state->last_known_pos.offset + plan->dest.offset -
-//                         TRAINSET_STOPPING_DISTANCES[state->train_index][state->speed];
-
-//   struct TrackNode *last_node = NULL;
-//   int offset_from_last_node = stopping_offset;
-//   // traverse path to see which node is before the stopping_offset
-//   for (int i = path->nodes_len - 1; i >= 0; --i) {
-//     struct TrackNode *cur_node = path->nodes[i];
-//     int edge_dir = path->directions[i];
-//     int edge_dist = cur_node->edge[edge_dir].dist;
-
-//     if (offset_from_last_node < edge_dist) {
-//       last_node = cur_node;
-//       break;
-//     }
-
-//     offset_from_last_node -= edge_dist;
-//   }
-
-//   // our offset is not covered by the edge after the last node
-//   if (last_node == NULL) {
-//     // set to last node
-//     last_node = plan->path.nodes[0];
-//   }
-
-//   struct TrackPosition pos = {.node = last_node, .offset = offset_from_last_node};
-//   return pos;
-// }
-
-enum TrainManagerRequestType { TRAIN_MANAGER_UPDATE_SENSORS, TRAIN_MANAGER_TICK };
-
-struct TrainManagerUpdateSensorsRequest {
-  bool *sensors;
-};
-
-struct TrainManagerRequest {
-  enum TrainManagerRequestType type;
-
-  union {
-    struct TrainManagerUpdateSensorsRequest update_sens_req;
-  };
-};
-
-// returns time to move distance for a short move.
-int get_short_move_time(struct Train *train, int distance) {
-  return 0;
-}
-
-// returns time to move distance for a full acceleration to constant velocity move
-int get_move_time(struct Train *train, int distance) {
-  return 0;
-}
-
 // TODO: if train hits any sensor after a node in the path, this won't work because it cannot find
 // the destinaton. theoretically, this should never happen because the train should always stop at
 // the destination.
@@ -186,15 +94,158 @@ get_distance_between(struct Path *path, struct TrackPosition *src, struct TrackP
   return dist;
 }
 
+static void train_log(int terminal, struct Train *train) {
+  TerminalLogPrint(terminal, "=====Train %d=====", train->train);
+  TerminalLogPrint(terminal, "active: %d", train->active);
+  TerminalLogPrint(terminal, "started: %d", train->started);
+  TerminalLogPrint(terminal, "train: %d", train->active);
+
+  switch (train->state) {
+    case PLAN_BEGIN:
+      TerminalLogPrint(terminal, "state: PLAN_BEGIN");
+      break;
+    case SHORT_MOVE:
+      TerminalLogPrint(terminal, "state: SHORT_MOVE");
+      break;
+    case ACCELERATING:
+      TerminalLogPrint(terminal, "state: ACCELERATING");
+      break;
+    case CONSTANT_VELOCITY:
+      TerminalLogPrint(terminal, "state: CONSTANT_VELOCITY");
+      break;
+    case DECELERATING:
+      TerminalLogPrint(terminal, "state: DECELERATING");
+      break;
+    case STOPPED:
+      TerminalLogPrint(terminal, "state: STOPPED");
+      break;
+    case WAITING_FOR_INITIAL_POS:
+      TerminalLogPrint(terminal, "state: WAITING_FOR_INITIAL_POS");
+      break;
+  }
+
+  if (train->active) {
+    TerminalLogPrint(terminal, "decel_begin_time: %d", train->decel_begin_time);
+    TerminalLogPrint(terminal, "decel_duration: %d", train->decel_duration);
+    TerminalLogPrint(terminal, "last_sensor_index: %d", train->last_sensor_index);
+    TerminalLogPrint(terminal, "move_start_time: %d", train->move_start_time);
+    TerminalLogPrint(terminal, "move_duration: %d", train->move_duration);
+    TerminalLogPrint(
+        terminal,
+        "current_pos: %s, offset: %d",
+        train->current_pos.node->name,
+        train->current_pos.offset
+    );
+    TerminalLogPrint(terminal, "current_pos_update_time: %d", train->current_pos_update_time);
+  }
+}
+
+void train_init(struct Train *train, int train_num) {
+  train->active = false;
+  train->started = false;
+
+  train->train = train_num;
+  train->train_index = trainset_get_train_index(train_num);
+
+  train->state = WAITING_FOR_INITIAL_POS;
+  train->move_start_time = 0;
+  train->move_duration = 0;
+
+  train->last_sensor_index = 0;
+  train->last_switch_index = 0;
+
+  train->plan.path_found = false;
+  train->path_index = 0;
+  train->path_node_index = 0;
+
+  train->current_pos_update_time = 0;
+  train->last_known_pos_time = 0;
+
+  train->speed = 0;
+}
+
+static int get_travel_time_between(
+    struct Train *train,
+    struct TrackPosition *pos1,
+    struct TrackPosition *pos2
+) {
+  // mm
+  int dist = get_distance_between(&train->plan.path, pos1, pos2);
+
+  // in ticks (per 10ms)
+  return fixed_point_int_from(dist) / TRAINSET_MEASURED_SPEEDS[train->train_index][train->speed];
+}
+
+static struct TrackPosition
+plan_get_stopping_pos(struct Train *train, struct Path *path, struct TrackPosition *dest) {
+  // distance from train position
+  int stopping_offset = get_distance_between(path, &train->current_pos, dest);
+
+  struct TrackNode *last_node = NULL;
+  int offset_from_last_node = stopping_offset;
+  // traverse path to see which node is before the stopping_offset
+  for (int i = path->nodes_len - 1; i >= 0; --i) {
+    struct TrackNode *cur_node = path->nodes[i];
+    int edge_dir = path->directions[i];
+    int edge_dist = cur_node->edge[edge_dir].dist;
+
+    if (offset_from_last_node < edge_dist) {
+      last_node = cur_node;
+      break;
+    }
+
+    offset_from_last_node -= edge_dist;
+  }
+
+  // our offset is not covered by the edge after the last node
+  if (last_node == NULL) {
+    // set to last node
+    last_node = path->nodes[0];
+  }
+
+  struct TrackPosition pos = {.node = last_node, .offset = offset_from_last_node};
+  return pos;
+}
+
+enum TrainManagerRequestType { TRAIN_MANAGER_UPDATE_SENSORS, TRAIN_MANAGER_TICK };
+
+struct TrainManagerUpdateSensorsRequest {
+  bool *sensors;
+};
+
+struct TrainManagerRequest {
+  enum TrainManagerRequestType type;
+
+  union {
+    struct TrainManagerUpdateSensorsRequest update_sens_req;
+  };
+};
+
 inline int get_train_accel(struct Train *train) {
   // assuming constant velocity
   return TRAINSET_MEASURED_SPEEDS[train->train_index][train->speed] /
          TRAINSET_ACCEL_TIMES[train->train_index][train->speed];
 }
 
+// returns time to move distance for a full acceleration to constant velocity move
+int get_move_time(struct Train *train, int distance) {
+  if (distance <= TRAINSET_ACCEL_DISTANCES[train->train_index][train->speed]) {
+    // assume constant acceleration
+    int accel = get_train_accel(train);
+    // acceleration only
+    return sqrt(2 * distance / accel);
+  }
+
+  int constant_velocity_time =
+      (distance - TRAINSET_ACCEL_DISTANCES[train->train_index][train->speed]) /
+      TRAINSET_MEASURED_SPEEDS[train->train_index][train->speed];
+
+  return TRAINSET_ACCEL_TIMES[train->train_index][train->speed] + constant_velocity_time;
+}
+
 inline int get_dist_travelled_accel(int initial_velocity, int accel, int time) {
-  // d = v0 + 1/2 * at^2
-  return initial_velocity + (accel * time * time) / 2;
+  // d = v0 * t + 1/2 * at^2
+  return initial_velocity * time + (accel * time * time) / 2;
 }
 
 inline int get_dist_constant_velocity(int velocity, int time) {
@@ -223,8 +274,7 @@ int get_train_dist_travelled_full_move(struct Train *train, int time) {
   }
 
   // assume constant acceleration
-  int accel = TRAINSET_MEASURED_SPEEDS[train->train_index][train->speed] /
-              TRAINSET_ACCEL_TIMES[train->train_index][train->speed];
+  int accel = get_train_accel(train);
 
   // position updated in the middle of acceleration
   // still accelerating
@@ -391,7 +441,10 @@ void route_train_randomly(int terminal, int train_planner, struct Train *train) 
 
   while (!train->plan.path_found) {
     TerminalLogPrint(
-        terminal, "No path to %s, trying to find another destination.", rand_dest.node->name
+        terminal,
+        "No path to %s from %s, trying to find another destination.",
+        rand_dest.node->name,
+        train->current_pos.node->name
     );
     rand_dest = track_position_random();
     train->plan = CreatePlan(train_planner, &train->current_pos, &rand_dest);
@@ -427,18 +480,24 @@ static void handle_tick(
 
     update_train_pos(clock_server, train);
 
-    struct Path *path = &train->plan.paths[train->path_index];
+    struct Path *path = &train->plan.path;
 
     // go through RoutePlan.
     // - make sure we are within reservation range ^
 
+    TerminalLogPrint(terminal, "prior to next switch");
     // when we are close enough to the next switch, activate it.
     int next_switch_index = get_next_switch_index(train);
     // we check if nexxt switch is equal to last switch in case we already activated
     // the switch previously.
     if (next_switch_index != -1 && next_switch_index != train->last_switch_index) {
+      TerminalLogPrint(terminal, "statement is true");
       struct TrackNode *next_switch = path->nodes[next_switch_index];
       struct TrackPosition next_switch_pos = {.node = next_switch, .offset = 0};
+
+      TerminalLogPrint(
+          terminal, "we're in %d", get_distance_between(path, &train->current_pos, &next_switch_pos)
+      );
 
       // TODO: check for reservation
       if (get_distance_between(path, &train->current_pos, &next_switch_pos) <= FLIP_SWITCH_DIST) {
@@ -469,7 +528,8 @@ static void handle_tick(
       current_path_dest_pos.offset = train->plan.dest.offset;
     }
 
-    int dist_to_current_dest = get_distance_between(path, &train->current_pos, &current_path_dest_pos);
+    int dist_to_current_dest =
+        get_distance_between(path, &train->current_pos, &current_path_dest_pos);
 
     switch (train->state) {
       case WAITING_FOR_INITIAL_POS:
@@ -504,19 +564,20 @@ static void handle_tick(
         break;
       case PLAN_BEGIN:
         // short move (possibly add a buffer additionally?)
-        if (dist_to_current_dest >=
-            TRAINSET_STOPPING_DISTANCES[train->train_index][train->speed] +
-                TRAINSET_ACCEL_DISTANCES[train->train_index][train->speed]) {
+        if (dist_to_current_dest < TRAINSET_STOPPING_DISTANCES[train->train_index][train->speed] +
+                                       TRAINSET_ACCEL_DISTANCES[train->train_index][train->speed]) {
           train->move_start_time = Time(clock_server);
-          train->move_duration = get_short_move_time(train, dist_to_current_dest);
+          train->move_duration =
+              get_shortmove_duration(train->train, train->speed, dist_to_current_dest);
           train->state = SHORT_MOVE;
 
           TrainSetSpeed(train_tid, train->train, train->speed);
           TerminalLogPrint(
               terminal,
-              "Train %d, performing a short move of %dmm",
+              "Train %d, performing a short move of %dmm for %d ticks",
               train->train,
-              dist_to_current_dest
+              dist_to_current_dest,
+              train->move_duration
           );
         } else {
           train->move_start_time = Time(clock_server);
@@ -526,9 +587,10 @@ static void handle_tick(
           TrainSetSpeed(train_tid, train->train, train->speed);
           TerminalLogPrint(
               terminal,
-              "Train %d, performing a max velocity move of %dmm",
+              "Train %d, performing a max velocity move of %dmm for %d ticks",
               train->train,
-              dist_to_current_dest
+              dist_to_current_dest,
+              train->move_duration
           );
         }
         break;
@@ -542,17 +604,20 @@ static void handle_tick(
         if (train->path_index == train->plan.paths_len - 1 &&
             train->path_node_index == train->plan.path.nodes_len - 1) {
           route_train_randomly(terminal, train_planner, train);
+          train->last_sensor_index = train->plan.path.nodes_len - 1;
           break;
         }
 
         ++train->path_index;
 
+        // TODO: reverse train
+
         // short move (possibly add a buffer additionally?)
-        if (dist_to_current_dest >=
-            TRAINSET_STOPPING_DISTANCES[train->train_index][train->speed] +
-                TRAINSET_ACCEL_DISTANCES[train->train_index][train->speed]) {
+        if (dist_to_current_dest < TRAINSET_STOPPING_DISTANCES[train->train_index][train->speed] +
+                                       TRAINSET_ACCEL_DISTANCES[train->train_index][train->speed]) {
           train->move_start_time = Time(clock_server);
-          train->move_duration = get_short_move_time(train, dist_to_current_dest);
+          train->move_duration =
+              get_shortmove_duration(train->train, train->speed, dist_to_current_dest);
           train->state = SHORT_MOVE;
 
           TrainSetSpeed(train_tid, train->train, train->speed);
@@ -654,7 +719,7 @@ static void handle_update_sensors_request(
     if (!train->active) {
       set_train_active(train, train_speeds[train->train_index]);
       route_train_randomly(terminal, train_planner, train);
-      train->last_sensor_index = 0;
+      train->last_sensor_index = train->plan.path.nodes_len - 1;
     } else {
       int next_sensor_index = get_next_sensor_index(train);
       if (next_sensor_index != -1) {
@@ -689,75 +754,145 @@ void train_manager_task() {
   int tid;
   struct TrainManagerRequest req;
 
-  struct TrackPosition src = {.node = track[45].reverse, .offset = 0};
-  struct TrackPosition dest = {.node = &track[43], .offset = 0};
+  // struct TrackPosition src = {.node = track[45].reverse, .offset = 0};
+  // struct TrackPosition dest = {.node = &track[43], .offset = 0};
 
-  TerminalLogPrint(terminal, "Finding shortest path....");
-  TerminalLogPrint(terminal, "Creating route plan:");
+  // TerminalLogPrint(terminal, "Finding shortest path....");
+  // TerminalLogPrint(terminal, "Creating route plan:");
 
-  struct RoutePlan route = CreatePlan(train_planner, &src, &dest);
+  // struct RoutePlan route = CreatePlan(train_planner, &src, &dest);
 
-  TerminalLogPrint(
-      terminal, "actual destination name: %s offset: %d", route.dest.node->name, route.dest.offset
-  );
+  // TerminalLogPrint(
+  //     terminal, "actual destination name: %s offset: %d", route.dest.node->name,
+  //     route.dest.offset
+  // );
 
-  if (route.path_found) {
-    TerminalLogPrint(terminal, "Path found!");
-  } else {
-    TerminalLogPrint(terminal, "Path not found!");
-  }
+  // if (route.path_found) {
+  //   TerminalLogPrint(terminal, "Path found!");
+  // } else {
+  //   TerminalLogPrint(terminal, "Path not found!");
+  // }
 
-  for (unsigned int i = 0; i < route.paths_len; ++i) {
-    struct SimplePath path = route.paths[i];
-    TerminalLogPrint(
-        terminal,
-        "start: %d, end: %d, reverse: %d\r\n",
-        path.start_index,
-        path.end_index,
-        path.reverse
-    );
+  // for (unsigned int i = 0; i < route.paths_len; ++i) {
+  //   struct SimplePath path = route.paths[i];
+  //   TerminalLogPrint(
+  //       terminal,
+  //       "start: %d, end: %d, reverse: %d\r\n",
+  //       path.start_index,
+  //       path.end_index,
+  //       path.reverse
+  //   );
 
-    for (int j = path.start_index; j >= path.end_index; --j) {
-      switch (route.path.directions[j]) {
-        case DIR_AHEAD:
-          TerminalLogPrint(
-              terminal,
-              "%s distance: %d, AHEAD",
-              route.path.nodes[j]->name,
-              route.path.nodes[j]->edge[DIR_AHEAD].dist
-          );
-          break;
-        case DIR_CURVED:
-          TerminalLogPrint(
-              terminal,
-              "%s distance: %d, CURVED",
-              route.path.nodes[j]->name,
-              route.path.nodes[j]->edge[DIR_CURVED].dist
-          );
-          break;
-        case DIR_REVERSE:
-          TerminalLogPrint(terminal, "%s, REVERSE", route.path.nodes[j]->name);
-          break;
-      }
-    }
-  }
+  //   for (int j = path.start_index; j >= path.end_index; --j) {
+  //     switch (route.path.directions[j]) {
+  //       case DIR_AHEAD:
+  //         TerminalLogPrint(
+  //             terminal,
+  //             "%s distance: %d, AHEAD",
+  //             route.path.nodes[j]->name,
+  //             route.path.nodes[j]->edge[DIR_AHEAD].dist
+  //         );
+  //         break;
+  //       case DIR_CURVED:
+  //         TerminalLogPrint(
+  //             terminal,
+  //             "%s distance: %d, CURVED",
+  //             route.path.nodes[j]->name,
+  //             route.path.nodes[j]->edge[DIR_CURVED].dist
+  //         );
+  //         break;
+  //       case DIR_REVERSE:
+  //         TerminalLogPrint(terminal, "%s, REVERSE", route.path.nodes[j]->name);
+  //         break;
+  //     }
+  //   }
+  // }
 
-  struct TrackPosition train_pos = {
-      .node = route.path.nodes[route.paths[route.paths_len - 1].end_index], .offset = 0
-  };
-  struct TrackPosition dest_pos = {
-      .node = route.path.nodes[route.paths[route.paths_len - 1].end_index], .offset = 0
-  };
-  int dist_to_current_dest = get_distance_between(&route.path, &train_pos, &dest_pos);
-  TerminalLogPrint(
-      terminal,
-      "distance between %s, offset: %d and %s offset: %d is %d",
-      train_pos.node->name,
-      train_pos.offset,
-      dest_pos.node->name,
-      dest_pos.offset,
-      dist_to_current_dest
-  );
+  // struct TrackPosition train_pos = {
+  //     .node = route.path.nodes[route.paths[route.paths_len - 1].end_index], .offset = 0
+  // };
+  // struct TrackPosition dest_pos = {
+  //     .node = route.path.nodes[route.paths[route.paths_len - 1].end_index], .offset = 0
+  // };
+
+  // struct Train *train = &trains[trainset_get_train_index(58)];
+  // train_init(train, 58);
+
+  // train_log(terminal, train);
+
+  // int sensor_index = initial_sensors[train->train_index];
+  // struct TrackNode *sensor_node = &track[sensor_index];
+  // int time = Time(clock_server);
+
+  // train->last_sensor_index = 0;
+  // train->last_known_pos.node = sensor_node;
+  // train->last_known_pos.offset = 0;
+  // train->last_known_pos_time = time;
+
+  // train->current_pos.node = sensor_node;
+  // train->current_pos.offset = 0;
+  // train->current_pos_update_time = time;
+
+  // set_train_active(train, train_speeds[train->train_index]);
+  // route_train_randomly(terminal, train_planner, train);
+
+  // train->last_sensor_index = train->plan.path.nodes_len - 1;
+  // train_log(terminal, train);
+
+  // if (train->plan.path_found) {
+  //   TerminalLogPrint(terminal, "Path found!");
+  // } else {
+  //   TerminalLogPrint(terminal, "Path not found!");
+  // }
+
+  // for (unsigned int i = 0; i < train->plan.paths_len; ++i) {
+  //   struct SimplePath path = train->plan.paths[i];
+  //   TerminalLogPrint(
+  //       terminal,
+  //       "start: %d, end: %d, reverse: %d\r\n",
+  //       path.start_index,
+  //       path.end_index,
+  //       path.reverse
+  //   );
+
+  //   for (int j = path.start_index; j >= path.end_index; --j) {
+  //     switch (train->plan.path.directions[j]) {
+  //       case DIR_AHEAD:
+  //         TerminalLogPrint(
+  //             terminal,
+  //             "%s distance: %d, AHEAD",
+  //             train->plan.path.nodes[j]->name,
+  //             train->plan.path.nodes[j]->edge[DIR_AHEAD].dist
+  //         );
+  //         break;
+  //       case DIR_CURVED:
+  //         TerminalLogPrint(
+  //             terminal,
+  //             "%s distance: %d, CURVED",
+  //             train->plan.path.nodes[j]->name,
+  //             train->plan.path.nodes[j]->edge[DIR_CURVED].dist
+  //         );
+  //         break;
+  //       case DIR_REVERSE:
+  //         TerminalLogPrint(terminal, "%s, REVERSE", train->plan.path.nodes[j]->name);
+  //         break;
+  //     }
+  //   }
+  // }
+
+  // int dist_to_current_dest =
+  //     get_distance_between(&train->plan.path, &train->plan.src, &train->plan.dest);
+  // TerminalLogPrint(
+  //     terminal,
+  //     "distance between %s, offset: %d and %s offset: %d is %d",
+  //     train->plan.src.node->name,
+  //     train->plan.src.offset,
+  //     train->plan.dest.node->name,
+  //     train->plan.dest.offset,
+  //     dist_to_current_dest
+  // );
+
+  // handle_tick(terminal, train_tid, train_planner, clock_server, trains);
 
   // TODO when we reverse, flip current_pos.
   // Create(TRAIN_TASK_PRIORITY, train_manager_tick_notifier);

@@ -21,3 +21,4 @@ bool is_number(char *str);
 int atoi(char *str);
 char *strtok_r(char *str, char delim, char **saveptr);
 uint64_t rand();
+uint32_t sqrt(uint32_t n);

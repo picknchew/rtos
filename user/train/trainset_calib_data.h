@@ -21,3 +21,5 @@ inline FixedPointInt fixed_point_int_from(int val) {
 inline int fixed_point_int_get(int val) {
   return val / FIXED_POINT_MULTIPLIER;
 }
+
+int get_shortmove_duration(int train, int speed, int dist);

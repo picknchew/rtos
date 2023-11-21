@@ -12,7 +12,7 @@ struct TrackPosition track_position_random() {
   return pos;
 }
 
-// // returns a track position with node relative to current position.
+// returns a track position with node relative to current position.
 struct TrackPosition track_position_add(struct TrackPosition pos, struct Path *path, int offset) {
   struct TrackNode *node = pos.node;
   int new_offset = pos.offset + offset;
@@ -43,6 +43,45 @@ struct TrackPosition track_position_add(struct TrackPosition pos, struct Path *p
   }
 
   struct TrackPosition new_pos = {.node = node, .offset = new_offset};
+  return new_pos;
+}
+
+struct TrackPosition track_position_subtract(struct TrackPosition pos, struct Path *path, int offset) {
+  struct TrackNode *node = pos.node;
+
+  int new_offset = pos.offset - offset;
+
+  if (new_offset >= 0) {
+    struct TrackPosition new_pos = {.node = node, .offset = new_offset};
+    return new_pos;
+  }
+
+  // index of node in path
+  int node_index = -1;
+
+  for (int i = path->nodes_len - 1; i >= 0; --i) {
+    if (path->nodes[i] == node) {
+      node_index = i;
+      break;
+    }
+  }
+
+  if (node_index == -1) {
+    // should never happen since we should always be in a path.
+    struct TrackPosition new_pos = {.node = node, .offset = new_offset};
+    return new_pos;
+  }
+
+  while (node_index < path->nodes_len - 1 && new_offset < 0) {
+    ++node_index;
+
+    int dir = path->directions[node_index];
+    struct TrackEdge *prev_edge = &path->nodes[node_index]->edge[dir];
+
+    new_offset = prev_edge->dist + new_offset;
+  }
+
+  struct TrackPosition new_pos = {.node = path->nodes[node_index], .offset = new_offset};
   return new_pos;
 }
 

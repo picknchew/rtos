@@ -29,6 +29,7 @@ void trainset_calib_data_init() {
 
   TRAINSET_MEASURED_SPEEDS[trainset_get_train_index(58)][10] = 308;
   TRAINSET_STOPPING_DISTANCES[trainset_get_train_index(58)][10] = 440;
+  TRAINSET_ACCEL_DISTANCES[trainset_get_train_index(58)][10] = 289;
 
   TRAINSET_MEASURED_SPEEDS[trainset_get_train_index(58)][7] = 334;
   TRAINSET_STOPPING_DISTANCES[trainset_get_train_index(58)][7] = 145;
@@ -48,6 +49,7 @@ void trainset_calib_data_init() {
 
   TRAINSET_MEASURED_SPEEDS[trainset_get_train_index(54)][10] = 483;
   TRAINSET_STOPPING_DISTANCES[trainset_get_train_index(54)][10] = 705;
+  TRAINSET_ACCEL_DISTANCES[trainset_get_train_index(54)][10] = 499;
 
   TRAINSET_MEASURED_SPEEDS[trainset_get_train_index(54)][9] = 432;
   TRAINSET_STOPPING_DISTANCES[trainset_get_train_index(54)][9] = 635;
@@ -79,7 +81,52 @@ void trainset_calib_data_init() {
 
   TRAINSET_MEASURED_SPEEDS[trainset_get_train_index(47)][10] = 477;
   TRAINSET_STOPPING_DISTANCES[trainset_get_train_index(47)][10] = 885;
+  TRAINSET_ACCEL_DISTANCES[trainset_get_train_index(47)][10] = 379;
 
   TRAINSET_MEASURED_SPEEDS[trainset_get_train_index(47)][7] = 351;
   TRAINSET_STOPPING_DISTANCES[trainset_get_train_index(47)][7] = 615;
+}
+
+// first two points are for the line
+int interpolate_linear(FixedPointInt x1, int y1, FixedPointInt x2, int y2, int interpolate_x) {
+  int slope = fixed_point_int_from(y2 - y1) / (x2 - x1);
+  int b = fixed_point_int_from(y1) / (slope * x1);
+
+  return slope * interpolate_x + b;
+}
+
+int interpolate(FixedPointInt *dists, FixedPointInt *speeds, int len, int x) {
+  int index = 0;
+  for (int i = 0; i < len - 1; ++i) {
+    if (dists[i + 1] > x) {
+      index = i;
+      break;
+    }
+  }
+
+  FixedPointInt x1 = dists[index];
+  int y1 = speeds[index];
+  FixedPointInt x2 = dists[index + 1];
+  int y2 = speeds[index + 2];
+
+  return interpolate_linear(x1, y1, x2, y2, x);
+}
+
+// distances in mm scaled by 10, multiply by 10 to get fixed point int in mm
+static FixedPointInt train58_dists[] = {69 * 10, 122 * 10, 276 * 10, 560 * 10, 2437 * 10};
+static int train58_delays[] = {40, 50, 75, 100, 200};
+
+static FixedPointInt train47_dists[] = {105 * 10, 175 * 10, 528 * 10, 945 * 10, 4576 * 10};
+static int train47_delays[] = {40, 50, 75, 100, 200};
+
+int get_shortmove_duration(int train, int speed, int dist) {
+  // assume train is speed 10 for now.
+  switch (train) {
+    case 58:
+      return interpolate(train58_dists, train58_delays, 5, dist);
+    case 47:
+      return interpolate(train47_dists, train47_delays, 5, dist);
+  }
+
+  return 0;
 }
