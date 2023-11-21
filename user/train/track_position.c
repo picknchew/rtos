@@ -2,6 +2,7 @@
 
 #include "selected_track.h"
 #include "trackdata/track_data.h";
+#include "train_planner.h"
 
 struct TrackPosition track_position_random() {
   struct TrackNode *node = &track[rand() % TRACK_MAX];
@@ -11,25 +12,36 @@ struct TrackPosition track_position_random() {
 }
 
 // // returns a track position with node relative to current position.
-// // offset can be positive or negative.
-// struct TrackPosition track_position_add(struct TrackPosition pos, struct Path path, int offset) {
-//   struct TrackEdge *edge = pos.edge;
-//   int new_offset = pos.offset + offset;
+struct TrackPosition track_position_add(struct TrackPosition pos, struct Path *path, int offset) {
+  struct TrackNode *node = pos.node;
+  int new_offset = pos.offset + offset;
+  // index of node in path
+  int node_index = -1;
 
-//   // we need path to determine the next node that we'll be on.
-//   if (new_offset < 0) {
-//     edge = edge->reverse;
-//     new_offset = -new_offset;
-//   }
+  for (int i = path->nodes_len - 1; i >= 0; --i) {
+    if (path->nodes[i] == node) {
+      node_index = i;
+      break;
+    }
+  }
 
-//   while (node->dist >= new_offset) {
-//     new_offset -= node->edge[plan->directions[i]].dist;
-//     node = node->edge[plan->directions[i]].dest;
-//   }
+  if (node_index == -1) {
+    // should never happen since we should always be in a path.
+    struct TrackPosition new_pos = {.node = node, .offset = new_offset};
+    return new_pos;
+  }
 
-//   struct TrackPosition new_pos = {.node = node, .offset = new_offset};
-//   return new_pos;
-// }
+  // we need path to determine the next node that we'll be on.
+  while (node_index >= 0 && node->dist >= new_offset) {
+    new_offset -= node->edge[path->directions[node_index]].dist;
+    node = node->edge[path->directions[node_index]].dest;
+
+    ++node_index;
+  }
+
+  struct TrackPosition new_pos = {.node = node, .offset = new_offset};
+  return new_pos;
+}
 
 // // track position for the reverse node
 // // reversed track node track positions are not normalized.

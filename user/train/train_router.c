@@ -10,101 +10,11 @@
 #include "trackdata/track_node_queue.h"
 #include "train_sensor_notifier.h"
 #include "trainset.h"
+#include "trainset_calib_data.h"
 #include "trainset_task.h"
 #include "user/server/clock_server.h"
 #include "user/server/name_server.h"
 #include "user/terminal/terminal_task.h"
-
-#define TRAIN_SPEED_MAX 14
-
-#define FIXED_POINT_MULTIPLIER 100
-
-typedef int FixedPointInt;
-
-inline FixedPointInt fixed_point_int_from(int val) {
-  return val * FIXED_POINT_MULTIPLIER;
-}
-
-inline int fixed_point_int_get(int val) {
-  return val / FIXED_POINT_MULTIPLIER;
-}
-
-// add 1 to include 0
-static FixedPointInt TRAINSET_MEASURED_SPEEDS[TRAINSET_NUM_TRAINS][TRAIN_SPEED_MAX + 1];
-static int TRAINSET_STOPPING_DISTANCES[TRAINSET_NUM_TRAINS][TRAIN_SPEED_MAX + 1];
-static int TRAINSET_STOPPING_TIMES[TRAINSET_NUM_TRAINS][TRAIN_SPEED_MAX + 1];
-
-static void init_measured_speeds() {
-  for (int i = 0; i < TRAINSET_NUM_TRAINS; ++i) {
-    TRAINSET_MEASURED_SPEEDS[i][0] = 0;
-    TRAINSET_STOPPING_DISTANCES[i][0] = 0;
-    TRAINSET_STOPPING_TIMES[i][0] = 0;
-  }
-
-  // mm/s
-  TRAINSET_MEASURED_SPEEDS[trainset_get_train_index(77)][14] = 185;
-  TRAINSET_STOPPING_DISTANCES[trainset_get_train_index(77)][14] = 0;
-
-  // TRAIN 58
-  TRAINSET_MEASURED_SPEEDS[trainset_get_train_index(58)][13] = 510;
-  TRAINSET_STOPPING_DISTANCES[trainset_get_train_index(58)][13] = 980;
-
-  TRAINSET_MEASURED_SPEEDS[trainset_get_train_index(58)][10] = 308;
-  TRAINSET_STOPPING_DISTANCES[trainset_get_train_index(58)][10] = 440;
-
-  TRAINSET_MEASURED_SPEEDS[trainset_get_train_index(58)][7] = 334;
-  TRAINSET_STOPPING_DISTANCES[trainset_get_train_index(58)][7] = 145;
-
-  // TRAIN 54
-  TRAINSET_MEASURED_SPEEDS[trainset_get_train_index(54)][13] = 599;
-  TRAINSET_STOPPING_DISTANCES[trainset_get_train_index(54)][13] = 940;
-
-  TRAINSET_MEASURED_SPEEDS[trainset_get_train_index(54)][12] = 597;
-  TRAINSET_STOPPING_DISTANCES[trainset_get_train_index(54)][12] = 955;
-
-  TRAINSET_MEASURED_SPEEDS[trainset_get_train_index(54)][12] = 585;
-  TRAINSET_STOPPING_DISTANCES[trainset_get_train_index(54)][12] = 860;
-
-  TRAINSET_MEASURED_SPEEDS[trainset_get_train_index(54)][11] = 537;
-  TRAINSET_STOPPING_DISTANCES[trainset_get_train_index(54)][11] = 780;
-
-  TRAINSET_MEASURED_SPEEDS[trainset_get_train_index(54)][10] = 483;
-  TRAINSET_STOPPING_DISTANCES[trainset_get_train_index(54)][10] = 705;
-
-  TRAINSET_MEASURED_SPEEDS[trainset_get_train_index(54)][9] = 432;
-  TRAINSET_STOPPING_DISTANCES[trainset_get_train_index(54)][9] = 635;
-
-  TRAINSET_MEASURED_SPEEDS[trainset_get_train_index(54)][8] = 385;
-  TRAINSET_STOPPING_DISTANCES[trainset_get_train_index(54)][8] = 558;
-
-  TRAINSET_MEASURED_SPEEDS[trainset_get_train_index(54)][7] = 315;
-  TRAINSET_STOPPING_DISTANCES[trainset_get_train_index(54)][7] = 490;
-
-  TRAINSET_MEASURED_SPEEDS[trainset_get_train_index(54)][6] = 285;
-  TRAINSET_STOPPING_DISTANCES[trainset_get_train_index(54)][6] = 400;
-
-  TRAINSET_MEASURED_SPEEDS[trainset_get_train_index(54)][5] = 231;
-  TRAINSET_STOPPING_DISTANCES[trainset_get_train_index(54)][5] = 320;
-
-  TRAINSET_MEASURED_SPEEDS[trainset_get_train_index(54)][4] = 174;
-  TRAINSET_STOPPING_DISTANCES[trainset_get_train_index(54)][4] = 250;
-
-  TRAINSET_MEASURED_SPEEDS[trainset_get_train_index(54)][3] = 127;
-  TRAINSET_STOPPING_DISTANCES[trainset_get_train_index(54)][3] = 160;
-
-  TRAINSET_MEASURED_SPEEDS[trainset_get_train_index(54)][2] = 75;
-  TRAINSET_STOPPING_DISTANCES[trainset_get_train_index(54)][2] = 80;
-
-  // TRAIN 47
-  TRAINSET_MEASURED_SPEEDS[trainset_get_train_index(47)][13] = 566;
-  TRAINSET_STOPPING_DISTANCES[trainset_get_train_index(47)][13] = 920;
-
-  TRAINSET_MEASURED_SPEEDS[trainset_get_train_index(47)][10] = 477;
-  TRAINSET_STOPPING_DISTANCES[trainset_get_train_index(47)][10] = 885;
-
-  TRAINSET_MEASURED_SPEEDS[trainset_get_train_index(47)][7] = 351;
-  TRAINSET_STOPPING_DISTANCES[trainset_get_train_index(47)][7] = 615;
-}
 
 enum TrainRouterRequestType {
   TRAIN_ROUTER_BEGIN_ROUTE,
@@ -576,7 +486,8 @@ static void handle_update_sensors_request(
   // get stopping distance (sensor and offset)
 }
 
-static void handle_tick(int terminal, int train_tid, int clock_server, struct TrainState *train_states) {
+static void
+handle_tick(int terminal, int train_tid, int clock_server, struct TrainState *train_states) {
   struct TrainState *trainstate = &train_states[trainset_get_train_index(current_train)];
   struct Plan *plan = &trainstate->plan;
 
