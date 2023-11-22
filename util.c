@@ -70,6 +70,10 @@ void* memcpy(void* restrict dest, const void* restrict src, size_t n) {
   return dest;
 }
 
+int max(int a, int b) {
+  return (a < b) ? b : a;
+}
+
 int min(int a, int b) {
   return (a < b) ? a : b;
 }

@@ -13,6 +13,7 @@ enum TerminalRequestType {
   UPDATE_IDLE,
   UPDATE_SWITCH_STATE,
   UPDATE_MAX_SENSOR_DURATION,
+  UPDATE_TRAIN_INFO,
   UPDATE_COMMAND,
   TERMINAL_TIME_NOTIFY,
   TERMINAL_DISTANCE,
@@ -78,6 +79,16 @@ struct TerminalUpdateVelocityRequest {
   int train_velocity;
 };
 
+struct TerminalUpdateTrainInfoRequest {
+  int train_num;
+  char *pos_node;
+  int pos_offset;
+  char *state;
+  char *next_sensor;
+  int sensor_estimate;
+  char *dest;
+};
+
 struct TerminalRequest {
   enum TerminalRequestType type;
 
@@ -94,6 +105,7 @@ struct TerminalRequest {
     struct TerminalUpdateCommandRequest update_command_req;
     struct TerminalUpdateDistanceRequest update_distance_req;
     struct TerminalUpdateVelocityRequest update_velocity_req;
+    struct TerminalUpdateTrainInfoRequest update_train_info_req;
     struct TerminalLogPrintRequest log_print_req;
   };
 };
@@ -114,6 +126,16 @@ void TerminalUpdateVelocity(
     int train_speed,
     int loop_time,
     int train_velocity
+);
+void TerminalUpdateTrainInfo(
+    int tid,
+    int train_num,
+    char *pos_node,
+    int pos_offset,
+    char *state,
+    char *next_sensor,
+    int sensor_estimate,
+    char *dest
 );
 void TerminalLogPrint(int tid, char *fmt, ...);
 void terminal_task();

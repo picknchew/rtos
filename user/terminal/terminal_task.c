@@ -97,6 +97,19 @@ void terminal_screen_task() {
         );
         Reply(tid, NULL, 0);
         break;
+      case UPDATE_TRAIN_INFO:
+        terminal_update_train_info(
+            &screen,
+            req.update_train_info_req.train_num,
+            req.update_train_info_req.pos_node,
+            req.update_train_info_req.pos_offset,
+            req.update_train_info_req.state,
+            req.update_train_info_req.next_sensor,
+            req.update_train_info_req.sensor_estimate,
+            req.update_train_info_req.dest
+        );
+        Reply(tid, NULL, 0);
+        break;
       case TERMINAL_TIME_NOTIFY:
         terminal_update_time(&screen, req.time);
         Reply(tid, NULL, 0);
@@ -235,6 +248,30 @@ void TerminalUpdateVelocity(
            .train_speed = train_speed,
            .loop_time = loop_time,
            .train_velocity = train_velocity}
+  };
+  Send(tid, (const char *) &req, sizeof(req), NULL, 0);
+}
+
+void TerminalUpdateTrainInfo(
+    int tid,
+    int train_num,
+    char *pos_node,
+    int pos_offset,
+    char *state,
+    char *next_sensor,
+    int sensor_estimate,
+    char *dest
+) {
+  struct TerminalRequest req = {
+      .type = UPDATE_TRAIN_INFO,
+      .update_train_info_req =
+          {.train_num = train_num,
+           .pos_node = pos_node,
+           .pos_offset = pos_offset,
+           .state = state,
+           .next_sensor = next_sensor,
+           .sensor_estimate = sensor_estimate,
+           .dest = dest}
   };
   Send(tid, (const char *) &req, sizeof(req), NULL, 0);
 }

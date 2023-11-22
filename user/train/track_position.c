@@ -33,20 +33,21 @@ struct TrackPosition track_position_add(struct TrackPosition pos, struct Path *p
   }
 
   // we need path to determine the next node that we'll be on.
-  while (node_index >= 0 && node->edge[path->directions[node_index]].dist >= new_offset) {
+  while (node_index >= 0 && node->edge[path->directions[node_index]].dist <= new_offset) {
     int dir = path->directions[node_index];
 
     new_offset -= node->edge[dir].dist;
     node = node->edge[dir].dest;
 
-    ++node_index;
+    --node_index;
   }
 
   struct TrackPosition new_pos = {.node = node, .offset = new_offset};
   return new_pos;
 }
 
-struct TrackPosition track_position_subtract(struct TrackPosition pos, struct Path *path, int offset) {
+struct TrackPosition
+track_position_subtract(struct TrackPosition pos, struct Path *path, int offset) {
   struct TrackNode *node = pos.node;
 
   int new_offset = pos.offset - offset;

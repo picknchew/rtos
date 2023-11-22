@@ -20,7 +20,6 @@ void trainset_calib_data_init() {
     TRAINSET_DECEL_TIMES[i][10] = 500;
   }
 
-  // mm/s
   TRAINSET_MEASURED_SPEEDS[trainset_get_train_index(77)][14] = 185;
   TRAINSET_STOPPING_DISTANCES[trainset_get_train_index(77)][14] = 0;
 
@@ -89,6 +88,13 @@ void trainset_calib_data_init() {
 
   TRAINSET_MEASURED_SPEEDS[trainset_get_train_index(47)][7] = 351;
   TRAINSET_STOPPING_DISTANCES[trainset_get_train_index(47)][7] = 615;
+
+  for (int i = 0; i < TRAINSET_NUM_TRAINS; ++i) {
+    for (int j = 0; j < TRAIN_SPEED_MAX + 1; ++j) {
+      // measured speeds are scaled by 100. we will scale them so that they are fixed point integers
+      TRAINSET_MEASURED_SPEEDS[i][j] *= FIXED_POINT_MULTIPLIER / 100;
+    }
+  }
 }
 
 // first two points are for the line
@@ -124,14 +130,20 @@ static int train58_delays[] = {40, 50, 75, 100, 200};
 static FixedPointInt train47_dists[] = {105 * 10, 175 * 10, 528 * 10, 945 * 10, 4576 * 10};
 static int train47_delays[] = {40, 50, 75, 100, 200};
 
-// static FixedPointInt train54_dists[] = {};
-static int train54_delays[] = {40, 50, 75, 100, 200};
+static FixedPointInt train54_dists[] = {51 * 10, 118 * 10, 283 * 10, 495 * 10, 5758 * 10};
+static int train54_delays[] = {40, 50, 75, 100, 300};
 
-int get_shortmove_duration(int train, int speed, int dist) {
+int shortmove_get_duration(int train, int speed, int dist) {
+  if (dist <= 0) {
+    return 0;
+  }
+
   // assume train is speed 10 for now.
   switch (train) {
     case 58:
       return interpolate(train58_dists, train58_delays, 5, dist);
+    case 54:
+      return interpolate(train54_dists, train54_delays, 5, dist);
     case 47:
       return interpolate(train47_dists, train47_delays, 5, dist);
   }

@@ -22,6 +22,7 @@ struct TerminalView {
   void (*update_command)(struct TerminalScreen *, char *, unsigned int);
   void (*print_loop_distance)(struct TerminalScreen *, const char *, const char *, int);
   void (*print_loop_time)(struct TerminalScreen *, int, int, int, int);
+  void (*update_train_info)(struct TerminalScreen *, int, char *, int, char *, char *, int, char *);
   // void (*print_next_sensor)(struct TerminalScreen *, int);
 };
 
@@ -47,7 +48,8 @@ void terminal_putc(struct TerminalScreen *screen, char ch);
 void terminal_putl(struct TerminalScreen *screen, const char *buf, size_t blen);
 void terminal_puts(struct TerminalScreen *screen, const char *str);
 
-inline void terminal_screen_init(struct TerminalScreen *screen, int console_tx, struct TerminalView view) {
+inline void
+terminal_screen_init(struct TerminalScreen *screen, int console_tx, struct TerminalView view) {
   screen->console_tx = console_tx;
   screen->view = view;
   screen->view.screen_init(screen);
@@ -79,7 +81,12 @@ inline void terminal_update_switch_state(
   screen->view.update_switch_state(screen, switch_num, dir);
 }
 
-inline void terminal_update_idle(struct TerminalScreen *screen, uint64_t idle, int idle_pct, int recent_idle_pct) {
+inline void terminal_update_idle(
+    struct TerminalScreen *screen,
+    uint64_t idle,
+    int idle_pct,
+    int recent_idle_pct
+) {
   screen->view.update_idle(screen, idle, idle_pct, recent_idle_pct);
 }
 
@@ -106,6 +113,21 @@ inline void terminal_print_loop_distance(
     int distance
 ) {
   screen->view.print_loop_distance(screen, begin, end, distance);
+}
+
+inline void terminal_update_train_info(
+    struct TerminalScreen *screen,
+    int train,
+    char *pos_node,
+    int pos_offset,
+    char *state,
+    char *next_sensor,
+    int sensor_estimate,
+    char *dest
+) {
+  screen->view.update_train_info(
+      screen, train, pos_node, pos_offset, state, next_sensor, sensor_estimate, dest
+  );
 }
 
 inline void terminal_print_loop_time(

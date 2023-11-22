@@ -46,7 +46,7 @@ void train_sensor_notifier_task() {
   int train = WhoIs("train");
   int terminal = WhoIs("terminal");
   int train_calib = WhoIs("train_calib");
-  int train_router = WhoIs("train_router");
+  // int train_router = WhoIs("train_router");
   int train_manager = WhoIs("train_manager");
 
   bool sensors[TRAINSET_SENSORS_LEN] = {0};
@@ -67,7 +67,7 @@ void train_sensor_notifier_task() {
 
     if (process_sensor_data(raw_sensor_data, sensors)) {
       TrainCalibratorUpdateSensors(train_calib, sensors);
-      TrainRouterUpdateSensors(train_router, sensors);
+      // TrainRouterUpdateSensors(train_router, sensors);
       TrainManagerUpdateSensors(train_manager, sensors);
       TerminalUpdateSensors(terminal, sensors, TRAINSET_SENSORS_LEN);
       TrainUpdateSensorData(train, sensors);

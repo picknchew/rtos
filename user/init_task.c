@@ -42,12 +42,12 @@ void init_task() {
   Create(TERMINAL_TASK_PRIORITY, terminal_screen_task);
 
   Create(TRAIN_TASK_PRIORITY, train_task);
-  Create(TRAIN_TASK_PRIORITY, train_router_task);
+  // Create(TRAIN_TASK_PRIORITY, train_router_task);
+  Create(TRAIN_TASK_PRIORITY, train_planner_task);
+  Create(TRAIN_TASK_PRIORITY, train_manager_task);
 
   Create(TRAIN_TASK_PRIORITY, train_sensor_notifier_task);
 
-  Create(TRAIN_TASK_PRIORITY, train_planner_task);
-  Create(TRAIN_TASK_PRIORITY, train_manager_task);
 
   Create(TERMINAL_TASK_PRIORITY, terminal_task);
 

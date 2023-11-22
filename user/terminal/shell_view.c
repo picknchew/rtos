@@ -150,6 +150,34 @@ static void update_command(struct TerminalScreen *screen, char *command, unsigne
   terminal_restore_cursor(screen);
 }
 
+static void update_train_info(
+    struct TerminalScreen *screen,
+    int train,
+    char *pos_node,
+    int pos_offset,
+    char *state,
+    char *next_sensor,
+    int sensor_estimate,
+    char *dest
+) {
+  terminal_save_cursor(screen);
+  terminal_move_cursor(screen, 15 + trainset_get_train_index(train), 40);
+
+  terminal_printf(
+      screen,
+      "Train %d | %s | Next Sensor: %s, ETA: %d | Position: %s +%d | Dest: %s",
+      train,
+      state,
+      next_sensor,
+      sensor_estimate,
+      pos_node,
+      pos_offset,
+      dest
+  );
+  terminal_cursor_delete_line(screen);
+  terminal_restore_cursor(screen);
+}
+
 static void
 update_max_sensor_duration(struct TerminalScreen *screen, unsigned int max_sensor_query_duration) {
   terminal_save_cursor(screen);
@@ -192,7 +220,7 @@ update_idle(struct TerminalScreen *screen, uint64_t idle, int idle_pct, int rece
 
   terminal_print_title(screen, "Idle time: ");
   terminal_printf(
-      screen, "(%u%% of uptime) %u:%u:%u:%u\r\n", idle_pct, hours, minutes, seconds, centiseconds
+      screen, "(%u%% of uptime) %u:%u:%u:%u", idle_pct, hours, minutes, seconds, centiseconds
   );
 
   terminal_cursor_delete_line(screen);
@@ -268,7 +296,8 @@ struct TerminalView shell_view_create() {
       update_time,
       update_command,
       print_loop_distance,
-      print_loop_time
+      print_loop_time,
+      update_train_info
   };
 
   return view;

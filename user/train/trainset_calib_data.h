@@ -3,7 +3,7 @@
 #include "trainset.h"
 
 #define TRAIN_SPEED_MAX 14
-#define FIXED_POINT_MULTIPLIER 100
+#define FIXED_POINT_MULTIPLIER 10000
 
 typedef int FixedPointInt;
 
@@ -22,4 +22,4 @@ inline int fixed_point_int_get(int val) {
   return val / FIXED_POINT_MULTIPLIER;
 }
 
-int get_shortmove_duration(int train, int speed, int dist);
+int shortmove_get_duration(int train, int speed, int dist);
