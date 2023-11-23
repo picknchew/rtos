@@ -23,6 +23,7 @@ struct TerminalView {
   void (*print_loop_distance)(struct TerminalScreen *, const char *, const char *, int);
   void (*print_loop_time)(struct TerminalScreen *, int, int, int, int);
   void (*update_train_info)(struct TerminalScreen *, int, char *, int, char *, char *, int, char *);
+  void (*update_selected_track)(struct TerminalScreen *, char);
   // void (*print_next_sensor)(struct TerminalScreen *, int);
 };
 
@@ -128,6 +129,10 @@ inline void terminal_update_train_info(
   screen->view.update_train_info(
       screen, train, pos_node, pos_offset, state, next_sensor, sensor_estimate, dest
   );
+}
+
+inline void terminal_update_selected_track(struct TerminalScreen *screen, char track) {
+  screen->view.update_selected_track(screen, track);
 }
 
 inline void terminal_print_loop_time(

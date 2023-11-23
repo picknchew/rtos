@@ -138,6 +138,19 @@ void trainset_set_switch_direction(
   Create(TRAIN_TASK_PRIORITY, train_off_solenoid_task);
 }
 
+void trainset_set_track(struct Trainset *trainset, char track_type) {
+  switch (track_type) {
+    case 'A':
+      tracka_init(track);
+      break;
+    case 'B':
+      trackb_init(track);
+      break;
+    default:
+      break;
+  }
+}
+
 void trainset_update_sensor_data(struct Trainset *trainset, bool *sensor_data) {
   trainset->sensors_occupied = sensor_data;
 }

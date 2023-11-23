@@ -18,7 +18,7 @@ static int log_offset = 0;
 static const int SWITCHES_TITLE_ROW = 5;
 static const int SWITCHES_ROW = 6;
 
-static const int IDLE_COL = 40;
+static const int SECOND_COL = 40;
 
 static void init_switch_states(struct TerminalScreen *screen) {
   velocity_offset = 0;
@@ -150,6 +150,8 @@ static void update_command(struct TerminalScreen *screen, char *command, unsigne
   terminal_restore_cursor(screen);
 }
 
+static int TRAIN_INFO_ROW = 15;
+
 static void update_train_info(
     struct TerminalScreen *screen,
     int train,
@@ -161,7 +163,7 @@ static void update_train_info(
     char *dest
 ) {
   terminal_save_cursor(screen);
-  terminal_move_cursor(screen, 15 + trainset_get_train_index(train), 40);
+  terminal_move_cursor(screen, TRAIN_INFO_ROW + trainset_get_train_index(train), SECOND_COL);
 
   terminal_printf(
       screen,
@@ -175,6 +177,16 @@ static void update_train_info(
       dest
   );
   terminal_cursor_delete_line(screen);
+  terminal_restore_cursor(screen);
+}
+
+static int SELECTED_TRACK_ROW = 24;
+
+static void update_selected_track(struct TerminalScreen *screen, char track) {
+  terminal_save_cursor(screen);
+  terminal_move_cursor(screen, SELECTED_TRACK_ROW, SECOND_COL);
+  terminal_print_title(screen, "Selected track: ");
+  terminal_putc(screen, track);
   terminal_restore_cursor(screen);
 }
 
@@ -216,7 +228,7 @@ update_idle(struct TerminalScreen *screen, uint64_t idle, int idle_pct, int rece
   unsigned int centiseconds = (idle % SECOND_IN_MICROSECONDS) / CENTISECOND_IN_MICROSECONDS;
 
   terminal_save_cursor(screen);
-  terminal_move_cursor(screen, 0, IDLE_COL);
+  terminal_move_cursor(screen, 0, SECOND_COL);
 
   terminal_print_title(screen, "Idle time: ");
   terminal_printf(
@@ -278,6 +290,8 @@ static void screen_init(struct TerminalScreen *screen) {
 
   init_switch_states(screen);
   init_train_speeds(screen);
+  // A is the default track
+  update_selected_track(screen, 'A');
   update_sensors(screen, NULL, 0);
   update_command(screen, "", 0);
   update_max_sensor_duration(screen, 0);
@@ -297,7 +311,8 @@ struct TerminalView shell_view_create() {
       update_command,
       print_loop_distance,
       print_loop_time,
-      update_train_info
+      update_train_info,
+      update_selected_track
   };
 
   return view;

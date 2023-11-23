@@ -218,6 +218,22 @@ bool terminal_execute_command(
     TrainRouterRouteTrain(
         train_router_tid, train_number, train_speed, str_dest_sensor, dest_offset
     );
+  } else if (strcmp("track", command_name)) {
+    char *str_track = strtok_r(NULL, CHAR_DELIMITER, &saveptr);
+    if (!str_track || strlen(str_track) > 0) {
+      TerminalUpdateStatus(terminal->screen_tid, "Track provided is not a valid track!");
+      return false;
+    }
+
+    if (str_track[0] == 'a' || str_track[0] == 'A') {
+      TrainSetTrack(train_tid, 'A');
+      TerminalUpdateStatus(terminal->screen_tid, "Set track to Track A");
+    } else if (str_track[0] == 'b' || str_track[0] == 'B') {
+      TrainSetTrack(train_tid, 'B');
+      TerminalUpdateStatus(terminal->screen_tid, "Set track to Track B");
+    } else {
+      TerminalUpdateStatus(terminal->screen_tid, "Track provided is not a valid track!");
+    }
   } else {
     TerminalUpdateStatus(terminal->screen_tid, "Invalid command!");
   }

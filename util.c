@@ -18,10 +18,10 @@ int a2d(char ch) {
 }
 
 // unsigned int to ascii string
-void ui2a(unsigned int num, unsigned int base, char* bf) {
-  int n = 0;
+void ui2a(uint64_t num, unsigned int base, char* bf) {
+  int64_t n = 0;
   int dgt;
-  unsigned int d = 1;
+  uint64_t d = 1;
 
   while ((num / d) >= base) {
     d *= base;
@@ -39,7 +39,7 @@ void ui2a(unsigned int num, unsigned int base, char* bf) {
 }
 
 // signed int to ascii string
-void i2a(int num, char* bf) {
+void i2a(int64_t num, char* bf) {
   if (num < 0) {
     num = -num;
     *bf++ = '-';

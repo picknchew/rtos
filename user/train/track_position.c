@@ -3,6 +3,7 @@
 #include "selected_track.h"
 #include "trackdata/track_data.h"
 #include "train_planner.h"
+#include "trainset_task.h"
 #include "util.h"
 
 struct TrackPosition track_position_random() {
@@ -11,6 +12,9 @@ struct TrackPosition track_position_random() {
   struct TrackPosition pos = {.node = node, .offset = 0};
   return pos;
 }
+
+// TODO: augment Path node directions on top of graph to figure out positioning after adding and
+// subtracting
 
 // returns a track position with node relative to current position.
 struct TrackPosition track_position_add(struct TrackPosition pos, struct Path *path, int offset) {
@@ -46,43 +50,38 @@ struct TrackPosition track_position_add(struct TrackPosition pos, struct Path *p
   return new_pos;
 }
 
-struct TrackPosition
-track_position_subtract(struct TrackPosition pos, struct Path *path, int offset) {
-  struct TrackNode *node = pos.node;
-
+// returns a position relative to the same direction of pos
+struct TrackPosition track_position_subtract(struct TrackPosition pos, int train_tid, int offset) {
   int new_offset = pos.offset - offset;
-
   if (new_offset >= 0) {
-    struct TrackPosition new_pos = {.node = node, .offset = new_offset};
+    struct TrackPosition new_pos = {.node = pos.node, .offset = new_offset};
     return new_pos;
   }
 
-  // index of node in path
-  int node_index = -1;
+  // we need to go backwards if new_offset is negative
+  // we turn the offset into a positive offset in the opposite direction
+  new_offset = offset - pos.offset;
 
-  for (int i = path->nodes_len - 1; i >= 0; --i) {
-    if (path->nodes[i] == node) {
-      node_index = i;
-      break;
-    }
+  struct TrackNode *cur_node = pos.node->reverse;
+  enum SwitchDirection next_dir = cur_node->type == NODE_BRANCH
+                                      ? TrainGetSwitchState(train_tid, cur_node->num)
+                                      : TRAINSET_DIRECTION_STRAIGHT;
+  struct TrackEdge *next_edge =
+      &cur_node->edge[next_dir == TRAINSET_DIRECTION_STRAIGHT ? DIR_AHEAD : DIR_CURVED];
+
+  while (new_offset >= next_edge->dist) {
+    new_offset -= next_edge->dist;
+    cur_node = next_edge->dest;
+    next_dir = cur_node->type == NODE_BRANCH ? TrainGetSwitchState(train_tid, cur_node->num)
+                                             : TRAINSET_DIRECTION_STRAIGHT;
+    next_edge = &cur_node->edge[next_dir == TRAINSET_DIRECTION_STRAIGHT ? DIR_AHEAD : DIR_CURVED];
   }
 
-  if (node_index == -1) {
-    // should never happen since we should always be in a path.
-    struct TrackPosition new_pos = {.node = node, .offset = new_offset};
-    return new_pos;
-  }
+  // reverse offset direction
+  new_offset = next_edge->dist - new_offset;
+  struct TrackNode *node = next_edge->dest->reverse;
 
-  while (node_index < path->nodes_len - 1 && new_offset < 0) {
-    ++node_index;
-
-    int dir = path->directions[node_index];
-    struct TrackEdge *prev_edge = &path->nodes[node_index]->edge[dir];
-
-    new_offset = prev_edge->dist + new_offset;
-  }
-
-  struct TrackPosition new_pos = {.node = path->nodes[node_index], .offset = new_offset};
+  struct TrackPosition new_pos = {.node = node, .offset = new_offset};
   return new_pos;
 }
 

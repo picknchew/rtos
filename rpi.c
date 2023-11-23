@@ -2,6 +2,7 @@
 
 #include <stdarg.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 #include "uart.h"
 #include "util.h"
@@ -32,7 +33,7 @@ void uart_format_print(size_t line, char* fmt, va_list va) {
           uart_puts(line, bf);
           break;
         case 'd':
-          i2a(va_arg(va, int), bf);
+          i2a(va_arg(va, int64_t), bf);
           uart_puts(line, bf);
           break;
         case 'x':

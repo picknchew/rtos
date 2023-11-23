@@ -53,5 +53,6 @@ void trainset_set_switch_direction(
 void trainset_update_sensor_data(struct Trainset *trainset, bool *sensor_data);
 bool *trainset_get_sensor_data(struct Trainset *trainset);
 bool trainset_is_valid_train(uint8_t train);
+void trainset_set_track(struct Trainset *trainset, char track_type);
 enum SwitchDirection trainset_get_switch_state(struct Trainset *trainset, uint8_t switch_number);
 void train_task();

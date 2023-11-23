@@ -275,3 +275,10 @@ void TerminalUpdateTrainInfo(
   };
   Send(tid, (const char *) &req, sizeof(req), NULL, 0);
 }
+
+void TerminalUpdateSelectedTrack(int tid, char track) {
+  struct TerminalRequest req = {
+      .type = UPDATE_TRAIN_INFO, .update_selected_track_req = {.track = track}
+  };
+  Send(tid, (const char *) &req, sizeof(req), NULL, 0);
+}

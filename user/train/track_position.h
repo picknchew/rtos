@@ -11,4 +11,4 @@ struct TrackPosition {
 struct TrackPosition track_position_random();
 struct TrackPosition track_position_add(struct TrackPosition pos, struct Path *path, int offset);
 struct TrackPosition
-track_position_subtract(struct TrackPosition pos, struct Path *path, int offset);
+track_position_subtract(struct TrackPosition pos, int train_tid, int offset);

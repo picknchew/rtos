@@ -27,7 +27,8 @@ void train_reverse_task() {
 
   Delay(clock_server, DELAY_REVERSE);
   struct TrainRequest req = {
-      .type = REVERSE_TRAIN_NOTIFY, .reverse_notify_req = reverse_notify_req};
+      .type = REVERSE_TRAIN_NOTIFY, .reverse_notify_req = reverse_notify_req
+  };
   Send(train_controller, (const char *) &req, sizeof(req), NULL, 0);
   Exit();
 }
@@ -72,7 +73,8 @@ void train_task() {
       case SET_SPEED:
         Reply(tid, NULL, 0);
         trainset_set_train_speed(
-            &trainset, terminal, req.set_train_speed_req.train, req.set_train_speed_req.speed);
+            &trainset, terminal, req.set_train_speed_req.train, req.set_train_speed_req.speed
+        );
         break;
       case SET_SWITCH_DIR:
         Reply(tid, NULL, 0);
@@ -83,12 +85,19 @@ void train_task() {
             terminal,
             req.set_switch_dir_req.switch_num,
             req.set_switch_dir_req.dir,
-            Time(clock_server));
+            Time(clock_server)
+        );
         break;
       case REVERSE_TRAIN:
         Reply(tid, NULL, 0);
         TerminalUpdateStatus(terminal, "Reversing train..");
         trainset_train_reverse(&trainset, terminal, req.reverse_req.train);
+        break;
+      case REVERSE_TRAIN_INSTANT:
+        Reply(tid, NULL, 0);
+        trainset_set_train_speed(
+            &trainset, terminal, req.reverse_req.train, SPEED_REVERSE_DIRECTION
+        );
         break;
       case IS_VALID_TRAIN:
         res.is_valid_train = trainset_is_valid_train(req.is_valid_train_req.train);
@@ -99,15 +108,20 @@ void train_task() {
             trainset_get_switch_state(&trainset, req.get_switch_state_req.switch_num);
         Reply(tid, (const char *) &res, sizeof(res));
         break;
+      case SET_TRACK:
+        Reply(tid, NULL, 0);
+        trainset_set_track(&trainset, req.set_track_req.track);
       case SENSOR_DATA_NOTIFY:
         trainset_update_sensor_data(&trainset, req.update_sensor_data_req.sensor_data);
         Reply(tid, NULL, 0);
         break;
       case REVERSE_TRAIN_NOTIFY:
         trainset_set_train_speed(
-            &trainset, terminal, req.reverse_notify_req.train, SPEED_REVERSE_DIRECTION);
+            &trainset, terminal, req.reverse_notify_req.train, SPEED_REVERSE_DIRECTION
+        );
         trainset_set_train_speed(
-            &trainset, terminal, req.reverse_notify_req.train, req.reverse_notify_req.speed);
+            &trainset, terminal, req.reverse_notify_req.train, req.reverse_notify_req.speed
+        );
         Reply(tid, NULL, 0);
         break;
       case OFF_LAST_SOLENOID_NOTIFY:
@@ -124,15 +138,27 @@ void TrainReverse(int tid, uint8_t train) {
   Send(tid, (const char *) &req, sizeof(req), NULL, 0);
 }
 
+void TrainReverseInstant(int tid, uint8_t train) {
+  struct TrainRequest req = {.type = REVERSE_TRAIN_INSTANT, .reverse_req = {.train = train}};
+  Send(tid, (const char *) &req, sizeof(req), NULL, 0);
+}
+
+void TrainSetTrack(int tid, char track) {
+  struct TrainRequest req = {.type = SET_TRACK, .set_track_req = {.track = track}};
+  Send(tid, (const char *) &req, sizeof(req), NULL, 0);
+}
+
 void TrainSetSpeed(int tid, uint8_t train, uint8_t speed) {
   struct TrainRequest req = {
-      .type = SET_SPEED, .set_train_speed_req = {.train = train, .speed = speed}};
+      .type = SET_SPEED, .set_train_speed_req = {.train = train, .speed = speed}
+  };
   Send(tid, (const char *) &req, sizeof(req), NULL, 0);
 }
 
 void TrainSetSwitchDir(int tid, int switch_num, int dir) {
   struct TrainRequest req = {
-      .type = SET_SWITCH_DIR, .set_switch_dir_req = {.switch_num = switch_num, .dir = dir}};
+      .type = SET_SWITCH_DIR, .set_switch_dir_req = {.switch_num = switch_num, .dir = dir}
+  };
   Send(tid, (const char *) &req, sizeof(req), NULL, 0);
 }
 
@@ -147,7 +173,8 @@ bool TrainIsValidTrain(int tid, uint8_t train) {
 enum SwitchDirection TrainGetSwitchState(int tid, uint8_t switch_num) {
   struct TrainResponse res;
   struct TrainRequest req = {
-      .type = GET_SWITCH_STATE, .get_switch_state_req = {.switch_num = switch_num}};
+      .type = GET_SWITCH_STATE, .get_switch_state_req = {.switch_num = switch_num}
+  };
   Send(tid, (const char *) &req, sizeof(req), (char *) &res, sizeof(res));
 
   return res.switch_state;
@@ -155,6 +182,12 @@ enum SwitchDirection TrainGetSwitchState(int tid, uint8_t switch_num) {
 
 void TrainUpdateSensorData(int tid, bool *sensor_data) {
   struct TrainRequest req = {
-      .type = SENSOR_DATA_NOTIFY, .update_sensor_data_req = {.sensor_data = sensor_data}};
+      .type = SENSOR_DATA_NOTIFY, .update_sensor_data_req = {.sensor_data = sensor_data}
+  };
   Send(tid, (const char *) &req, sizeof(req), NULL, 0);
 }
+
+// TODO:
+// - route test to C5.
+// - override routes
+// -

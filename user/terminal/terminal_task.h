@@ -89,6 +89,10 @@ struct TerminalUpdateTrainInfoRequest {
   char *dest;
 };
 
+struct TerminalUpdateSelectedTrackRequest {
+  char track;
+};
+
 struct TerminalRequest {
   enum TerminalRequestType type;
 
@@ -106,6 +110,7 @@ struct TerminalRequest {
     struct TerminalUpdateDistanceRequest update_distance_req;
     struct TerminalUpdateVelocityRequest update_velocity_req;
     struct TerminalUpdateTrainInfoRequest update_train_info_req;
+    struct TerminalUpdateSelectedTrackRequest update_selected_track_req;
     struct TerminalLogPrintRequest log_print_req;
   };
 };
@@ -137,6 +142,7 @@ void TerminalUpdateTrainInfo(
     int sensor_estimate,
     char *dest
 );
+void TerminalUpdateSelectedTrack(int tid, char track);
 void TerminalLogPrint(int tid, char *fmt, ...);
 void terminal_task();
 void terminal_screen_task();

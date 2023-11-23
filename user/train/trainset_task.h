@@ -7,7 +7,9 @@
 
 enum TrainRequestType {
   SET_SPEED,
+  SET_TRACK,
   REVERSE_TRAIN,
+  REVERSE_TRAIN_INSTANT,
   SET_SWITCH_DIR,
   IS_VALID_TRAIN,
   GET_SWITCH_STATE,
@@ -49,6 +51,10 @@ struct TrainIsValidTrainRequest {
   int train;
 };
 
+struct TrainSetTrackRequest {
+  char track;
+};
+
 struct TrainResponse {
   union {
     bool is_valid_train;
@@ -67,6 +73,7 @@ struct TrainRequest {
     struct TrainSetSwitchDirectionRequest set_switch_dir_req;
     struct TrainIsValidTrainRequest is_valid_train_req;
     struct TrainGetSwitchStateRequest get_switch_state_req;
+    struct TrainSetTrackRequest set_track_req;
   };
 };
 
@@ -76,7 +83,9 @@ void train_off_solenoid_task();
 
 void TrainUpdateSensorData(int tid, bool *sensor_data);
 void TrainReverse(int tid, uint8_t train);
+void TrainReverseInstant(int tid, uint8_t train);
 void TrainSetSpeed(int tid, uint8_t train, uint8_t speed);
+void TrainSetTrack(int tid, char track);
 void TrainSetSwitchDir(int tid, int switch_num, int dir);
 bool TrainIsValidTrain(int tid, uint8_t train);
 enum SwitchDirection TrainGetSwitchState(int tid, uint8_t switch_num);
