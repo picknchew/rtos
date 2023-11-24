@@ -111,6 +111,7 @@ void train_task() {
       case SET_TRACK:
         Reply(tid, NULL, 0);
         trainset_set_track(&trainset, req.set_track_req.track);
+        break;
       case SENSOR_DATA_NOTIFY:
         trainset_update_sensor_data(&trainset, req.update_sensor_data_req.sensor_data);
         Reply(tid, NULL, 0);
@@ -127,6 +128,7 @@ void train_task() {
       case OFF_LAST_SOLENOID_NOTIFY:
         Reply(tid, NULL, 0);
         handle_off_last_solenoid(&trainset, Time(clock_server));
+        break;
     }
   }
 

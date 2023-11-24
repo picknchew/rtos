@@ -220,19 +220,23 @@ bool terminal_execute_command(
     );
   } else if (strcmp("track", command_name)) {
     char *str_track = strtok_r(NULL, CHAR_DELIMITER, &saveptr);
-    if (!str_track || strlen(str_track) > 0) {
+    if (!str_track || strlen(str_track) != 1) {
       TerminalUpdateStatus(terminal->screen_tid, "Track provided is not a valid track!");
       return false;
     }
 
     if (str_track[0] == 'a' || str_track[0] == 'A') {
       TrainSetTrack(train_tid, 'A');
+      TerminalUpdateSelectedTrack(terminal->screen_tid, 'A');
       TerminalUpdateStatus(terminal->screen_tid, "Set track to Track A");
     } else if (str_track[0] == 'b' || str_track[0] == 'B') {
       TrainSetTrack(train_tid, 'B');
+      TerminalUpdateSelectedTrack(terminal->screen_tid, 'B');
       TerminalUpdateStatus(terminal->screen_tid, "Set track to Track B");
     } else {
-      TerminalUpdateStatus(terminal->screen_tid, "Track provided is not a valid track!");
+      TerminalUpdateStatus(
+          terminal->screen_tid, "Track provided is not a valid track! Entered %s", str_track
+      );
     }
   } else {
     TerminalUpdateStatus(terminal->screen_tid, "Invalid command!");

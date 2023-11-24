@@ -269,13 +269,7 @@ void train_planner_task() {
 
   int terminal = WhoIs("terminal");
 
-  // TODO: TRACK A QUEUE AND TRACK B QUEUE
-  // this needs to be reset when a new track is selected....
   track_node_priority_queue_init(&queue, track);
-  // after calculating a path, we need to set the direction
-  // that a path can be. As the train travels across the tracks
-  // in the path, we can unreserve/unset the direction of the track.
-
   for (int i = 0; i < TRACK_EDGE_MAX; ++i) {
     reserved_track_directions[i] = 0;
   }

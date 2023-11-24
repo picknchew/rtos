@@ -49,7 +49,7 @@ int trainset_get_sensor_index(char *sensor) {
 }
 
 void trainset_init(struct Trainset *trainset, int train_dispatcher_tid) {
-  trackb_init(track);
+  tracka_init(track);
 
   trainset_calib_data_init();
 

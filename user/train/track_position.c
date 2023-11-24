@@ -65,9 +65,9 @@ struct TrackPosition track_position_subtract(struct TrackPosition pos, int train
   struct TrackNode *cur_node = pos.node->reverse;
   enum SwitchDirection next_dir = cur_node->type == NODE_BRANCH
                                       ? TrainGetSwitchState(train_tid, cur_node->num)
-                                      : TRAINSET_DIRECTION_STRAIGHT;
+                                      : DIRECTION_STRAIGHT;
   struct TrackEdge *next_edge =
-      &cur_node->edge[next_dir == TRAINSET_DIRECTION_STRAIGHT ? DIR_AHEAD : DIR_CURVED];
+      &cur_node->edge[next_dir == DIRECTION_STRAIGHT ? DIR_AHEAD : DIR_CURVED];
 
   while (new_offset >= next_edge->dist) {
     new_offset -= next_edge->dist;

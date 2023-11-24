@@ -5,6 +5,7 @@
 
 #include "terminal.h"
 #include "user/train/trainset.h"
+#include "user/train/trainset_calib_data.h"
 
 enum TerminalRequestType {
   UPDATE_TRAIN_SPEED,
@@ -15,6 +16,7 @@ enum TerminalRequestType {
   UPDATE_MAX_SENSOR_DURATION,
   UPDATE_TRAIN_INFO,
   UPDATE_COMMAND,
+  UPDATE_SELECTED_TRACK,
   TERMINAL_TIME_NOTIFY,
   TERMINAL_DISTANCE,
   TERMINAL_TIME_LOOP,
@@ -86,7 +88,10 @@ struct TerminalUpdateTrainInfoRequest {
   char *state;
   char *next_sensor;
   int sensor_estimate;
+  int sensor_eta_error;
   char *dest;
+  FixedPointInt speed;
+  FixedPointInt accel;
 };
 
 struct TerminalUpdateSelectedTrackRequest {
@@ -140,7 +145,10 @@ void TerminalUpdateTrainInfo(
     char *state,
     char *next_sensor,
     int sensor_estimate,
-    char *dest
+    int sensor_eta_error,
+    char *dest,
+    FixedPointInt speed,
+    FixedPointInt accel
 );
 void TerminalUpdateSelectedTrack(int tid, char track);
 void TerminalLogPrint(int tid, char *fmt, ...);

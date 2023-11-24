@@ -103,8 +103,8 @@ void trainset_calib_data_init() {
 
   for (int i = 0; i < TRAINSET_NUM_TRAINS; ++i) {
     for (int j = 0; j < TRAIN_SPEED_MAX + 1; ++j) {
-      // measured speeds are scaled by 10. we will scale them so that they are fixed point integers
-      TRAINSET_MEASURED_SPEEDS[i][j] *= FIXED_POINT_MULTIPLIER / 10;
+      // measured speeds are scaled by 100. we will scale them so that they are fixed point integers
+      TRAINSET_MEASURED_SPEEDS[i][j] *= FIXED_POINT_MULTIPLIER / 100;
     }
   }
 

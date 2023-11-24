@@ -4,7 +4,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#define BUFFER_CAPACITY 1024
+#define BUFFER_CAPACITY 2048
 
 union CircularBufferItem {
   unsigned char ch;

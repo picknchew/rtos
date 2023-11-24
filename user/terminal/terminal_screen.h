@@ -6,6 +6,7 @@
 #include <stdint.h>
 
 #include "user/train/trainset.h"
+#include "user/train/trainset_calib_data.h"
 
 struct TerminalScreen;
 
@@ -22,7 +23,19 @@ struct TerminalView {
   void (*update_command)(struct TerminalScreen *, char *, unsigned int);
   void (*print_loop_distance)(struct TerminalScreen *, const char *, const char *, int);
   void (*print_loop_time)(struct TerminalScreen *, int, int, int, int);
-  void (*update_train_info)(struct TerminalScreen *, int, char *, int, char *, char *, int, char *);
+  void (*update_train_info)(
+      struct TerminalScreen *,
+      int,
+      char *,
+      int,
+      char *,
+      char *,
+      int,
+      int,
+      char *,
+      FixedPointInt,
+      FixedPointInt
+  );
   void (*update_selected_track)(struct TerminalScreen *, char);
   // void (*print_next_sensor)(struct TerminalScreen *, int);
 };
@@ -124,10 +137,23 @@ inline void terminal_update_train_info(
     char *state,
     char *next_sensor,
     int sensor_estimate,
-    char *dest
+    int sensor_eta_error,
+    char *dest,
+    FixedPointInt speed,
+    FixedPointInt accel
 ) {
   screen->view.update_train_info(
-      screen, train, pos_node, pos_offset, state, next_sensor, sensor_estimate, dest
+      screen,
+      train,
+      pos_node,
+      pos_offset,
+      state,
+      next_sensor,
+      sensor_estimate,
+      sensor_eta_error,
+      dest,
+      speed,
+      accel
   );
 }
 

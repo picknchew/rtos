@@ -12,13 +12,16 @@
 #define VELOCITY_BASE_LINE 24
 static int velocity_offset = 0;
 
-#define LOG_BASE_LINE 22
+#define LOG_BASE_LINE 0
 static int log_offset = 0;
 
 static const int SWITCHES_TITLE_ROW = 5;
 static const int SWITCHES_ROW = 6;
 
 static const int SECOND_COL = 40;
+
+static const int THIRD_COL = 140;
+static int TRAIN_INFO_ROW = 23;
 
 static void init_switch_states(struct TerminalScreen *screen) {
   velocity_offset = 0;
@@ -70,6 +73,39 @@ static void init_train_speeds(struct TerminalScreen *screen) {
 
     terminal_printf(screen, "%d: 0 ", TRAINSET_TRAINS[i]);
   }
+
+  terminal_restore_cursor(screen);
+}
+
+static void init_train_info(struct TerminalScreen *screen) {
+  terminal_save_cursor(screen);
+
+  terminal_move_cursor(screen, TRAIN_INFO_ROW, 0);
+  terminal_print_title(screen, "Train");
+
+  terminal_move_cursor(screen, TRAIN_INFO_ROW, 10);
+  terminal_print_title(screen, "State");
+
+  terminal_move_cursor(screen, TRAIN_INFO_ROW, 40);
+  terminal_print_title(screen, "Next sensor");
+
+  terminal_move_cursor(screen, TRAIN_INFO_ROW, 52);
+  terminal_print_title(screen, "Sensor ETA");
+
+  terminal_move_cursor(screen, TRAIN_INFO_ROW, 64);
+  terminal_print_title(screen, "ETA error");
+
+  terminal_move_cursor(screen, TRAIN_INFO_ROW, 78);
+  terminal_print_title(screen, "Position");
+
+  terminal_move_cursor(screen, TRAIN_INFO_ROW, 91);
+  terminal_print_title(screen, "Destination");
+
+  terminal_move_cursor(screen, TRAIN_INFO_ROW, 105);
+  terminal_print_title(screen, "Speed");
+
+  terminal_move_cursor(screen, TRAIN_INFO_ROW, 120);
+  terminal_print_title(screen, "Acceleration");
 
   terminal_restore_cursor(screen);
 }
@@ -150,8 +186,6 @@ static void update_command(struct TerminalScreen *screen, char *command, unsigne
   terminal_restore_cursor(screen);
 }
 
-static int TRAIN_INFO_ROW = 15;
-
 static void update_train_info(
     struct TerminalScreen *screen,
     int train,
@@ -160,27 +194,48 @@ static void update_train_info(
     char *state,
     char *next_sensor,
     int sensor_estimate,
-    char *dest
+    int sensor_eta_error,
+    char *dest,
+    FixedPointInt speed,
+    FixedPointInt accel
 ) {
   terminal_save_cursor(screen);
-  terminal_move_cursor(screen, TRAIN_INFO_ROW + trainset_get_train_index(train), SECOND_COL);
 
-  terminal_printf(
-      screen,
-      "Train %d | %s | Next Sensor: %s, ETA: %d | Position: %s +%d | Dest: %s",
-      train,
-      state,
-      next_sensor,
-      sensor_estimate,
-      pos_node,
-      pos_offset,
-      dest
-  );
-  terminal_cursor_delete_line(screen);
+  // delete previous train state
+  terminal_move_cursor(screen, TRAIN_INFO_ROW + 1 + trainset_get_train_index(train), 135);
+  terminal_puts(screen, "\033[1K");
+
+  terminal_move_cursor(screen, TRAIN_INFO_ROW + 1 + trainset_get_train_index(train), 0);
+  terminal_printf(screen, "%d", train);
+
+  terminal_move_cursor(screen, TRAIN_INFO_ROW + 1 + trainset_get_train_index(train), 10);
+  terminal_puts(screen, state);
+
+  terminal_move_cursor(screen, TRAIN_INFO_ROW + 1 + trainset_get_train_index(train), 40);
+  terminal_puts(screen, next_sensor);
+
+  terminal_move_cursor(screen, TRAIN_INFO_ROW + 1 + trainset_get_train_index(train), 52);
+  terminal_printf(screen, "%d", sensor_estimate);
+
+  terminal_move_cursor(screen, TRAIN_INFO_ROW + 1 + trainset_get_train_index(train), 64);
+  terminal_printf(screen, "%d", sensor_eta_error);
+
+  terminal_move_cursor(screen, TRAIN_INFO_ROW + 1 + trainset_get_train_index(train), 78);
+  terminal_printf(screen, "%s + %d", pos_node, pos_offset);
+
+  terminal_move_cursor(screen, TRAIN_INFO_ROW + 1 + trainset_get_train_index(train), 91);
+  terminal_puts(screen, dest);
+
+  terminal_move_cursor(screen, TRAIN_INFO_ROW + 1 + trainset_get_train_index(train), 105);
+  terminal_printf(screen, "%d", speed);
+
+  terminal_move_cursor(screen, TRAIN_INFO_ROW + 1 + trainset_get_train_index(train), 120);
+  terminal_printf(screen, "%d", accel);
+
   terminal_restore_cursor(screen);
 }
 
-static int SELECTED_TRACK_ROW = 24;
+static int SELECTED_TRACK_ROW = 16;
 
 static void update_selected_track(struct TerminalScreen *screen, char track) {
   terminal_save_cursor(screen);
@@ -264,16 +319,23 @@ int logOffset = 0;
 
 static void log_print_va(struct TerminalScreen *screen, char *fmt, va_list va) {
   terminal_save_cursor(screen);
-  terminal_move_cursor(screen, LOG_BASE_LINE + log_offset, 1);
+  terminal_move_cursor(screen, LOG_BASE_LINE + log_offset, THIRD_COL);
   terminal_cursor_delete_line(screen);
   ++log_offset;
   terminal_format_print(screen, fmt, va);
   terminal_restore_cursor(screen);
 
   // restart at the top and overwrite
-  if (log_offset == 61) {
+  terminal_save_cursor(screen);
+  if (log_offset == 81) {
+    for (int i = 0; i < 80; ++i) {
+      terminal_move_cursor(screen, LOG_BASE_LINE + i, THIRD_COL);
+      terminal_cursor_delete_line(screen);
+    }
+
     log_offset = 0;
   }
+  terminal_restore_cursor(screen);
 }
 
 static void print_next_sensor_time(struct TerminalScreen *screen, int time) {
@@ -290,6 +352,7 @@ static void screen_init(struct TerminalScreen *screen) {
 
   init_switch_states(screen);
   init_train_speeds(screen);
+  init_train_info(screen);
   // A is the default track
   update_selected_track(screen, 'A');
   update_sensors(screen, NULL, 0);

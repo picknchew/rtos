@@ -91,6 +91,10 @@ void terminal_screen_task() {
             req.update_idle_req.recent_idle_pct
         );
         break;
+      case UPDATE_SELECTED_TRACK:
+        Reply(tid, NULL, 0);
+        terminal_update_selected_track(&screen, req.update_selected_track_req.track);
+        break;
       case UPDATE_COMMAND:
         terminal_update_command(
             &screen, req.update_command_req.command, req.update_command_req.len
@@ -106,7 +110,10 @@ void terminal_screen_task() {
             req.update_train_info_req.state,
             req.update_train_info_req.next_sensor,
             req.update_train_info_req.sensor_estimate,
-            req.update_train_info_req.dest
+            req.update_train_info_req.sensor_eta_error,
+            req.update_train_info_req.dest,
+            req.update_train_info_req.speed,
+            req.update_train_info_req.accel
         );
         Reply(tid, NULL, 0);
         break;
@@ -260,7 +267,10 @@ void TerminalUpdateTrainInfo(
     char *state,
     char *next_sensor,
     int sensor_estimate,
-    char *dest
+    int sensor_eta_error,
+    char *dest,
+    FixedPointInt speed,
+    FixedPointInt accel
 ) {
   struct TerminalRequest req = {
       .type = UPDATE_TRAIN_INFO,
@@ -271,14 +281,17 @@ void TerminalUpdateTrainInfo(
            .state = state,
            .next_sensor = next_sensor,
            .sensor_estimate = sensor_estimate,
-           .dest = dest}
+           .sensor_eta_error = sensor_eta_error,
+           .dest = dest,
+           .speed = speed,
+           .accel = accel}
   };
   Send(tid, (const char *) &req, sizeof(req), NULL, 0);
 }
 
 void TerminalUpdateSelectedTrack(int tid, char track) {
   struct TerminalRequest req = {
-      .type = UPDATE_TRAIN_INFO, .update_selected_track_req = {.track = track}
+      .type = UPDATE_SELECTED_TRACK, .update_selected_track_req = {.track = track}
   };
   Send(tid, (const char *) &req, sizeof(req), NULL, 0);
 }
