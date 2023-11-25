@@ -148,7 +148,7 @@ static struct Path get_shortest_path(struct TrackNode *src, struct TrackNode *de
 
     // work backwards to get full path
     struct TrackNode *path_node = dest;
-    struct Tracknode *prev_node = NULL;
+    struct TrackNode *prev_node = NULL;
 
     while (path_node && (path_node != src)) {
       // remove extra reverse at the end.
@@ -267,8 +267,6 @@ static void handle_track_crossed(struct TrainPlannerTrackCrossedRequest *req) {
 void train_planner_task() {
   RegisterAs("train_planner");
 
-  int terminal = WhoIs("terminal");
-
   track_node_priority_queue_init(&queue, track);
   for (int i = 0; i < TRACK_EDGE_MAX; ++i) {
     reserved_track_directions[i] = 0;
@@ -280,10 +278,11 @@ void train_planner_task() {
     Receive(&tid, (char *) &req, sizeof(req));
 
     switch (req.type) {
-      case CREATE_PLAN:
+      case CREATE_PLAN: {
         struct RoutePlan plan = handle_create_plan(&req.create_plan_req);
         Reply(tid, (const char *) &plan, sizeof(plan));
         break;
+      }
       case TRACK_CROSSED:
         handle_track_crossed(&req.track_crossed_req);
         Reply(tid, NULL, 0);

@@ -26,13 +26,13 @@ struct TerminalView {
   void (*update_train_info)(
       struct TerminalScreen *,
       int,
-      char *,
+      const char *,
       int,
-      char *,
-      char *,
+      const char *,
+      const char *,
       int,
       int,
-      char *,
+      const char *,
       FixedPointInt,
       FixedPointInt
   );
@@ -60,7 +60,7 @@ void terminal_show_cursor(struct TerminalScreen *screen);
 void terminal_update_status(struct TerminalScreen *screen, char *fmt, ...);
 void terminal_putc(struct TerminalScreen *screen, char ch);
 void terminal_putl(struct TerminalScreen *screen, const char *buf, size_t blen);
-void terminal_puts(struct TerminalScreen *screen, const char *str);
+int terminal_puts(struct TerminalScreen *screen, const char *str);
 
 inline void
 terminal_screen_init(struct TerminalScreen *screen, int console_tx, struct TerminalView view) {
@@ -132,13 +132,13 @@ inline void terminal_print_loop_distance(
 inline void terminal_update_train_info(
     struct TerminalScreen *screen,
     int train,
-    char *pos_node,
+    const char *pos_node,
     int pos_offset,
-    char *state,
-    char *next_sensor,
+    const char *state,
+    const char *next_sensor,
     int sensor_estimate,
     int sensor_eta_error,
-    char *dest,
+    const char *dest,
     FixedPointInt speed,
     FixedPointInt accel
 ) {

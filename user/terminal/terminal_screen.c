@@ -24,8 +24,10 @@ void terminal_putl(struct TerminalScreen *screen, const char *buf, size_t blen) 
   Putl(screen->console_tx, (const unsigned char *) buf, blen);
 }
 
-void terminal_puts(struct TerminalScreen *screen, const char *str) {
-  terminal_putl(screen, str, strlen(str));
+int terminal_puts(struct TerminalScreen *screen, const char *str) {
+  int len = strlen(str);
+  terminal_putl(screen, str, len);
+  return len;
 }
 
 void terminal_format_print(struct TerminalScreen *screen, char *fmt, va_list va) {
@@ -37,30 +39,44 @@ void terminal_format_print(struct TerminalScreen *screen, char *fmt, va_list va)
       terminal_putc(screen, ch);
     } else {
       ch = *(fmt++);
+
+      int padding = 0;
+      while (ch >= '0' && ch <= '9') {
+        padding = padding * 10 + (ch - '0');
+        ch = *(fmt++);
+      }
+
+      int printed = 0;
+
       switch (ch) {
         case 'u':
           ui2a(va_arg(va, unsigned int), 10, bf);
-          terminal_puts(screen, bf);
+          printed = terminal_puts(screen, bf);
           break;
         case 'd':
           i2a(va_arg(va, int), bf);
-          terminal_puts(screen, bf);
+          printed = terminal_puts(screen, bf);
           break;
         case 'x':
           ui2a(va_arg(va, unsigned int), 16, bf);
-          terminal_puts(screen, bf);
+          printed = terminal_puts(screen, bf);
           break;
         case 'c':
           terminal_putc(screen, va_arg(va, int));
+          printed = 1;
           break;
         case 's':
-          terminal_puts(screen, va_arg(va, char *));
+          printed = terminal_puts(screen, va_arg(va, char *));
           break;
         case '%':
           terminal_putc(screen, ch);
+          printed = 1;
           break;
         case '\0':
           return;
+      }
+      for (int i = 0; i < padding - printed; ++i) {
+        terminal_putc(screen, ' ');
       }
     }
   }

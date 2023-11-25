@@ -83,13 +83,13 @@ struct TerminalUpdateVelocityRequest {
 
 struct TerminalUpdateTrainInfoRequest {
   int train_num;
-  char *pos_node;
+  const char *pos_node;
   int pos_offset;
-  char *state;
-  char *next_sensor;
+  const char *state;
+  const char *next_sensor;
   int sensor_estimate;
   int sensor_eta_error;
-  char *dest;
+  const char *dest;
   FixedPointInt speed;
   FixedPointInt accel;
 };
@@ -140,13 +140,13 @@ void TerminalUpdateVelocity(
 void TerminalUpdateTrainInfo(
     int tid,
     int train_num,
-    char *pos_node,
+    const char *pos_node,
     int pos_offset,
-    char *state,
-    char *next_sensor,
+    const char *state,
+    const char *next_sensor,
     int sensor_estimate,
     int sensor_eta_error,
-    char *dest,
+    const char *dest,
     FixedPointInt speed,
     FixedPointInt accel
 );

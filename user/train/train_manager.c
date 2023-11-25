@@ -24,6 +24,29 @@ enum TrainState {
   WAITING_FOR_INITIAL_POS
 };
 
+const char *train_state_to_string(enum TrainState state) {
+  switch (state) {
+    case PATH_BEGIN:
+      return "PATH_BEGIN";
+    case SHORT_MOVE:
+      return "SHORT_MOVE";
+    case ACCELERATING:
+      return "ACCELERATING";
+    case CONSTANT_VELOCITY:
+      return "CONSTANT_VELOCITY";
+    case DECELERATING:
+      return "DECELERATING";
+    case SHORT_MOVE_DECELERATING:
+      return "SHORT_MOVE_DECELERATING";
+    case STOPPED:
+      return "STOPPED";
+    case WAITING_FOR_INITIAL_POS:
+      return "WAITING_FOR_INITIAL_POS";
+  }
+
+  return "UNKNOWN";
+}
+
 struct ShortMove {
   int start_time;
   int duration;
@@ -156,39 +179,12 @@ static void train_log(int terminal, struct Train *train) {
 }
 
 static void train_update_terminal(int terminal, struct Train *train) {
-  char *pos_node;
+  const char *pos_node = "N/A";
   int pos_offset = 0;
-  char *state;
-  char *next_sensor = "N/A";
+  const char *state = train_state_to_string(train->state);
+  const char *next_sensor = "N/A";
   int sensor_estimate = 0;
-  char *dest;
-
-  switch (train->state) {
-    case PATH_BEGIN:
-      state = "PATH_BEGIN";
-      break;
-    case SHORT_MOVE:
-      state = "SHORT_MOVE";
-      break;
-    case ACCELERATING:
-      state = "ACCELERATING";
-      break;
-    case CONSTANT_VELOCITY:
-      state = "CONSTANT_VELOCITY";
-      break;
-    case DECELERATING:
-      state = "DECELERATING";
-      break;
-    case SHORT_MOVE_DECELERATING:
-      state = "SHORT_MOVE_DECELERATING";
-      break;
-    case STOPPED:
-      state = "STOPPED";
-      break;
-    case WAITING_FOR_INITIAL_POS:
-      state = "WAITING_FOR_INITIAL_POS";
-      break;
-  }
+  const char *dest = "N/A";
 
   if (train->state != WAITING_FOR_INITIAL_POS) {
     pos_node = train->est_pos.node->name;
@@ -196,11 +192,7 @@ static void train_update_terminal(int terminal, struct Train *train) {
 
     if (train->plan.path_found) {
       dest = train->plan.dest.node->name;
-    } else {
-      dest = "N/A";
     }
-  } else {
-    pos_node = "N/A";
   }
 
   TerminalUpdateTrainInfo(
@@ -327,7 +319,8 @@ inline static int calculate_decel_time(FixedPointInt initial_velocity, FixedPoin
   return -initial_velocity / decel;
 }
 
-inline static int calculate_travel_time(FixedPointInt initial_velocity, FixedPointInt accel, int dist) {
+inline static int
+calculate_travel_time(FixedPointInt initial_velocity, FixedPointInt accel, int dist) {
   // d = initial_velocity * t + 1/2 * accel * time^2
 }
 
