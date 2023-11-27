@@ -132,7 +132,7 @@ static int get_distance_between(
   int pos1_index = -1;
   // find pos1 index in path
   for (int i = path->nodes_len - 1; i >= 0; --i) {
-    if (src->node == path->nodes[i] || !strict && src->node == path->nodes[i]->reverse) {
+    if (src->node == path->nodes[i] || (!strict && src->node == path->nodes[i]->reverse)) {
       pos1_index = i;
       break;
     }
@@ -151,7 +151,7 @@ static int get_distance_between(
     struct TrackNode *node = path->nodes[i];
     int edge_dir = path->directions[i];
 
-    if (node == dest->node || node == !strict && dest->node->reverse) {
+    if (node == dest->node || (!strict && node == dest->node->reverse)) {
       if (src->node->index == 94 && dest->node->index == 76 && !printed) {
         TerminalLogPrint(terminal, "dist %d", dist);
         printed = true;
@@ -717,7 +717,7 @@ void route_train_randomly(int terminal, int train_planner, struct Train *train) 
   train->path_index = 0;
   // if the train is currently on a sensor, then the path starts at a sensor, and we set
   // last sensor triggered to the first node.
-  if (train->last_known_pos.position.node == NODE_SENSOR) {
+  if (train->last_known_pos.position.node->type == NODE_SENSOR) {
     train->last_sensor_index = train->plan.path.nodes_len - 1;
   } else {
     train->last_sensor_index = -1;
@@ -1124,7 +1124,7 @@ static void handle_update_sensors_request(
       continue;
     }
 
-    train_update_pos_from_sensor(sensor_node, train_tid, time);
+    train_update_pos_from_sensor(train, sensor_node, time);
 
     TerminalLogPrint(
         terminal, "\033[31mSensor hit %s attributed to Train %d.", sensor_node->name, train->train
