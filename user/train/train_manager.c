@@ -878,12 +878,12 @@ static void handle_tick(
     struct RoutePlan plan = train->plan;
     // index of current path in route plan
     unsigned int path_index = train->path_index;
-    struct SimplePath current_path = train->plan.paths[path_index];
+    struct SimplePath cur_path = train->plan.paths[path_index];
     
     // last node is either in the current path or the last node of last simple path.
-    int start = (current_path.start_index-1>=0)?current_path.start_index-1:current_path.start_index; 
+    int start = (cur_path.start_index-1>=0)?cur_path.start_index-1:cur_path.start_index; 
     int last_node_index_path = -1;
-    for(int i=start;i<=current_path.end_index;i++){
+    for(int i=start;i<=cur_path.end_index;i++){
       if (plan.path.nodes[i]->index==last_node->index){
         last_node_index_path = i;
         break;

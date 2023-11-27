@@ -272,7 +272,7 @@ bool ReserveTrack(int zone_num, int train_index){
     }
     zones[zone_num].reserved = true;
     TerminalUpdateZoneReservation(terminal, zone_num, train_index, 0);
-};
+}
 
 int ZoneOccupied(int zone){
     return zones[zone].reservedby;
