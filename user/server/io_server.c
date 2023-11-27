@@ -81,6 +81,8 @@ void io_marklin_tx_notify_cts_task() {
 enum MarklinState { MARKLIN_READY, MARKLIN_CMD_SENT, MARKLIN_BUSY };
 
 void io_marklin_tx_task() {
+  int clock_server = WhoIs("clock_server");
+
   bool done_reading = true;
 
   RegisterAs("marklin_io_tx");
@@ -136,7 +138,7 @@ void io_marklin_tx_task() {
     }
 
     if (!circular_buffer_empty(&tx_buffer) && marklin_state == MARKLIN_READY && done_reading) {
-      Delay(1);
+      Delay(clock_server, 1);
 
       char ch = circular_buffer_read(&tx_buffer);
       uart_putc(line, ch);
