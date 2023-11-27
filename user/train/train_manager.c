@@ -340,6 +340,8 @@ void train_init(struct Train *train, int train_num) {
   train->speed = 0;
 
   train->terminal_update_time = -100;
+
+  train->lock_begin_time = 0;
 }
 
 static inline int get_constant_velocity_travel_time(struct Train *train, int dist) {
@@ -538,7 +540,7 @@ int shortmove_get_velocity(struct Train *train, int dist) {
   return fixed_point_int_from(dist) / time_delta;
 }
 
-static const int REVERSE_OVERSHOOT_DIST = 250;
+static const int REVERSE_OVERSHOOT_DIST = 300;
 
 void update_train_pos(int time, struct Train *train) {
   if (train->state == STOPPED || train->state == WAITING_FOR_INITIAL_POS ||
@@ -864,7 +866,7 @@ static void train_update_next_sensor(struct Train *train, int current_time) {
 }
 
 static const int FLIP_SWITCH_DIST = 200;
-static const int DEADLOCK_DURATION = 1000;
+static const int DEADLOCK_DURATION = 3000;
 
 static void handle_tick(
     int terminal,
@@ -882,6 +884,9 @@ static void handle_tick(
     }
 
     int time = Time(clock_server);
+
+    train_update_terminal(terminal, train, time);
+    update_train_pos(time, train);
 
     struct Path *path = &train->plan.path;
 
@@ -1175,15 +1180,15 @@ static void handle_tick(
         // when the train is stopped there are 2 things that could be true:
         // 1. the train has reached it's final destination.
         // 2. the train has reached the end of the simple path that it's currently on.
-
-        // check if we're on the last simple path in path and the next node is our final destination
-        // if so, we're done.
-        if (train->pf_state == NONE) {
-          train->active = false;
-          break;
-        }
-
         if (train->path_index == train->plan.paths_len - 1) {
+          // check if we're on the last simple path in path and the next node is our final
+          // destination
+          // if so, we're done.
+          if (train->pf_state == NONE) {
+            train->active = false;
+            break;
+          }
+
           reroute_train(terminal, train_planner, train);
           train->last_sensor_index = train->plan.path.nodes_len - 1;
           break;
@@ -1197,7 +1202,7 @@ static void handle_tick(
         if (time - train->lock_begin_time >= DEADLOCK_DURATION) {
           train->lock_begin_time = time;
           TrainReverse(train_tid, train->train);
-          route_train_randomly(terminal, train_planner, train);
+          reroute_train(terminal, train_planner, train);
           train->state = PATH_BEGIN;
         }
         break;
@@ -1250,9 +1255,10 @@ struct Train *sensor_get_train(struct Train *trains, int sensor) {
   return NULL;
 }
 
-void set_train_active(struct Train *train, int speed) {
+void set_train_active(struct Train *train, int speed, int time) {
   train->active = true;
   train->speed = speed;
+  train->lock_begin_time = time;
 }
 
 static void
@@ -1327,7 +1333,7 @@ static void handle_update_sensors_request(
     if (!train->active) {
       // stop train prior to routing since it may take a while
       TrainSetSpeed(train_tid, train->train, 0);
-      set_train_active(train, train_speeds[train->train_index]);
+      set_train_active(train, train_speeds[train->train_index], time);
       reroute_train(terminal, train_planner, train);
       train->last_sensor_index = train->plan.path.nodes_len - 1;
       TerminalLogPrint(terminal, "Train %d active", train->train);
@@ -1394,7 +1400,7 @@ void handle_route_return_req(
   train1->initial_pos = sensor1;
 
   train_update_pos_from_sensor(train1, sensor1, time);
-  set_train_active(train1, 10);
+  set_train_active(train1, 10, time);
   reroute_train(terminal, train_planner, train1);
 
   if (req->train2 != 0) {
@@ -1407,7 +1413,7 @@ void handle_route_return_req(
     struct TrackNode *sensor2 = &track[trainset_get_sensor_index("C3")];
     train2->initial_pos = sensor2;
     train_update_pos_from_sensor(train2, sensor2, time);
-    set_train_active(train2, 10);
+    set_train_active(train2, 10, time);
     reroute_train(terminal, train_planner, train2);
   }
 }
@@ -1419,14 +1425,16 @@ void handle_rand_route_req(
     struct TrainManagerRandRouteRequest *req,
     struct Train *trains
 ) {
+  int time = Time(clock_server);
+
   struct Train *train1 = &trains[trainset_get_train_index(req->train1)];
   struct Train *train2 = &trains[trainset_get_train_index(req->train2)];
 
   train1->pf_state = RAND_ROUTE;
   train2->pf_state = RAND_ROUTE;
 
-  set_train_active(train1, 10);
-  set_train_active(train2, 10);
+  set_train_active(train1, 10, time);
+  set_train_active(train2, 10, time);
 
   reroute_train(terminal, train_planner, train1);
   reroute_train(terminal, train_planner, train2);

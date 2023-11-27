@@ -93,9 +93,9 @@ void trainset_calib_data_init() {
   TRAINSET_MEASURED_SPEEDS[trainset_get_train_index(47)][13] = 566;
   TRAINSET_STOPPING_DISTANCES[trainset_get_train_index(47)][13] = 920;
 
-  TRAINSET_MEASURED_SPEEDS[trainset_get_train_index(47)][10] = 360; //477
-  TRAINSET_STOPPING_DISTANCES[trainset_get_train_index(47)][10] = 885;
-  TRAINSET_ACCEL_DISTANCES[trainset_get_train_index(47)][10] = 379; // 379
+  TRAINSET_MEASURED_SPEEDS[trainset_get_train_index(47)][10] = 360;     // 477
+  TRAINSET_STOPPING_DISTANCES[trainset_get_train_index(47)][10] = 845;  // 885
+  TRAINSET_ACCEL_DISTANCES[trainset_get_train_index(47)][10] = 379;     // 379
   TRAINSET_ACCEL_TIMES[trainset_get_train_index(47)][10] = 436;
 
   TRAINSET_MEASURED_SPEEDS[trainset_get_train_index(47)][7] = 351;
