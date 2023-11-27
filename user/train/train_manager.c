@@ -106,28 +106,15 @@ struct Train {
 // ticks to wait after a short move.
 static int SHORT_MOVE_DELAY = 400;
 
-static bool printed = false;
-
-// TODO: if train hits any sensor after a node in the path, this won't work because it cannot find
-// the destinaton. theoretically, this should never happen because the train should always stop at
-// the destination.
-// if strict, nodes must match src and dest and not their reverse nodes.
-static int get_distance_between(
+static int get_distance_between_debug(
     struct Path *path,
     struct TrackPosition *src,
     struct TrackPosition *dest,
     bool strict
 ) {
-  int terminal = WhoIs("terminal");
   int dist = -src->offset + dest->offset;
 
-  if (src->node->index == 94 && dest->node->index == 76 && !printed) {
-    TerminalLogPrint(terminal, "initial dist: %d", dist);
-    TerminalLogPrint(
-        terminal, "destination %s, offset %d", dest->node->name, dest->offset
-    );  // why does destination have an offset of 376?
-  }
-  // test for BR8 to E13, why is it giving 991mm
+  TerminalLogPrint(WhoIs("terminal"), "initial dist %d", dist);
 
   int pos1_index = -1;
   // find pos1 index in path
@@ -139,11 +126,61 @@ static int get_distance_between(
   }
 
   if (pos1_index == -1) {
+    TerminalLogPrint(WhoIs("terminal"), "couldn't find node %s in train path!", src->node->name);
     return -1;
   }
 
-  if (src->node->index == 94 && dest->node->index == 76 && !printed) {
-    TerminalLogPrint(terminal, "found pos1 index: %d", pos1_index);
+  TerminalLogPrint(WhoIs("terminal"), "found initial node index %d", pos1_index);
+
+  // find distance from pos1 to pos2
+  for (int i = pos1_index; i >= 0; --i) {
+    struct TrackNode *node = path->nodes[i];
+    int edge_dir = path->directions[i];
+
+    if (node == dest->node || (!strict && node == dest->node->reverse)) {
+      break;
+    }
+
+    if (edge_dir == DIR_REVERSE) {
+      continue;
+    }
+
+    TerminalLogPrint(WhoIs("terminal"), "nodes between are %s", node->name);
+
+    dist += node->edge[edge_dir].dist;
+  }
+
+  TerminalLogPrint(WhoIs("terminal"), "final dist %d", dist);
+
+  return dist;
+}
+
+// TODO: if train hits any sensor after a node in the path, this won't work because it cannot find
+// the destinaton. theoretically, this should never happen because the train should always stop at
+// the destination.
+// if strict, nodes must match src and dest and not their reverse nodes.
+static int get_distance_between(
+    struct Path *path,
+    struct TrackPosition *src,
+    struct TrackPosition *dest,
+    bool strict
+) {
+  int dist = -src->offset + dest->offset;
+
+  // TerminalLogPrint(WhoIs("terminal"), "initial dist %d", dist);
+
+  int pos1_index = -1;
+  // find pos1 index in path
+  for (int i = path->nodes_len - 1; i >= 0; --i) {
+    if (src->node == path->nodes[i] || (!strict && src->node == path->nodes[i]->reverse)) {
+      pos1_index = i;
+      break;
+    }
+  }
+
+  if (pos1_index == -1) {
+    // TerminalLogPrint(WhoIs("terminal"), "couldn't find node %s in train path!", src->node->name);
+    return -1;
   }
 
   // find distance from pos1 to pos2
@@ -152,10 +189,6 @@ static int get_distance_between(
     int edge_dir = path->directions[i];
 
     if (node == dest->node || (!strict && node == dest->node->reverse)) {
-      if (src->node->index == 94 && dest->node->index == 76 && !printed) {
-        TerminalLogPrint(terminal, "dist %d", dist);
-        printed = true;
-      }
       break;
     }
 
@@ -623,15 +656,11 @@ void update_train_pos(int time, struct Train *train) {
   }
 }
 
-bool has_reached_dest(struct Train *train, struct TrackPosition *dest) {
-  return get_distance_between(&train->plan.path, &train->est_pos.position, dest, false) <= 0;
-}
-
 static int get_next_sensor_index(struct Train *train) {
   int last_sensor_index =
       train->last_sensor_index == -1 ? train->plan.path.nodes_len : train->last_sensor_index;
 
-  for (int i = train->last_sensor_index - 1; i >= 0; --i) {
+  for (int i = last_sensor_index; i >= 0; --i) {
     struct TrackNode *node = train->plan.path.nodes[i];
 
     if (node->type == NODE_SENSOR) {
@@ -659,6 +688,7 @@ static int get_next_switch_index(struct Train *train) {
 
 void route_train_randomly(int terminal, int train_planner, struct Train *train) {
   struct TrackPosition rand_dest = track_position_random(terminal);
+  // struct TrackPosition rand_dest = {.node = &track[44], .offset = 0};
   train->plan = CreatePlan(train_planner, &train->est_pos.position, &rand_dest);
 
   while (!train->plan.path_found) {
@@ -816,7 +846,7 @@ static void handle_tick(
                 terminal,
                 "\033[33mset switch %d to CURVED, estimated dist to switch: %d",
                 next_switch->num,
-                get_distance_between(path, &train->est_pos.position, &next_switch_pos, false)
+                get_distance_between(path, &train->est_pos.position, &next_switch_pos, true)
             );
             TrainSetSwitchDir(train_tid, next_switch->num, TRAINSET_DIRECTION_CURVED);
             break;
@@ -825,7 +855,7 @@ static void handle_tick(
                 terminal,
                 "\033[33mset switch %d to STRAIGHT estimated dist to switch: %d",
                 next_switch->num,
-                get_distance_between(path, &train->est_pos.position, &next_switch_pos, false)
+                get_distance_between(path, &train->est_pos.position, &next_switch_pos, true)
             );
             TrainSetSwitchDir(train_tid, next_switch->num, TRAINSET_DIRECTION_STRAIGHT);
         }
@@ -927,14 +957,19 @@ static void handle_tick(
         // check if move is a reverse
         if (current_path.reverse) {
           TrainReverseInstant(train_tid, train->train);
-          train->reversed = true;
+          train->reversed = !train->reversed;
 
-          // reverse train direciton and make the back of the train the front of hte train.
-          train->est_pos = train_position_reverse_node(train->est_pos, train_tid);
-          train->est_pos = train_position_add(train->est_pos, &train->plan.path, TRAIN_LEN);
+          // reverse train direciton and make the back of the train the front of the train.
+          // TODO: when reversing our train pos, we always make the offset positive. as a result,
+          // it's possible that the resulting node is not within our path. this makes all our
+          // distance calculations return -1 since it cannot find the source node. train->est_pos =
+          // train_position_reverse_node(train->est_pos, train_tid); train->est_pos =
+          // train_position_add(train->est_pos, &train->plan.path, TRAIN_LEN);
 
-          // train->est_pos.position.node = train->est_pos.position.node->reverse;
+          train->est_pos.position.node = train->est_pos.position.node->reverse;
           // // TODO: account for length of train (5cm from sensor hit to front of other side).
+          // maybe make this value negative for reverse_node and add TRAIN_LEN
+          train->est_pos.position.offset = -train->est_pos.position.offset + TRAIN_LEN;
           // train->est_pos.position.offset = 0;
           TerminalLogPrint(terminal, "state change to STOPPED from PATH_BEGIN");
           TerminalLogPrint(terminal, "reversing");
@@ -994,6 +1029,11 @@ static void handle_tick(
               train->est_pos.position.node->name,
               train->est_pos.position.offset
           );
+
+          // TerminalLogPrint(terminal, "get_distance_between_debug");
+          // int dist_to_current_dest = get_distance_between_debug(
+          //     path, &train->est_pos.position, &current_path_dest_pos, true
+          // );
 
           train_update_next_sensor(train, time);
         }
@@ -1197,15 +1237,13 @@ void train_manager_task() {
   int train_planner = WhoIs("train_planner");
   int terminal = WhoIs("terminal");
 
-  struct Train trains[TRAINSET_NUM_TRAINS];
+  struct Train trains[TRAINSET_NUM_TRAINS] = {0};
 
   for (int i = 0; i < TRAINSET_NUM_TRAINS; ++i) {
     int train_num = TRAINSET_TRAINS[i];
     train_init(&trains[i], train_num);
     train_update_terminal(terminal, &trains[i], 0);
   }
-
-  printed = false;
 
   int tid;
   struct TrainManagerRequest req;
@@ -1271,13 +1309,13 @@ void train_manager_task() {
   //     .node = route.path.nodes[route.paths[route.paths_len - 1].end_index], .offset = 0
   // };
 
-  // struct Train *train = &trains[trainset_get_train_index(58)];
-  // train_init(train, 58);
+  // struct Train *train = &trains[trainset_get_train_index(54)];
+  // train_init(train, 54);
 
   // train_log(terminal, train);
 
   // int sensor_index = initial_sensors[train->train_index];
-  // struct TrackNode *sensor_node = &track[106];
+  // struct TrackNode *sensor_node = &track[sensor_index];
   // int time = Time(clock_server);
 
   // train->last_sensor_index = 0;
@@ -1350,6 +1388,13 @@ void train_manager_task() {
   //     dist_to_current_dest
   // );
 
+  // struct TrackPosition broken = {.node = &track[114]};
+  // int broken_dist = get_distance_between(&train->plan.path, &broken, &train->plan.dest, true);
+
+  // TerminalLogPrint(terminal, "BROKEN DIST %d", broken_dist);
+
+  // while (true) {}
+
   // TerminalLogPrint(
   //     terminal, "orig: %s +%d", train->est_pos.position.node->name,
   //     train->est_pos.position.offset
@@ -1359,7 +1404,8 @@ void train_manager_task() {
 
   // // TerminalLogPrint(terminal, "deceleration %d", get_train_decel(train));
   // struct TrainPosition new_pos = train_position_reverse_node(train->est_pos, train_tid);
-  // TerminalLogPrint(terminal, "new_pos: %s +%d", new_pos.position.node->name, new_pos.position.offset);
+  // TerminalLogPrint(terminal, "new_pos: %s +%d", new_pos.position.node->name,
+  // new_pos.position.offset);
 
   // handle_tick(terminal, train_tid, train_planner, clock_server, trains);
 

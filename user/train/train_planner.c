@@ -246,7 +246,13 @@ static struct RoutePlan handle_create_plan(struct TrainPlannerCreatePlanRequest 
   int terminal = WhoIs("terminal");
   struct Path path = get_shortest_path(req->src, req->dest->node);
 
-  if (path.path_found && path.nodes[0] == req->dest->node->reverse && req->dest->offset > 0) {
+  if (path.path_found && path.nodes[0] == req->dest->node->reverse) {
+    if (req->dest->offset == 0) {
+      struct TrackPosition route_dest = {.node = path.nodes[0], .offset = 0};
+      struct RoutePlan plan = route_plan_init(&path, &req->src->position, &route_dest);
+      return plan;
+    }
+
     // TODO: account for reverse destination node offset
     // need to remove last node if we're going reverse and subtract offset from previous node
     // offsets

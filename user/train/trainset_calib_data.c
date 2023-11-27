@@ -109,7 +109,7 @@ void trainset_calib_data_init() {
   }
 
   shortmove_dist_init(train58_dists, 5);
-  shortmove_dist_init(train54_dists, 5);
+  shortmove_dist_init(train54_dists, 9);
   shortmove_dist_init(train47_dists, 5);
 }
 

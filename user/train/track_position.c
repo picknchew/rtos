@@ -8,6 +8,11 @@
 
 struct TrackPosition track_position_random() {
   struct TrackNode *node = &track[rand() % TRACK_MAX];
+
+  while (node->type != NODE_SENSOR) {
+    node = &track[rand() % TRACK_MAX];
+  }
+
   // TODO: generate random number for offset?
   struct TrackPosition pos = {.node = node, .offset = 0};
   return pos;
