@@ -880,7 +880,7 @@ static void handle_tick(
     if (!train->active) {
       continue;
     }
-    
+
     int time = Time(clock_server);
 
     struct Path *path = &train->plan.path;
@@ -1074,7 +1074,9 @@ static void handle_tick(
 
           for (int i = last_node_index; i >= 0; --i) {
             struct TrackNode *node = plan.path.nodes[i];
-            if (node->index==dest->index) break;
+            if (node->index == dest->index) {
+              break;
+            }
             int zone = node->zone;
 
             if (!ReserveTrack(zone, train->train_index)) {
@@ -1082,9 +1084,9 @@ static void handle_tick(
               break;
             }
           }
-          if (success_res){
+          if (success_res) {
             TerminalLogPrint(terminal, "SHORT_MOVE reservation sucessful");
-          }else {
+          } else {
             TerminalLogPrint(terminal, "SHORT_MOVE reservation unsucessful, train is LOCKED");
             train->state = LOCKED;
             train->lock_begin_time = time;
@@ -1092,7 +1094,6 @@ static void handle_tick(
             continue;
           }
 
-          
           //...
           train->state = SHORT_MOVE;
           train->velocity = shortmove_get_velocity(train, dist_to_current_dest);
@@ -1116,7 +1117,7 @@ static void handle_tick(
           train->move_duration = get_move_time(train, dist_to_current_dest);
           train->move_stop_time = train->move_start_time + train->move_duration;
           TerminalLogPrint(terminal, "state change to ACCELERATING from PATH_BEGIN");
-          //check track reservation
+          // check track reservation
           TerminalLogPrint(terminal, "checking path reservation");
 
           struct RoutePlan plan = train->plan;
@@ -1126,7 +1127,9 @@ static void handle_tick(
 
           for (int i = last_node_index; i >= 0; --i) {
             struct TrackNode *node = plan.path.nodes[i];
-            if (node->index==dest->index) break;
+            if (node->index == dest->index) {
+              break;
+            }
             int zone = node->zone;
 
             if (!ReserveTrack(zone, train->train_index)) {
@@ -1134,9 +1137,9 @@ static void handle_tick(
               break;
             }
           }
-          if (success_res){
+          if (success_res) {
             TerminalLogPrint(terminal, "ACCELERATION reservation sucessful");
-          }else {
+          } else {
             TerminalLogPrint(terminal, "ACCELERATION reservation unsucessful, train is LOCKED");
             train->state = LOCKED;
             train->lock_begin_time = time;
@@ -1190,7 +1193,7 @@ static void handle_tick(
         train->state = PATH_BEGIN;
         break;
       case LOCKED:
-        if (time-train->lock_begin_time>=DEADLOCK_DURATION){
+        if (time - train->lock_begin_time >= DEADLOCK_DURATION) {
           train->lock_begin_time = time;
           TrainReverse(train_tid, train->train);
           route_train_randomly(terminal, train_planner, train);
