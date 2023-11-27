@@ -880,63 +880,8 @@ static void handle_tick(
     if (!train->active) {
       continue;
     }
-
-    struct RoutePlan plan = train->plan;
-    // index of current path in route plan
-    unsigned int path_index = train->path_index;
-    struct SimplePath cur_path = train->plan.paths[path_index];
-
-    struct TrackNode *last_sensor = train->last_known_pos.position.node;
-    int last_node_index = train->last_sensor_index;
-
+    
     int time = Time(clock_server);
-
-    train_update_terminal(terminal, train, time);
-
-    update_train_pos(time, train);
-
-    // reserve at most 5 sensors ahead
-    // nodes to be reserved by the train
-    int range = max(last_node_index - 5, 0);
-    bool success_res = true;
-    enum TrainState previous_state = train->state;
-
-    for (int i = range; i >= 0; --i) {
-      struct TrackNode *node = plan.path.nodes[i];
-      int zone = node->zone;
-
-      if (!ReserveTrack(zone, train->train_index)) {
-        train->state = LOCKED;
-        TrainSetSpeed(train_tid, train->train, 0);
-        success_res = false;
-        break;
-      }
-    }
-
-    if (success_res) {
-      if (train->state == LOCKED) {
-        train->state = STOPPED;
-        TerminalLogPrint(terminal, "train %d is unlocked.", train->train);
-      }
-    } else {
-      // record the locking start time
-      if (previous_state != LOCKED) {
-        // first time locked
-        train->lock_begin_time = time;
-        TerminalLogPrint(terminal, "train %d is locked.", train->train);
-      }
-
-      // reroute after 10s waiting
-      if (time - train->lock_begin_time >= DEADLOCK_DURATION) {
-        train->lock_begin_time = time;
-        TrainReverse(train_tid, train->train);
-
-        route_train_randomly(terminal, train_planner, train);
-        train->state = LOCKED;
-      }
-
-      continue;
-    }
 
     struct Path *path = &train->plan.path;
 
@@ -1113,6 +1058,42 @@ static void handle_tick(
           train->move_stop_time = train->move_start_time + train->move_duration;
 
           TerminalLogPrint(terminal, "state change to SHORT_MOVE from PATH_BEGIN");
+          TerminalLogPrint(terminal, "SHORT_MOVE reservation");
+
+          // struct TrackNode *start = train->est_pos.position.node;
+          // // struct TrackNode *last_sensor = train->last_known_pos.position.node;
+          // // struct TrackNode *end = current_path_dest_pos.node;
+          struct RoutePlan plan = train->plan;
+          // // index of current path in route plan
+          // unsigned int path_index = train->path_index;
+          // struct SimplePath cur_path = train->plan.paths[path_index];
+
+          int last_node_index = train->last_sensor_index;
+          struct TrackNode *dest = current_path_dest_pos.node;
+          bool success_res = true;
+
+          for (int i = last_node_index; i >= 0; --i) {
+            struct TrackNode *node = plan.path.nodes[i];
+            if (node->index==dest->index) break;
+            int zone = node->zone;
+
+            if (!ReserveTrack(zone, train->train_index)) {
+              success_res = false;
+              break;
+            }
+          }
+          if (success_res){
+            TerminalLogPrint(terminal, "SHORT_MOVE reservation sucessful");
+          }else {
+            TerminalLogPrint(terminal, "SHORT_MOVE reservation unsucessful, train is LOCKED");
+            train->state = LOCKED;
+            train->lock_begin_time = time;
+            // speed = 0;
+            continue;
+          }
+
+          
+          //...
           train->state = SHORT_MOVE;
           train->velocity = shortmove_get_velocity(train, dist_to_current_dest);
           train->acceleration = 0;
@@ -1135,6 +1116,34 @@ static void handle_tick(
           train->move_duration = get_move_time(train, dist_to_current_dest);
           train->move_stop_time = train->move_start_time + train->move_duration;
           TerminalLogPrint(terminal, "state change to ACCELERATING from PATH_BEGIN");
+          //check track reservation
+          TerminalLogPrint(terminal, "checking path reservation");
+
+          struct RoutePlan plan = train->plan;
+          int last_node_index = train->last_sensor_index;
+          struct TrackNode *dest = current_path_dest_pos.node;
+          bool success_res = true;
+
+          for (int i = last_node_index; i >= 0; --i) {
+            struct TrackNode *node = plan.path.nodes[i];
+            if (node->index==dest->index) break;
+            int zone = node->zone;
+
+            if (!ReserveTrack(zone, train->train_index)) {
+              success_res = false;
+              break;
+            }
+          }
+          if (success_res){
+            TerminalLogPrint(terminal, "ACCELERATION reservation sucessful");
+          }else {
+            TerminalLogPrint(terminal, "ACCELERATION reservation unsucessful, train is LOCKED");
+            train->state = LOCKED;
+            train->lock_begin_time = time;
+            // speed = 0;
+            continue;
+          }
+
           train->state = ACCELERATING;
           train->acceleration = get_train_accel(train);
 
@@ -1181,6 +1190,12 @@ static void handle_tick(
         train->state = PATH_BEGIN;
         break;
       case LOCKED:
+        if (time-train->lock_begin_time>=DEADLOCK_DURATION){
+          train->lock_begin_time = time;
+          TrainReverse(train_tid, train->train);
+          route_train_randomly(terminal, train_planner, train);
+          train->state = PATH_BEGIN;
+        }
         break;
     }
   }
@@ -1434,7 +1449,7 @@ void train_manager_task() {
   int tid;
   struct TrainManagerRequest req;
 
-  TerminalUpdateZoneReservation(terminal, 5, 0, 0);
+  // TerminalUpdateZoneReservation(terminal, 5, 0, 0);
 
   // struct TrackPosition src = {.node = track[45].reverse, .offset = 0};
   // struct TrackPosition dest = {.node = &track[43], .offset = 0};
