@@ -162,3 +162,4 @@ void TerminalUpdateSelectedTrack(int tid, char track);
 void TerminalLogPrint(int tid, char *fmt, ...);
 void terminal_task();
 void terminal_screen_task();
+void TerminalUpdateZoneReservation(int tid, int zone, int train, int type);

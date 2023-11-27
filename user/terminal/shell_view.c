@@ -16,8 +16,8 @@ static int velocity_offset = 0;
 #define LOG_BASE_LINE 1
 static int log_offset = 0;
 
-#define ZONE_RESERVATION_BASE_LINE 80
-#define ZONE_RESERVATION_BASE_COL 70
+#define ZONE_RESERVATION_BASE_LINE 37
+#define ZONE_RESERVATION_BASE_COL 1
 // 20rows 50 cols
 static const char  *track = 
   // 012345678901234567890123456789012345678901234567 8 9

@@ -43,7 +43,7 @@ void zones_init(){
     // *(*(track + 2) + 1) = ".";
     for (int i=0;i<ZONE_NUMBERS;i++){
         zones[i].id = i;
-        zones[i].reserved = -1;
+        zones[i].reserved = false;
         zones[i].reservedby = -1;
     }
     zones[0].tracks[0] = 650;
