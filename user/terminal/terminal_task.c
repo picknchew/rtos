@@ -149,7 +149,6 @@ void terminal_screen_task() {
         );
         Reply(tid, NULL, 0);
         break;
-
     }
   }
 }

@@ -1434,6 +1434,8 @@ void train_manager_task() {
   int tid;
   struct TrainManagerRequest req;
 
+  TerminalUpdateZoneReservation(terminal, 5, 0, 0);
+
   // struct TrackPosition src = {.node = track[45].reverse, .offset = 0};
   // struct TrackPosition dest = {.node = &track[43], .offset = 0};
 
