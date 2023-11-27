@@ -1077,13 +1077,14 @@ static void handle_tick(
             if (node->index == dest->index) {
               break;
             }
-            int zone = node->zone;
 
+            int zone = node->zone;
             if (!ReserveTrack(zone, train->train_index)) {
               success_res = false;
               break;
             }
           }
+
           if (success_res) {
             TerminalLogPrint(terminal, "SHORT_MOVE reservation sucessful");
           } else {
@@ -1373,8 +1374,6 @@ static void handle_update_sensors_request(
       TerminalLogPrint(terminal, "Update full move stop time: %d", train->move_stop_time);
     }
   }
-
-  TerminalLogPrint(terminal, "complete update handle sensors request");
 }
 
 void handle_route_return_req(
