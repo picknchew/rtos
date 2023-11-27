@@ -28,4 +28,5 @@ struct TrackNode {
   struct TrackNode *reverse; /* same location, but opposite direction */
   struct TrackEdge edge[2];
   int index;
+  int zone;
 };

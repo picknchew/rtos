@@ -20,7 +20,8 @@ enum TerminalRequestType {
   TERMINAL_TIME_NOTIFY,
   TERMINAL_DISTANCE,
   TERMINAL_TIME_LOOP,
-  LOG_PRINT
+  LOG_PRINT,
+  TERMINAL_ZONE_RESERVATION
 };
 
 // struct VelocityMeasurementInfo{
@@ -31,6 +32,12 @@ enum TerminalRequestType {
 struct TerminalUpdateTrainSpeedRequest {
   int train_index;
   uint8_t train_speed;
+};
+
+struct TerminalUpdateZoneReservationRequest{
+  int zone_num;
+  int train_num;
+  int type;
 };
 
 struct TerminalUpdateSensorsRequest {
@@ -117,6 +124,7 @@ struct TerminalRequest {
     struct TerminalUpdateTrainInfoRequest update_train_info_req;
     struct TerminalUpdateSelectedTrackRequest update_selected_track_req;
     struct TerminalLogPrintRequest log_print_req;
+    struct TerminalUpdateZoneReservationRequest update_zone_reservation_req;
   };
 };
 

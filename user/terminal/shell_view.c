@@ -2,6 +2,7 @@
 
 #include "terminal_screen.h"
 #include "user/train/trainset.h"
+#include "../train/track_reservations.h"
 
 #define DECISECOND_IN_CENTISECONDS 10
 #define SECOND_IN_CENTISECONDS (DECISECOND_IN_CENTISECONDS * 10)
@@ -14,6 +15,41 @@ static int velocity_offset = 0;
 
 #define LOG_BASE_LINE 1
 static int log_offset = 0;
+
+#define ZONE_RESERVATION_BASE_LINE 80
+#define ZONE_RESERVATION_BASE_COL 70
+// 20rows 50 cols
+static const char  *track = 
+  // 012345678901234567890123456789012345678901234567 8 9
+    "****-*********-**********************-*****     \r\n"//0 0-49
+    "     *     *                               *    \r\n"//1 50-99
+    "***-*     *   -********-*******-*****-***   -   \r\n"//2 100
+    "   *     *  *         *         *        *   *  \r\n"//3 150
+    "*-*     *  *           -       -           -  * \r\n"//4 200
+    "       * *              *     *             *  *\r\n"//5 250
+    "      **                 -   -                **\r\n"//6 300
+    "      -                   ***                  *\r\n"//7 350
+    "      *                    *                   *\r\n"//8 400
+    "      *                    *                   *\r\n"//9 450
+    "      -                   ***                  *\r\n"//10 500
+    "      **                 -   -                **\r\n"//11 550
+    "       * *              *     *             -  *\r\n"//12 600
+    "*-*     * *            -       -           *  - \r\n"//13 650
+    "   *     * *          *         *        *   *  \r\n"//14 700
+    "*-*-*     * ***-*********-***-*****-*****   *   \r\n"//15 750
+    "     *     ****-*********-***-*****-*******     \r\n"//16 800
+    "*-***-*               *         *               \r\n"//17 850
+    "       *               *       *                \r\n"//18 900
+    "*-*****-*************-**********-************** \r\n";//19 950
+
+
+static const char *color[6] = {"\033[0;31m",
+                                "\033[0;32m",
+                                "\033[0;33m",
+                                "\033[0;34m",
+                                "\033[0;35m",
+                                "\033[0;36m"};
+
 
 static const int SWITCHES_TITLE_ROW = 5;
 static const int SWITCHES_ROW = 6;
@@ -76,6 +112,13 @@ static void init_train_speeds(struct TerminalScreen *screen) {
     terminal_printf(screen, "%d: 0 ", TRAINSET_TRAINS[i]);
   }
 
+  terminal_restore_cursor(screen);
+}
+
+static void init_train_zones(struct TerminalScreen *screen) {
+  terminal_save_cursor(screen);
+  terminal_move_cursor(screen, ZONE_RESERVATION_BASE_LINE, ZONE_RESERVATION_BASE_COL);
+  terminal_printf(screen,track);
   terminal_restore_cursor(screen);
 }
 
@@ -231,6 +274,33 @@ static void update_selected_track(struct TerminalScreen *screen, char track) {
 }
 
 static void
+update_zone_reservation(struct TerminalScreen *screen, int zone, int train, int type) {
+  terminal_save_cursor(screen);
+  struct Zone zone_track = getZone(zone);
+  for(int i=0;i<zone_track.len;i++){
+    int row = zone_track.tracks[i]/50;
+    int col = zone_track.tracks[i]%50;
+    if (type==0){
+      terminal_printf(screen, color[train%6]);
+    }else if (type==1){
+      terminal_printf(screen,"\033[0;37m");
+    }
+    terminal_move_cursor(screen, row+ZONE_RESERVATION_BASE_LINE, col+ZONE_RESERVATION_BASE_COL);
+    terminal_printf(screen,"*");
+  }terminal_printf(screen,"\033[0;37m");
+  // terminal_move_cursor(screen, ZONE_RESERVATION_BASE_LINE + zone_offset, ZONE_RESERVATION_BASE_COL);
+  // ++zone_offset;
+  // // extra space after speed to overwrite previous two digit numbers
+  // if (type==0) {
+  //   terminal_printf(screen, "ZONE %d is occupied by train %d ", zone, train);
+  // } else if (type==1) {
+  //   terminal_printf(screen, "ZONE %d is released by train %d ", zone, train);
+  // }
+  terminal_restore_cursor(screen);
+}
+
+
+static void
 update_max_sensor_duration(struct TerminalScreen *screen, unsigned int max_sensor_query_duration) {
   terminal_save_cursor(screen);
   terminal_move_cursor(screen, 3, 1);
@@ -336,7 +406,7 @@ static void screen_init(struct TerminalScreen *screen) {
 
   terminal_clear_screen(screen);
   terminal_hide_cursor(screen);
-
+  init_train_zones(screen);
   init_switch_states(screen);
   init_train_speeds(screen);
   init_train_info(screen);
@@ -362,7 +432,8 @@ struct TerminalView shell_view_create() {
       print_loop_distance,
       print_loop_time,
       update_train_info,
-      update_selected_track
+      update_selected_track,
+      update_zone_reservation
   };
 
   return view;

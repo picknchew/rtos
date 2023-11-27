@@ -32,6 +32,7 @@ void tracka_init(struct TrackNode *track) {
   track[0].edge[DIR_AHEAD].src = &track[0];
   track[0].edge[DIR_AHEAD].dest = &track[103];
   track[0].edge[DIR_AHEAD].dist = 231;
+  track[0].zone = 4;
   track[1].name = "A2";
   track[1].type = NODE_SENSOR;
   track[1].num = 1;
@@ -40,6 +41,7 @@ void tracka_init(struct TrackNode *track) {
   track[1].edge[DIR_AHEAD].src = &track[1];
   track[1].edge[DIR_AHEAD].dest = &track[133];
   track[1].edge[DIR_AHEAD].dist = 504;
+  track[1].zone = 1;
   track[2].name = "A3";
   track[2].type = NODE_SENSOR;
   track[2].num = 2;
@@ -48,6 +50,7 @@ void tracka_init(struct TrackNode *track) {
   track[2].edge[DIR_AHEAD].src = &track[2];
   track[2].edge[DIR_AHEAD].dest = &track[106];
   track[2].edge[DIR_AHEAD].dist = 43;
+  track[2].zone = 4;
   track[3].name = "A4";
   track[3].type = NODE_SENSOR;
   track[3].num = 3;
@@ -56,6 +59,7 @@ void tracka_init(struct TrackNode *track) {
   track[3].edge[DIR_AHEAD].src = &track[3];
   track[3].edge[DIR_AHEAD].dest = &track[31];
   track[3].edge[DIR_AHEAD].dist = 437;
+  track[3].zone = 7;
   track[4].name = "A5";
   track[4].type = NODE_SENSOR;
   track[4].num = 4;
@@ -64,6 +68,7 @@ void tracka_init(struct TrackNode *track) {
   track[4].edge[DIR_AHEAD].src = &track[4];
   track[4].edge[DIR_AHEAD].dest = &track[85];
   track[4].edge[DIR_AHEAD].dist = 231;
+  track[4].zone = 26;
   track[5].name = "A6";
   track[5].type = NODE_SENSOR;
   track[5].num = 5;
@@ -72,6 +77,7 @@ void tracka_init(struct TrackNode *track) {
   track[5].edge[DIR_AHEAD].src = &track[5];
   track[5].edge[DIR_AHEAD].dest = &track[25];
   track[5].edge[DIR_AHEAD].dist = 642;
+  track[5].zone = 29;
   track[6].name = "A7";
   track[6].type = NODE_SENSOR;
   track[6].num = 6;
@@ -80,6 +86,7 @@ void tracka_init(struct TrackNode *track) {
   track[6].edge[DIR_AHEAD].src = &track[6];
   track[6].edge[DIR_AHEAD].dest = &track[27];
   track[6].edge[DIR_AHEAD].dist = 470;
+  track[6].zone = 28;
   track[7].name = "A8";
   track[7].type = NODE_SENSOR;
   track[7].num = 7;
@@ -88,6 +95,7 @@ void tracka_init(struct TrackNode *track) {
   track[7].edge[DIR_AHEAD].src = &track[7];
   track[7].edge[DIR_AHEAD].dest = &track[83];
   track[7].edge[DIR_AHEAD].dist = 229;
+  track[7].zone = 26;
   track[8].name = "A9";
   track[8].type = NODE_SENSOR;
   track[8].num = 8;
@@ -96,6 +104,7 @@ void tracka_init(struct TrackNode *track) {
   track[8].edge[DIR_AHEAD].src = &track[8];
   track[8].edge[DIR_AHEAD].dest = &track[23];
   track[8].edge[DIR_AHEAD].dist = 289;
+  track[8].zone = 27;
   track[9].name = "A10";
   track[9].type = NODE_SENSOR;
   track[9].num = 9;
@@ -104,6 +113,7 @@ void tracka_init(struct TrackNode *track) {
   track[9].edge[DIR_AHEAD].src = &track[9];
   track[9].edge[DIR_AHEAD].dest = &track[81];
   track[9].edge[DIR_AHEAD].dist = 229;
+  track[9].zone = 26;
   track[10].name = "A11";
   track[10].type = NODE_SENSOR;
   track[10].num = 10;
@@ -112,6 +122,7 @@ void tracka_init(struct TrackNode *track) {
   track[10].edge[DIR_AHEAD].src = &track[10];
   track[10].edge[DIR_AHEAD].dest = &track[81];
   track[10].edge[DIR_AHEAD].dist = 518;
+  track[10].zone = 26;
   track[11].name = "A12";
   track[11].type = NODE_SENSOR;
   track[11].num = 11;
@@ -120,6 +131,7 @@ void tracka_init(struct TrackNode *track) {
   track[11].edge[DIR_AHEAD].src = &track[11];
   track[11].edge[DIR_AHEAD].dest = &track[139];
   track[11].edge[DIR_AHEAD].dist = 43;
+  track[11].zone = 0;
   track[12].name = "A13";
   track[12].type = NODE_SENSOR;
   track[12].num = 12;
@@ -128,6 +140,7 @@ void tracka_init(struct TrackNode *track) {
   track[12].edge[DIR_AHEAD].src = &track[12];
   track[12].edge[DIR_AHEAD].dest = &track[87];
   track[12].edge[DIR_AHEAD].dist = 236;
+  track[12].zone = 4;
   track[13].name = "A14";
   track[13].type = NODE_SENSOR;
   track[13].num = 13;
@@ -136,6 +149,7 @@ void tracka_init(struct TrackNode *track) {
   track[13].edge[DIR_AHEAD].src = &track[13];
   track[13].edge[DIR_AHEAD].dest = &track[131];
   track[13].edge[DIR_AHEAD].dist = 325;
+  track[13].zone = 2;
   track[14].name = "A15";
   track[14].type = NODE_SENSOR;
   track[14].num = 14;
@@ -144,6 +158,7 @@ void tracka_init(struct TrackNode *track) {
   track[14].edge[DIR_AHEAD].src = &track[14];
   track[14].edge[DIR_AHEAD].dest = &track[135];
   track[14].edge[DIR_AHEAD].dist = 144;
+  track[14].zone = 3;
   track[15].name = "A16";
   track[15].type = NODE_SENSOR;
   track[15].num = 15;
@@ -152,6 +167,7 @@ void tracka_init(struct TrackNode *track) {
   track[15].edge[DIR_AHEAD].src = &track[15];
   track[15].edge[DIR_AHEAD].dest = &track[87];
   track[15].edge[DIR_AHEAD].dist = 417;
+  track[15].zone = 4;
   track[16].name = "B1";
   track[16].type = NODE_SENSOR;
   track[16].num = 16;
@@ -160,6 +176,7 @@ void tracka_init(struct TrackNode *track) {
   track[16].edge[DIR_AHEAD].src = &track[16];
   track[16].edge[DIR_AHEAD].dest = &track[61];
   track[16].edge[DIR_AHEAD].dist = 404;
+  track[16].zone = 23;
   track[17].name = "B2";
   track[17].type = NODE_SENSOR;
   track[17].num = 17;
@@ -168,6 +185,7 @@ void tracka_init(struct TrackNode *track) {
   track[17].edge[DIR_AHEAD].src = &track[17];
   track[17].edge[DIR_AHEAD].dest = &track[111];
   track[17].edge[DIR_AHEAD].dist = 231;
+  track[17].zone = 22;
   track[18].name = "B3";
   track[18].type = NODE_SENSOR;
   track[18].num = 18;
@@ -176,6 +194,7 @@ void tracka_init(struct TrackNode *track) {
   track[18].edge[DIR_AHEAD].src = &track[18];
   track[18].edge[DIR_AHEAD].dest = &track[33];
   track[18].edge[DIR_AHEAD].dist = 201;
+  track[18].zone = 20;
   track[19].name = "B4";
   track[19].type = NODE_SENSOR;
   track[19].num = 19;
@@ -184,6 +203,7 @@ void tracka_init(struct TrackNode *track) {
   track[19].edge[DIR_AHEAD].src = &track[19];
   track[19].edge[DIR_AHEAD].dest = &track[111];
   track[19].edge[DIR_AHEAD].dist = 239;
+  track[19].zone = 22;
   track[20].name = "B5";
   track[20].type = NODE_SENSOR;
   track[20].num = 20;
@@ -192,6 +212,7 @@ void tracka_init(struct TrackNode *track) {
   track[20].edge[DIR_AHEAD].src = &track[20];
   track[20].edge[DIR_AHEAD].dest = &track[50];
   track[20].edge[DIR_AHEAD].dist = 404;
+  track[20].zone = 9; 
   track[21].name = "B6";
   track[21].type = NODE_SENSOR;
   track[21].num = 21;
@@ -200,6 +221,7 @@ void tracka_init(struct TrackNode *track) {
   track[21].edge[DIR_AHEAD].src = &track[21];
   track[21].edge[DIR_AHEAD].dest = &track[105];
   track[21].edge[DIR_AHEAD].dist = 231;
+  track[21].zone = 6;
   track[22].name = "B7";
   track[22].type = NODE_SENSOR;
   track[22].num = 22;
@@ -208,6 +230,7 @@ void tracka_init(struct TrackNode *track) {
   track[22].edge[DIR_AHEAD].src = &track[22];
   track[22].edge[DIR_AHEAD].dest = &track[9];
   track[22].edge[DIR_AHEAD].dist = 289;
+  track[22].zone = 27;
   track[23].name = "B8";
   track[23].type = NODE_SENSOR;
   track[23].num = 23;
@@ -216,6 +239,7 @@ void tracka_init(struct TrackNode *track) {
   track[23].edge[DIR_AHEAD].src = &track[23];
   track[23].edge[DIR_AHEAD].dest = &track[137];
   track[23].edge[DIR_AHEAD].dist = 43;
+  track[23].zone = 31;
   track[24].name = "B9";
   track[24].type = NODE_SENSOR;
   track[24].num = 24;
@@ -224,6 +248,7 @@ void tracka_init(struct TrackNode *track) {
   track[24].edge[DIR_AHEAD].src = &track[24];
   track[24].edge[DIR_AHEAD].dest = &track[4];
   track[24].edge[DIR_AHEAD].dist = 642;
+  track[24].zone = 29;
   track[25].name = "B10";
   track[25].type = NODE_SENSOR;
   track[25].num = 25;
@@ -232,6 +257,7 @@ void tracka_init(struct TrackNode *track) {
   track[25].edge[DIR_AHEAD].src = &track[25];
   track[25].edge[DIR_AHEAD].dest = &track[141];
   track[25].edge[DIR_AHEAD].dist = 50;
+  track[25].zone = 32;
   track[26].name = "B11";
   track[26].type = NODE_SENSOR;
   track[26].num = 26;
@@ -240,6 +266,7 @@ void tracka_init(struct TrackNode *track) {
   track[26].edge[DIR_AHEAD].src = &track[26];
   track[26].edge[DIR_AHEAD].dest = &track[7];
   track[26].edge[DIR_AHEAD].dist = 470;
+  track[26].zone = 28;
   track[27].name = "B12";
   track[27].type = NODE_SENSOR;
   track[27].num = 27;
@@ -248,6 +275,7 @@ void tracka_init(struct TrackNode *track) {
   track[27].edge[DIR_AHEAD].src = &track[27];
   track[27].edge[DIR_AHEAD].dest = &track[143];
   track[27].edge[DIR_AHEAD].dist = 50;
+  track[27].zone = 33;
   track[28].name = "B13";
   track[28].type = NODE_SENSOR;
   track[28].num = 28;
@@ -256,6 +284,7 @@ void tracka_init(struct TrackNode *track) {
   track[28].edge[DIR_AHEAD].src = &track[28];
   track[28].edge[DIR_AHEAD].dest = &track[119];
   track[28].edge[DIR_AHEAD].dist = 239;
+  track[28].zone = 11;
   track[29].name = "B14";
   track[29].type = NODE_SENSOR;
   track[29].num = 29;
@@ -264,6 +293,7 @@ void tracka_init(struct TrackNode *track) {
   track[29].edge[DIR_AHEAD].src = &track[29];
   track[29].edge[DIR_AHEAD].dest = &track[63];
   track[29].edge[DIR_AHEAD].dist = 201;
+  track[29].zone = 19;
   track[30].name = "B15";
   track[30].type = NODE_SENSOR;
   track[30].num = 30;
@@ -272,6 +302,7 @@ void tracka_init(struct TrackNode *track) {
   track[30].edge[DIR_AHEAD].src = &track[30];
   track[30].edge[DIR_AHEAD].dest = &track[2];
   track[30].edge[DIR_AHEAD].dist = 437;
+  track[30].zone = 7;
   track[31].name = "B16";
   track[31].type = NODE_SENSOR;
   track[31].num = 31;
@@ -280,6 +311,7 @@ void tracka_init(struct TrackNode *track) {
   track[31].edge[DIR_AHEAD].src = &track[31];
   track[31].edge[DIR_AHEAD].dest = &track[108];
   track[31].edge[DIR_AHEAD].dist = 50;
+  track[31].zone = 21;
   track[32].name = "C1";
   track[32].type = NODE_SENSOR;
   track[32].num = 32;
@@ -288,6 +320,7 @@ void tracka_init(struct TrackNode *track) {
   track[32].edge[DIR_AHEAD].src = &track[32];
   track[32].edge[DIR_AHEAD].dest = &track[19];
   track[32].edge[DIR_AHEAD].dist = 201;
+  track[32].zone = 20;
   track[33].name = "C2";
   track[33].type = NODE_SENSOR;
   track[33].num = 33;
@@ -296,6 +329,7 @@ void tracka_init(struct TrackNode *track) {
   track[33].edge[DIR_AHEAD].src = &track[33];
   track[33].edge[DIR_AHEAD].dest = &track[117];
   track[33].edge[DIR_AHEAD].dist = 246;
+  track[33].zone = 11;
   track[34].name = "C3";
   track[34].type = NODE_SENSOR;
   track[34].num = 34;
@@ -304,6 +338,7 @@ void tracka_init(struct TrackNode *track) {
   track[34].edge[DIR_AHEAD].src = &track[34];
   track[34].edge[DIR_AHEAD].dest = &track[129];
   track[34].edge[DIR_AHEAD].dist = 514;
+  track[34].zone = 30;
   track[35].name = "C4";
   track[35].type = NODE_SENSOR;
   track[35].num = 35;
@@ -312,6 +347,7 @@ void tracka_init(struct TrackNode *track) {
   track[35].edge[DIR_AHEAD].src = &track[35];
   track[35].edge[DIR_AHEAD].dest = &track[89];
   track[35].edge[DIR_AHEAD].dist = 239;
+  track[35].zone = 24;
   track[36].name = "C5";
   track[36].type = NODE_SENSOR;
   track[36].num = 36;
@@ -320,6 +356,7 @@ void tracka_init(struct TrackNode *track) {
   track[36].edge[DIR_AHEAD].src = &track[36];
   track[36].edge[DIR_AHEAD].dest = &track[90];
   track[36].edge[DIR_AHEAD].dist = 61;
+  track[36].zone = 24;
   track[37].name = "C6";
   track[37].type = NODE_SENSOR;
   track[37].num = 37;
@@ -328,6 +365,7 @@ void tracka_init(struct TrackNode *track) {
   track[37].edge[DIR_AHEAD].src = &track[37];
   track[37].edge[DIR_AHEAD].dest = &track[109];
   track[37].edge[DIR_AHEAD].dist = 433;
+  track[37].zone = 21;
   track[38].name = "C7";
   track[38].type = NODE_SENSOR;
   track[38].num = 38;
@@ -336,6 +374,7 @@ void tracka_init(struct TrackNode *track) {
   track[38].edge[DIR_AHEAD].src = &track[38];
   track[38].edge[DIR_AHEAD].dest = &track[115];
   track[38].edge[DIR_AHEAD].dist = 231;
+  track[38].zone = 24;
   track[39].name = "C8";
   track[39].type = NODE_SENSOR;
   track[39].num = 39;
@@ -344,6 +383,7 @@ void tracka_init(struct TrackNode *track) {
   track[39].edge[DIR_AHEAD].src = &track[39];
   track[39].edge[DIR_AHEAD].dest = &track[84];
   track[39].edge[DIR_AHEAD].dist = 128;
+  track[39].zone = 26;
   track[40].name = "C9";
   track[40].type = NODE_SENSOR;
   track[40].num = 40;
@@ -352,6 +392,7 @@ void tracka_init(struct TrackNode *track) {
   track[40].edge[DIR_AHEAD].src = &track[40];
   track[40].edge[DIR_AHEAD].dest = &track[109];
   track[40].edge[DIR_AHEAD].dist = 326;
+  track[40].zone = 21;
   track[41].name = "C10";
   track[41].type = NODE_SENSOR;
   track[41].num = 41;
@@ -360,6 +401,7 @@ void tracka_init(struct TrackNode *track) {
   track[41].edge[DIR_AHEAD].src = &track[41];
   track[41].edge[DIR_AHEAD].dest = &track[110];
   track[41].edge[DIR_AHEAD].dist = 128;
+  track[41].zone = 22;
   track[42].name = "C11";
   track[42].type = NODE_SENSOR;
   track[42].num = 42;
@@ -368,6 +410,7 @@ void tracka_init(struct TrackNode *track) {
   track[42].edge[DIR_AHEAD].src = &track[42];
   track[42].edge[DIR_AHEAD].dest = &track[104];
   track[42].edge[DIR_AHEAD].dist = 120;
+  track[42].zone = 6;
   track[43].name = "C12";
   track[43].type = NODE_SENSOR;
   track[43].num = 43;
@@ -376,6 +419,7 @@ void tracka_init(struct TrackNode *track) {
   track[43].edge[DIR_AHEAD].src = &track[43];
   track[43].edge[DIR_AHEAD].dest = &track[107];
   track[43].edge[DIR_AHEAD].dist = 333;
+  track[43].zone = 4;
   track[44].name = "C13";
   track[44].type = NODE_SENSOR;
   track[44].num = 44;
@@ -384,6 +428,7 @@ void tracka_init(struct TrackNode *track) {
   track[44].edge[DIR_AHEAD].src = &track[44];
   track[44].edge[DIR_AHEAD].dest = &track[70];
   track[44].edge[DIR_AHEAD].dist = 875;
+  track[44].zone = 5;
   track[45].name = "C14";
   track[45].type = NODE_SENSOR;
   track[45].num = 45;
@@ -392,6 +437,7 @@ void tracka_init(struct TrackNode *track) {
   track[45].edge[DIR_AHEAD].src = &track[45];
   track[45].edge[DIR_AHEAD].dest = &track[100];
   track[45].edge[DIR_AHEAD].dist = 43;
+  track[45].zone = 4;
   track[46].name = "C15";
   track[46].type = NODE_SENSOR;
   track[46].num = 46;
@@ -400,6 +446,7 @@ void tracka_init(struct TrackNode *track) {
   track[46].edge[DIR_AHEAD].src = &track[46];
   track[46].edge[DIR_AHEAD].dest = &track[59];
   track[46].edge[DIR_AHEAD].dist = 404;
+  track[46].zone = 25;
   track[47].name = "C16";
   track[47].type = NODE_SENSOR;
   track[47].num = 47;
@@ -408,6 +455,7 @@ void tracka_init(struct TrackNode *track) {
   track[47].edge[DIR_AHEAD].src = &track[47];
   track[47].edge[DIR_AHEAD].dest = &track[91];
   track[47].edge[DIR_AHEAD].dist = 239;
+  track[47].zone = 24;
   track[48].name = "D1";
   track[48].type = NODE_SENSOR;
   track[48].num = 48;
@@ -416,6 +464,7 @@ void tracka_init(struct TrackNode *track) {
   track[48].edge[DIR_AHEAD].src = &track[48];
   track[48].edge[DIR_AHEAD].dest = &track[121];
   track[48].edge[DIR_AHEAD].dist = 246;
+  track[48].zone = 11;
   track[49].name = "D2";
   track[49].type = NODE_SENSOR;
   track[49].num = 49;
@@ -424,6 +473,7 @@ void tracka_init(struct TrackNode *track) {
   track[49].edge[DIR_AHEAD].src = &track[49];
   track[49].edge[DIR_AHEAD].dest = &track[67];
   track[49].edge[DIR_AHEAD].dist = 201;
+  track[49].zone = 12;
   track[50].name = "D3";
   track[50].type = NODE_SENSOR;
   track[50].num = 50;
@@ -432,6 +482,7 @@ void tracka_init(struct TrackNode *track) {
   track[50].edge[DIR_AHEAD].src = &track[50];
   track[50].edge[DIR_AHEAD].dest = &track[99];
   track[50].edge[DIR_AHEAD].dist = 239;
+  track[50].zone = 13;
   track[51].name = "D4";
   track[51].type = NODE_SENSOR;
   track[51].num = 51;
@@ -440,6 +491,7 @@ void tracka_init(struct TrackNode *track) {
   track[51].edge[DIR_AHEAD].src = &track[51];
   track[51].edge[DIR_AHEAD].dest = &track[21];
   track[51].edge[DIR_AHEAD].dist = 404;
+  track[51].zone = 9;
   track[52].name = "D5";
   track[52].type = NODE_SENSOR;
   track[52].num = 52;
@@ -448,6 +500,7 @@ void tracka_init(struct TrackNode *track) {
   track[52].edge[DIR_AHEAD].src = &track[52];
   track[52].edge[DIR_AHEAD].dest = &track[69];
   track[52].edge[DIR_AHEAD].dist = 376;
+  track[52].zone = 14;
   track[53].name = "D6";
   track[53].type = NODE_SENSOR;
   track[53].num = 53;
@@ -456,6 +509,7 @@ void tracka_init(struct TrackNode *track) {
   track[53].edge[DIR_AHEAD].src = &track[53];
   track[53].edge[DIR_AHEAD].dest = &track[97];
   track[53].edge[DIR_AHEAD].dist = 239;
+  track[53].zone = 15;
   track[54].name = "D7";
   track[54].type = NODE_SENSOR;
   track[54].num = 54;
@@ -464,6 +518,7 @@ void tracka_init(struct TrackNode *track) {
   track[54].edge[DIR_AHEAD].src = &track[54];
   track[54].edge[DIR_AHEAD].dest = &track[97];
   track[54].edge[DIR_AHEAD].dist = 309;
+  track[54].zone = 15;
   track[55].name = "D8";
   track[55].type = NODE_SENSOR;
   track[55].num = 55;
@@ -472,6 +527,7 @@ void tracka_init(struct TrackNode *track) {
   track[55].edge[DIR_AHEAD].src = &track[55];
   track[55].edge[DIR_AHEAD].dest = &track[71];
   track[55].edge[DIR_AHEAD].dist = 384;
+  track[55].zone = 8;
   track[56].name = "D9";
   track[56].type = NODE_SENSOR;
   track[56].num = 56;
@@ -480,6 +536,7 @@ void tracka_init(struct TrackNode *track) {
   track[56].edge[DIR_AHEAD].src = &track[56];
   track[56].edge[DIR_AHEAD].dest = &track[75];
   track[56].edge[DIR_AHEAD].dist = 369;
+  track[56].zone = 16;
   track[57].name = "D10";
   track[57].type = NODE_SENSOR;
   track[57].num = 57;
@@ -488,6 +545,7 @@ void tracka_init(struct TrackNode *track) {
   track[57].edge[DIR_AHEAD].src = &track[57];
   track[57].edge[DIR_AHEAD].dest = &track[95];
   track[57].edge[DIR_AHEAD].dist = 316;
+  track[57].zone = 15;
   track[58].name = "D11";
   track[58].type = NODE_SENSOR;
   track[58].num = 58;
@@ -496,6 +554,7 @@ void tracka_init(struct TrackNode *track) {
   track[58].edge[DIR_AHEAD].src = &track[58];
   track[58].edge[DIR_AHEAD].dest = &track[47];
   track[58].edge[DIR_AHEAD].dist = 404;
+  track[58].zone = 25;
   track[59].name = "D12";
   track[59].type = NODE_SENSOR;
   track[59].num = 59;
@@ -504,6 +563,7 @@ void tracka_init(struct TrackNode *track) {
   track[59].edge[DIR_AHEAD].src = &track[59];
   track[59].edge[DIR_AHEAD].dest = &track[93];
   track[59].edge[DIR_AHEAD].dist = 231;
+  track[59].zone = 24;
   track[60].name = "D13";
   track[60].type = NODE_SENSOR;
   track[60].num = 60;
@@ -512,6 +572,7 @@ void tracka_init(struct TrackNode *track) {
   track[60].edge[DIR_AHEAD].src = &track[60];
   track[60].edge[DIR_AHEAD].dest = &track[17];
   track[60].edge[DIR_AHEAD].dist = 404;
+  track[60].zone = 23;
   track[61].name = "D14";
   track[61].type = NODE_SENSOR;
   track[61].num = 61;
@@ -520,6 +581,7 @@ void tracka_init(struct TrackNode *track) {
   track[61].edge[DIR_AHEAD].src = &track[61];
   track[61].edge[DIR_AHEAD].dest = &track[113];
   track[61].edge[DIR_AHEAD].dist = 239;
+  track[61].zone = 18;
   track[62].name = "D15";
   track[62].type = NODE_SENSOR;
   track[62].num = 62;
@@ -528,6 +590,7 @@ void tracka_init(struct TrackNode *track) {
   track[62].edge[DIR_AHEAD].src = &track[62];
   track[62].edge[DIR_AHEAD].dest = &track[28];
   track[62].edge[DIR_AHEAD].dist = 201;
+  track[62].zone = 19;
   track[63].name = "D16";
   track[63].type = NODE_SENSOR;
   track[63].num = 63;
@@ -536,6 +599,7 @@ void tracka_init(struct TrackNode *track) {
   track[63].edge[DIR_AHEAD].src = &track[63];
   track[63].edge[DIR_AHEAD].dest = &track[113];
   track[63].edge[DIR_AHEAD].dist = 246;
+  track[63].zone = 18;
   track[64].name = "E1";
   track[64].type = NODE_SENSOR;
   track[64].num = 64;
@@ -544,6 +608,7 @@ void tracka_init(struct TrackNode *track) {
   track[64].edge[DIR_AHEAD].src = &track[64];
   track[64].edge[DIR_AHEAD].dest = &track[123];
   track[64].edge[DIR_AHEAD].dist = 239;
+  track[64].zone = 11;
   track[65].name = "E2";
   track[65].type = NODE_SENSOR;
   track[65].num = 65;
@@ -552,6 +617,7 @@ void tracka_init(struct TrackNode *track) {
   track[65].edge[DIR_AHEAD].src = &track[65];
   track[65].edge[DIR_AHEAD].dest = &track[78];
   track[65].edge[DIR_AHEAD].dist = 201;
+  track[65].zone = 10;
   track[66].name = "E3";
   track[66].type = NODE_SENSOR;
   track[66].num = 66;
@@ -560,6 +626,7 @@ void tracka_init(struct TrackNode *track) {
   track[66].edge[DIR_AHEAD].src = &track[66];
   track[66].edge[DIR_AHEAD].dest = &track[48];
   track[66].edge[DIR_AHEAD].dist = 201;
+  track[66].zone = 12;
   track[67].name = "E4";
   track[67].type = NODE_SENSOR;
   track[67].num = 67;
@@ -568,6 +635,7 @@ void tracka_init(struct TrackNode *track) {
   track[67].edge[DIR_AHEAD].src = &track[67];
   track[67].edge[DIR_AHEAD].dest = &track[99];
   track[67].edge[DIR_AHEAD].dist = 239;
+  track[67].zone = 13;
   track[68].name = "E5";
   track[68].type = NODE_SENSOR;
   track[68].num = 68;
@@ -576,6 +644,7 @@ void tracka_init(struct TrackNode *track) {
   track[68].edge[DIR_AHEAD].src = &track[68];
   track[68].edge[DIR_AHEAD].dest = &track[53];
   track[68].edge[DIR_AHEAD].dist = 376;
+  track[68].zone = 14;
   track[69].name = "E6";
   track[69].type = NODE_SENSOR;
   track[69].num = 69;
@@ -584,6 +653,7 @@ void tracka_init(struct TrackNode *track) {
   track[69].edge[DIR_AHEAD].src = &track[69];
   track[69].edge[DIR_AHEAD].dest = &track[98];
   track[69].edge[DIR_AHEAD].dist = 50;
+  track[69].zone = 13;
   track[70].name = "E7";
   track[70].type = NODE_SENSOR;
   track[70].num = 70;
@@ -592,6 +662,7 @@ void tracka_init(struct TrackNode *track) {
   track[70].edge[DIR_AHEAD].src = &track[70];
   track[70].edge[DIR_AHEAD].dest = &track[54];
   track[70].edge[DIR_AHEAD].dist = 384;
+  track[70].zone = 8;
   track[71].name = "E8";
   track[71].type = NODE_SENSOR;
   track[71].num = 71;
@@ -600,6 +671,7 @@ void tracka_init(struct TrackNode *track) {
   track[71].edge[DIR_AHEAD].src = &track[71];
   track[71].edge[DIR_AHEAD].dest = &track[45];
   track[71].edge[DIR_AHEAD].dist = 875;
+  track[71].zone = 5;
   track[72].name = "E9";
   track[72].type = NODE_SENSOR;
   track[72].num = 72;
@@ -608,6 +680,7 @@ void tracka_init(struct TrackNode *track) {
   track[72].edge[DIR_AHEAD].src = &track[72];
   track[72].edge[DIR_AHEAD].dest = &track[95];
   track[72].edge[DIR_AHEAD].dist = 239;
+  track[72].zone = 15;
   track[73].name = "E10";
   track[73].type = NODE_SENSOR;
   track[73].num = 73;
@@ -616,6 +689,7 @@ void tracka_init(struct TrackNode *track) {
   track[73].edge[DIR_AHEAD].src = &track[73];
   track[73].edge[DIR_AHEAD].dest = &track[76];
   track[73].edge[DIR_AHEAD].dist = 376;
+  track[73].zone = 17;
   track[74].name = "E11";
   track[74].type = NODE_SENSOR;
   track[74].num = 74;
@@ -624,6 +698,7 @@ void tracka_init(struct TrackNode *track) {
   track[74].edge[DIR_AHEAD].src = &track[74];
   track[74].edge[DIR_AHEAD].dest = &track[57];
   track[74].edge[DIR_AHEAD].dist = 369;
+  track[74].zone = 16;
   track[75].name = "E12";
   track[75].type = NODE_SENSOR;
   track[75].num = 75;
@@ -632,6 +707,7 @@ void tracka_init(struct TrackNode *track) {
   track[75].edge[DIR_AHEAD].src = &track[75];
   track[75].edge[DIR_AHEAD].dest = &track[92];
   track[75].edge[DIR_AHEAD].dist = 50;
+  track[75].zone = 24;
   track[76].name = "E13";
   track[76].type = NODE_SENSOR;
   track[76].num = 76;
@@ -640,6 +716,7 @@ void tracka_init(struct TrackNode *track) {
   track[76].edge[DIR_AHEAD].src = &track[76];
   track[76].edge[DIR_AHEAD].dest = &track[112];
   track[76].edge[DIR_AHEAD].dist = 43;
+  track[76].zone = 18;
   track[77].name = "E14";
   track[77].type = NODE_SENSOR;
   track[77].num = 77;
@@ -648,6 +725,7 @@ void tracka_init(struct TrackNode *track) {
   track[77].edge[DIR_AHEAD].src = &track[77];
   track[77].edge[DIR_AHEAD].dest = &track[72];
   track[77].edge[DIR_AHEAD].dist = 376;
+  track[77].zone = 17;
   track[78].name = "E15";
   track[78].type = NODE_SENSOR;
   track[78].num = 78;
@@ -656,6 +734,7 @@ void tracka_init(struct TrackNode *track) {
   track[78].edge[DIR_AHEAD].src = &track[78];
   track[78].edge[DIR_AHEAD].dest = &track[105];
   track[78].edge[DIR_AHEAD].dist = 246;
+  track[78].zone = 6;
   track[79].name = "E16";
   track[79].type = NODE_SENSOR;
   track[79].num = 79;
@@ -664,6 +743,7 @@ void tracka_init(struct TrackNode *track) {
   track[79].edge[DIR_AHEAD].src = &track[79];
   track[79].edge[DIR_AHEAD].dest = &track[64];
   track[79].edge[DIR_AHEAD].dist = 201;
+  track[79].zone = 10;
   track[80].name = "BR1";
   track[80].type = NODE_BRANCH;
   track[80].num = 1;
@@ -1228,6 +1308,7 @@ void trackb_init(struct TrackNode *track) {
   track[0].edge[DIR_AHEAD].src = &track[0];
   track[0].edge[DIR_AHEAD].dest = &track[103];
   track[0].edge[DIR_AHEAD].dist = 231;
+  track[0].zone = 4;
   track[1].name = "A2";
   track[1].type = NODE_SENSOR;
   track[1].num = 1;
@@ -1236,6 +1317,7 @@ void trackb_init(struct TrackNode *track) {
   track[1].edge[DIR_AHEAD].src = &track[1];
   track[1].edge[DIR_AHEAD].dest = &track[133];
   track[1].edge[DIR_AHEAD].dist = 504;
+  track[1].zone = 1;
   track[2].name = "A3";
   track[2].type = NODE_SENSOR;
   track[2].num = 2;
@@ -1244,6 +1326,7 @@ void trackb_init(struct TrackNode *track) {
   track[2].edge[DIR_AHEAD].src = &track[2];
   track[2].edge[DIR_AHEAD].dest = &track[106];
   track[2].edge[DIR_AHEAD].dist = 43;
+  track[2].zone = 4;
   track[3].name = "A4";
   track[3].type = NODE_SENSOR;
   track[3].num = 3;
@@ -1252,6 +1335,7 @@ void trackb_init(struct TrackNode *track) {
   track[3].edge[DIR_AHEAD].src = &track[3];
   track[3].edge[DIR_AHEAD].dest = &track[31];
   track[3].edge[DIR_AHEAD].dist = 437;
+  track[3].zone = 7;
   track[4].name = "A5";
   track[4].type = NODE_SENSOR;
   track[4].num = 4;
@@ -1260,6 +1344,7 @@ void trackb_init(struct TrackNode *track) {
   track[4].edge[DIR_AHEAD].src = &track[4];
   track[4].edge[DIR_AHEAD].dest = &track[85];
   track[4].edge[DIR_AHEAD].dist = 231;
+  track[4].zone = 26;
   track[5].name = "A6";
   track[5].type = NODE_SENSOR;
   track[5].num = 5;
@@ -1268,6 +1353,7 @@ void trackb_init(struct TrackNode *track) {
   track[5].edge[DIR_AHEAD].src = &track[5];
   track[5].edge[DIR_AHEAD].dest = &track[25];
   track[5].edge[DIR_AHEAD].dist = 642;
+  track[5].zone = 29;
   track[6].name = "A7";
   track[6].type = NODE_SENSOR;
   track[6].num = 6;
@@ -1276,6 +1362,7 @@ void trackb_init(struct TrackNode *track) {
   track[6].edge[DIR_AHEAD].src = &track[6];
   track[6].edge[DIR_AHEAD].dest = &track[27];
   track[6].edge[DIR_AHEAD].dist = 470;
+  track[6].zone = 28;
   track[7].name = "A8";
   track[7].type = NODE_SENSOR;
   track[7].num = 7;
@@ -1284,6 +1371,7 @@ void trackb_init(struct TrackNode *track) {
   track[7].edge[DIR_AHEAD].src = &track[7];
   track[7].edge[DIR_AHEAD].dest = &track[83];
   track[7].edge[DIR_AHEAD].dist = 229;
+  track[7].zone = 26;
   track[8].name = "A9";
   track[8].type = NODE_SENSOR;
   track[8].num = 8;
@@ -1292,6 +1380,7 @@ void trackb_init(struct TrackNode *track) {
   track[8].edge[DIR_AHEAD].src = &track[8];
   track[8].edge[DIR_AHEAD].dest = &track[23];
   track[8].edge[DIR_AHEAD].dist = 289;
+  track[8].zone = 27;
   track[9].name = "A10";
   track[9].type = NODE_SENSOR;
   track[9].num = 9;
@@ -1300,6 +1389,7 @@ void trackb_init(struct TrackNode *track) {
   track[9].edge[DIR_AHEAD].src = &track[9];
   track[9].edge[DIR_AHEAD].dest = &track[81];
   track[9].edge[DIR_AHEAD].dist = 229;
+  track[9].zone = 26;
   track[10].name = "A11";
   track[10].type = NODE_SENSOR;
   track[10].num = 10;
@@ -1308,6 +1398,7 @@ void trackb_init(struct TrackNode *track) {
   track[10].edge[DIR_AHEAD].src = &track[10];
   track[10].edge[DIR_AHEAD].dest = &track[81];
   track[10].edge[DIR_AHEAD].dist = 282;
+  track[10].zone = 26;
   track[11].name = "A12";
   track[11].type = NODE_SENSOR;
   track[11].num = 11;
@@ -1316,6 +1407,7 @@ void trackb_init(struct TrackNode *track) {
   track[11].edge[DIR_AHEAD].src = &track[11];
   track[11].edge[DIR_AHEAD].dest = &track[15];
   track[11].edge[DIR_AHEAD].dist = 814;
+  track[11].zone = 0;
   track[12].name = "A13";
   track[12].type = NODE_SENSOR;
   track[12].num = 12;
@@ -1324,6 +1416,7 @@ void trackb_init(struct TrackNode *track) {
   track[12].edge[DIR_AHEAD].src = &track[12];
   track[12].edge[DIR_AHEAD].dest = &track[87];
   track[12].edge[DIR_AHEAD].dist = 236;
+  track[12].zone = 4;
   track[13].name = "A14";
   track[13].type = NODE_SENSOR;
   track[13].num = 13;
@@ -1332,6 +1425,7 @@ void trackb_init(struct TrackNode *track) {
   track[13].edge[DIR_AHEAD].src = &track[13];
   track[13].edge[DIR_AHEAD].dest = &track[131];
   track[13].edge[DIR_AHEAD].dist = 325;
+  track[13].zone = 2;
   track[14].name = "A15";
   track[14].type = NODE_SENSOR;
   track[14].num = 14;
@@ -1340,6 +1434,7 @@ void trackb_init(struct TrackNode *track) {
   track[14].edge[DIR_AHEAD].src = &track[14];
   track[14].edge[DIR_AHEAD].dest = &track[10];
   track[14].edge[DIR_AHEAD].dist = 814;
+  track[14].zone = 3;
   track[15].name = "A16";
   track[15].type = NODE_SENSOR;
   track[15].num = 15;
@@ -1348,6 +1443,7 @@ void trackb_init(struct TrackNode *track) {
   track[15].edge[DIR_AHEAD].src = &track[15];
   track[15].edge[DIR_AHEAD].dest = &track[87];
   track[15].edge[DIR_AHEAD].dist = 275;
+  track[15].zone = 4;
   track[16].name = "B1";
   track[16].type = NODE_SENSOR;
   track[16].num = 16;
@@ -1356,6 +1452,7 @@ void trackb_init(struct TrackNode *track) {
   track[16].edge[DIR_AHEAD].src = &track[16];
   track[16].edge[DIR_AHEAD].dest = &track[61];
   track[16].edge[DIR_AHEAD].dist = 404;
+  track[16].zone = 23;
   track[17].name = "B2";
   track[17].type = NODE_SENSOR;
   track[17].num = 17;
@@ -1364,6 +1461,7 @@ void trackb_init(struct TrackNode *track) {
   track[17].edge[DIR_AHEAD].src = &track[17];
   track[17].edge[DIR_AHEAD].dest = &track[111];
   track[17].edge[DIR_AHEAD].dist = 231;
+  track[17].zone = 22;
   track[18].name = "B3";
   track[18].type = NODE_SENSOR;
   track[18].num = 18;
@@ -1372,6 +1470,7 @@ void trackb_init(struct TrackNode *track) {
   track[18].edge[DIR_AHEAD].src = &track[18];
   track[18].edge[DIR_AHEAD].dest = &track[33];
   track[18].edge[DIR_AHEAD].dist = 201;
+  track[18].zone = 20;
   track[19].name = "B4";
   track[19].type = NODE_SENSOR;
   track[19].num = 19;
@@ -1380,6 +1479,7 @@ void trackb_init(struct TrackNode *track) {
   track[19].edge[DIR_AHEAD].src = &track[19];
   track[19].edge[DIR_AHEAD].dest = &track[111];
   track[19].edge[DIR_AHEAD].dist = 239;
+  track[19].zone = 22;
   track[20].name = "B5";
   track[20].type = NODE_SENSOR;
   track[20].num = 20;
@@ -1388,6 +1488,7 @@ void trackb_init(struct TrackNode *track) {
   track[20].edge[DIR_AHEAD].src = &track[20];
   track[20].edge[DIR_AHEAD].dest = &track[50];
   track[20].edge[DIR_AHEAD].dist = 404;
+  track[20].zone = 9; 
   track[21].name = "B6";
   track[21].type = NODE_SENSOR;
   track[21].num = 21;
@@ -1396,6 +1497,7 @@ void trackb_init(struct TrackNode *track) {
   track[21].edge[DIR_AHEAD].src = &track[21];
   track[21].edge[DIR_AHEAD].dest = &track[105];
   track[21].edge[DIR_AHEAD].dist = 231;
+  track[21].zone = 6;
   track[22].name = "B7";
   track[22].type = NODE_SENSOR;
   track[22].num = 22;
@@ -1404,6 +1506,7 @@ void trackb_init(struct TrackNode *track) {
   track[22].edge[DIR_AHEAD].src = &track[22];
   track[22].edge[DIR_AHEAD].dest = &track[9];
   track[22].edge[DIR_AHEAD].dist = 289;
+  track[22].zone = 27;
   track[23].name = "B8";
   track[23].type = NODE_SENSOR;
   track[23].num = 23;
@@ -1412,6 +1515,7 @@ void trackb_init(struct TrackNode *track) {
   track[23].edge[DIR_AHEAD].src = &track[23];
   track[23].edge[DIR_AHEAD].dest = &track[135];
   track[23].edge[DIR_AHEAD].dist = 43;
+  track[23].zone = 31;
   track[24].name = "B9";
   track[24].type = NODE_SENSOR;
   track[24].num = 24;
@@ -1420,6 +1524,7 @@ void trackb_init(struct TrackNode *track) {
   track[24].edge[DIR_AHEAD].src = &track[24];
   track[24].edge[DIR_AHEAD].dest = &track[4];
   track[24].edge[DIR_AHEAD].dist = 642;
+  track[24].zone = 29;
   track[25].name = "B10";
   track[25].type = NODE_SENSOR;
   track[25].num = 25;
@@ -1428,6 +1533,7 @@ void trackb_init(struct TrackNode *track) {
   track[25].edge[DIR_AHEAD].src = &track[25];
   track[25].edge[DIR_AHEAD].dest = &track[137];
   track[25].edge[DIR_AHEAD].dist = 50;
+  track[25].zone = 32;
   track[26].name = "B11";
   track[26].type = NODE_SENSOR;
   track[26].num = 26;
@@ -1436,6 +1542,7 @@ void trackb_init(struct TrackNode *track) {
   track[26].edge[DIR_AHEAD].src = &track[26];
   track[26].edge[DIR_AHEAD].dest = &track[7];
   track[26].edge[DIR_AHEAD].dist = 470;
+  track[26].zone = 28;
   track[27].name = "B12";
   track[27].type = NODE_SENSOR;
   track[27].num = 27;
@@ -1444,6 +1551,7 @@ void trackb_init(struct TrackNode *track) {
   track[27].edge[DIR_AHEAD].src = &track[27];
   track[27].edge[DIR_AHEAD].dest = &track[139];
   track[27].edge[DIR_AHEAD].dist = 50;
+  track[27].zone = 33;
   track[28].name = "B13";
   track[28].type = NODE_SENSOR;
   track[28].num = 28;
@@ -1452,6 +1560,7 @@ void trackb_init(struct TrackNode *track) {
   track[28].edge[DIR_AHEAD].src = &track[28];
   track[28].edge[DIR_AHEAD].dest = &track[119];
   track[28].edge[DIR_AHEAD].dist = 239;
+  track[28].zone = 11;
   track[29].name = "B14";
   track[29].type = NODE_SENSOR;
   track[29].num = 29;
@@ -1460,6 +1569,7 @@ void trackb_init(struct TrackNode *track) {
   track[29].edge[DIR_AHEAD].src = &track[29];
   track[29].edge[DIR_AHEAD].dest = &track[63];
   track[29].edge[DIR_AHEAD].dist = 201;
+  track[29].zone = 19;
   track[30].name = "B15";
   track[30].type = NODE_SENSOR;
   track[30].num = 30;
@@ -1468,6 +1578,7 @@ void trackb_init(struct TrackNode *track) {
   track[30].edge[DIR_AHEAD].src = &track[30];
   track[30].edge[DIR_AHEAD].dest = &track[2];
   track[30].edge[DIR_AHEAD].dist = 437;
+  track[30].zone = 7;
   track[31].name = "B16";
   track[31].type = NODE_SENSOR;
   track[31].num = 31;
@@ -1476,6 +1587,7 @@ void trackb_init(struct TrackNode *track) {
   track[31].edge[DIR_AHEAD].src = &track[31];
   track[31].edge[DIR_AHEAD].dest = &track[108];
   track[31].edge[DIR_AHEAD].dist = 50;
+  track[31].zone = 21;
   track[32].name = "C1";
   track[32].type = NODE_SENSOR;
   track[32].num = 32;
@@ -1484,6 +1596,7 @@ void trackb_init(struct TrackNode *track) {
   track[32].edge[DIR_AHEAD].src = &track[32];
   track[32].edge[DIR_AHEAD].dest = &track[19];
   track[32].edge[DIR_AHEAD].dist = 201;
+  track[32].zone = 20;
   track[33].name = "C2";
   track[33].type = NODE_SENSOR;
   track[33].num = 33;
@@ -1492,6 +1605,7 @@ void trackb_init(struct TrackNode *track) {
   track[33].edge[DIR_AHEAD].src = &track[33];
   track[33].edge[DIR_AHEAD].dest = &track[117];
   track[33].edge[DIR_AHEAD].dist = 246;
+  track[33].zone = 11;
   track[34].name = "C3";
   track[34].type = NODE_SENSOR;
   track[34].num = 34;
@@ -1500,6 +1614,7 @@ void trackb_init(struct TrackNode *track) {
   track[34].edge[DIR_AHEAD].src = &track[34];
   track[34].edge[DIR_AHEAD].dest = &track[129];
   track[34].edge[DIR_AHEAD].dist = 514;
+  track[34].zone = 30;
   track[35].name = "C4";
   track[35].type = NODE_SENSOR;
   track[35].num = 35;
@@ -1508,6 +1623,7 @@ void trackb_init(struct TrackNode *track) {
   track[35].edge[DIR_AHEAD].src = &track[35];
   track[35].edge[DIR_AHEAD].dest = &track[89];
   track[35].edge[DIR_AHEAD].dist = 239;
+  track[35].zone = 24;
   track[36].name = "C5";
   track[36].type = NODE_SENSOR;
   track[36].num = 36;
@@ -1516,6 +1632,7 @@ void trackb_init(struct TrackNode *track) {
   track[36].edge[DIR_AHEAD].src = &track[36];
   track[36].edge[DIR_AHEAD].dest = &track[90];
   track[36].edge[DIR_AHEAD].dist = 61;
+  track[36].zone = 24;
   track[37].name = "C6";
   track[37].type = NODE_SENSOR;
   track[37].num = 37;
@@ -1524,6 +1641,7 @@ void trackb_init(struct TrackNode *track) {
   track[37].edge[DIR_AHEAD].src = &track[37];
   track[37].edge[DIR_AHEAD].dest = &track[109];
   track[37].edge[DIR_AHEAD].dist = 433;
+  track[37].zone = 21;
   track[38].name = "C7";
   track[38].type = NODE_SENSOR;
   track[38].num = 38;
@@ -1532,6 +1650,7 @@ void trackb_init(struct TrackNode *track) {
   track[38].edge[DIR_AHEAD].src = &track[38];
   track[38].edge[DIR_AHEAD].dest = &track[115];
   track[38].edge[DIR_AHEAD].dist = 231;
+  track[38].zone = 24;
   track[39].name = "C8";
   track[39].type = NODE_SENSOR;
   track[39].num = 39;
@@ -1540,6 +1659,7 @@ void trackb_init(struct TrackNode *track) {
   track[39].edge[DIR_AHEAD].src = &track[39];
   track[39].edge[DIR_AHEAD].dest = &track[84];
   track[39].edge[DIR_AHEAD].dist = 128;
+  track[39].zone = 26;
   track[40].name = "C9";
   track[40].type = NODE_SENSOR;
   track[40].num = 40;
@@ -1548,6 +1668,7 @@ void trackb_init(struct TrackNode *track) {
   track[40].edge[DIR_AHEAD].src = &track[40];
   track[40].edge[DIR_AHEAD].dest = &track[109];
   track[40].edge[DIR_AHEAD].dist = 326;
+  track[40].zone = 21;
   track[41].name = "C10";
   track[41].type = NODE_SENSOR;
   track[41].num = 41;
@@ -1556,6 +1677,7 @@ void trackb_init(struct TrackNode *track) {
   track[41].edge[DIR_AHEAD].src = &track[41];
   track[41].edge[DIR_AHEAD].dest = &track[110];
   track[41].edge[DIR_AHEAD].dist = 128;
+  track[41].zone = 22;
   track[42].name = "C11";
   track[42].type = NODE_SENSOR;
   track[42].num = 42;
@@ -1564,6 +1686,7 @@ void trackb_init(struct TrackNode *track) {
   track[42].edge[DIR_AHEAD].src = &track[42];
   track[42].edge[DIR_AHEAD].dest = &track[104];
   track[42].edge[DIR_AHEAD].dist = 120;
+  track[42].zone = 6;
   track[43].name = "C12";
   track[43].type = NODE_SENSOR;
   track[43].num = 43;
@@ -1572,6 +1695,7 @@ void trackb_init(struct TrackNode *track) {
   track[43].edge[DIR_AHEAD].src = &track[43];
   track[43].edge[DIR_AHEAD].dest = &track[107];
   track[43].edge[DIR_AHEAD].dist = 333;
+  track[43].zone = 4;
   track[44].name = "C13";
   track[44].type = NODE_SENSOR;
   track[44].num = 44;
@@ -1580,6 +1704,7 @@ void trackb_init(struct TrackNode *track) {
   track[44].edge[DIR_AHEAD].src = &track[44];
   track[44].edge[DIR_AHEAD].dest = &track[70];
   track[44].edge[DIR_AHEAD].dist = 780;
+  track[44].zone = 5;
   track[45].name = "C14";
   track[45].type = NODE_SENSOR;
   track[45].num = 45;
@@ -1588,6 +1713,7 @@ void trackb_init(struct TrackNode *track) {
   track[45].edge[DIR_AHEAD].src = &track[45];
   track[45].edge[DIR_AHEAD].dest = &track[100];
   track[45].edge[DIR_AHEAD].dist = 50;
+  track[45].zone = 4;
   track[46].name = "C15";
   track[46].type = NODE_SENSOR;
   track[46].num = 46;
@@ -1596,6 +1722,7 @@ void trackb_init(struct TrackNode *track) {
   track[46].edge[DIR_AHEAD].src = &track[46];
   track[46].edge[DIR_AHEAD].dest = &track[59];
   track[46].edge[DIR_AHEAD].dist = 404;
+  track[46].zone = 25;
   track[47].name = "C16";
   track[47].type = NODE_SENSOR;
   track[47].num = 47;
@@ -1604,6 +1731,7 @@ void trackb_init(struct TrackNode *track) {
   track[47].edge[DIR_AHEAD].src = &track[47];
   track[47].edge[DIR_AHEAD].dest = &track[91];
   track[47].edge[DIR_AHEAD].dist = 239;
+  track[47].zone = 24;
   track[48].name = "D1";
   track[48].type = NODE_SENSOR;
   track[48].num = 48;
@@ -1612,6 +1740,7 @@ void trackb_init(struct TrackNode *track) {
   track[48].edge[DIR_AHEAD].src = &track[48];
   track[48].edge[DIR_AHEAD].dest = &track[121];
   track[48].edge[DIR_AHEAD].dist = 246;
+  track[48].zone = 11;
   track[49].name = "D2";
   track[49].type = NODE_SENSOR;
   track[49].num = 49;
@@ -1620,6 +1749,7 @@ void trackb_init(struct TrackNode *track) {
   track[49].edge[DIR_AHEAD].src = &track[49];
   track[49].edge[DIR_AHEAD].dest = &track[67];
   track[49].edge[DIR_AHEAD].dist = 201;
+  track[49].zone = 12;
   track[50].name = "D3";
   track[50].type = NODE_SENSOR;
   track[50].num = 50;
@@ -1628,6 +1758,7 @@ void trackb_init(struct TrackNode *track) {
   track[50].edge[DIR_AHEAD].src = &track[50];
   track[50].edge[DIR_AHEAD].dest = &track[99];
   track[50].edge[DIR_AHEAD].dist = 239;
+  track[50].zone = 13;
   track[51].name = "D4";
   track[51].type = NODE_SENSOR;
   track[51].num = 51;
@@ -1636,6 +1767,7 @@ void trackb_init(struct TrackNode *track) {
   track[51].edge[DIR_AHEAD].src = &track[51];
   track[51].edge[DIR_AHEAD].dest = &track[21];
   track[51].edge[DIR_AHEAD].dist = 404;
+  track[51].zone = 9;
   track[52].name = "D5";
   track[52].type = NODE_SENSOR;
   track[52].num = 52;
@@ -1644,6 +1776,7 @@ void trackb_init(struct TrackNode *track) {
   track[52].edge[DIR_AHEAD].src = &track[52];
   track[52].edge[DIR_AHEAD].dest = &track[69];
   track[52].edge[DIR_AHEAD].dist = 282;
+  track[52].zone = 14;
   track[53].name = "D6";
   track[53].type = NODE_SENSOR;
   track[53].num = 53;
@@ -1652,6 +1785,7 @@ void trackb_init(struct TrackNode *track) {
   track[53].edge[DIR_AHEAD].src = &track[53];
   track[53].edge[DIR_AHEAD].dest = &track[97];
   track[53].edge[DIR_AHEAD].dist = 229;
+  track[53].zone = 15;
   track[54].name = "D7";
   track[54].type = NODE_SENSOR;
   track[54].num = 54;
@@ -1660,6 +1794,7 @@ void trackb_init(struct TrackNode *track) {
   track[54].edge[DIR_AHEAD].src = &track[54];
   track[54].edge[DIR_AHEAD].dest = &track[97];
   track[54].edge[DIR_AHEAD].dist = 309;
+  track[54].zone = 15;
   track[55].name = "D8";
   track[55].type = NODE_SENSOR;
   track[55].num = 55;
@@ -1668,6 +1803,7 @@ void trackb_init(struct TrackNode *track) {
   track[55].edge[DIR_AHEAD].src = &track[55];
   track[55].edge[DIR_AHEAD].dest = &track[71];
   track[55].edge[DIR_AHEAD].dist = 376;
+  track[55].zone = 8;
   track[56].name = "D9";
   track[56].type = NODE_SENSOR;
   track[56].num = 56;
@@ -1676,6 +1812,7 @@ void trackb_init(struct TrackNode *track) {
   track[56].edge[DIR_AHEAD].src = &track[56];
   track[56].edge[DIR_AHEAD].dest = &track[75];
   track[56].edge[DIR_AHEAD].dist = 282;
+  track[56].zone = 16;
   track[57].name = "D10";
   track[57].type = NODE_SENSOR;
   track[57].num = 57;
@@ -1684,6 +1821,7 @@ void trackb_init(struct TrackNode *track) {
   track[57].edge[DIR_AHEAD].src = &track[57];
   track[57].edge[DIR_AHEAD].dest = &track[95];
   track[57].edge[DIR_AHEAD].dist = 316;
+  track[57].zone = 15;
   track[58].name = "D11";
   track[58].type = NODE_SENSOR;
   track[58].num = 58;
@@ -1692,6 +1830,7 @@ void trackb_init(struct TrackNode *track) {
   track[58].edge[DIR_AHEAD].src = &track[58];
   track[58].edge[DIR_AHEAD].dest = &track[47];
   track[58].edge[DIR_AHEAD].dist = 404;
+  track[58].zone = 25;
   track[59].name = "D12";
   track[59].type = NODE_SENSOR;
   track[59].num = 59;
@@ -1700,6 +1839,7 @@ void trackb_init(struct TrackNode *track) {
   track[59].edge[DIR_AHEAD].src = &track[59];
   track[59].edge[DIR_AHEAD].dest = &track[93];
   track[59].edge[DIR_AHEAD].dist = 231;
+  track[59].zone = 24;
   track[60].name = "D13";
   track[60].type = NODE_SENSOR;
   track[60].num = 60;
@@ -1708,6 +1848,7 @@ void trackb_init(struct TrackNode *track) {
   track[60].edge[DIR_AHEAD].src = &track[60];
   track[60].edge[DIR_AHEAD].dest = &track[17];
   track[60].edge[DIR_AHEAD].dist = 404;
+  track[60].zone = 23;
   track[61].name = "D14";
   track[61].type = NODE_SENSOR;
   track[61].num = 61;
@@ -1716,6 +1857,7 @@ void trackb_init(struct TrackNode *track) {
   track[61].edge[DIR_AHEAD].src = &track[61];
   track[61].edge[DIR_AHEAD].dest = &track[113];
   track[61].edge[DIR_AHEAD].dist = 239;
+  track[61].zone = 18;
   track[62].name = "D15";
   track[62].type = NODE_SENSOR;
   track[62].num = 62;
@@ -1724,6 +1866,7 @@ void trackb_init(struct TrackNode *track) {
   track[62].edge[DIR_AHEAD].src = &track[62];
   track[62].edge[DIR_AHEAD].dest = &track[28];
   track[62].edge[DIR_AHEAD].dist = 201;
+  track[62].zone = 19;
   track[63].name = "D16";
   track[63].type = NODE_SENSOR;
   track[63].num = 63;
@@ -1732,6 +1875,7 @@ void trackb_init(struct TrackNode *track) {
   track[63].edge[DIR_AHEAD].src = &track[63];
   track[63].edge[DIR_AHEAD].dest = &track[113];
   track[63].edge[DIR_AHEAD].dist = 246;
+  track[63].zone = 18;
   track[64].name = "E1";
   track[64].type = NODE_SENSOR;
   track[64].num = 64;
@@ -1740,6 +1884,7 @@ void trackb_init(struct TrackNode *track) {
   track[64].edge[DIR_AHEAD].src = &track[64];
   track[64].edge[DIR_AHEAD].dest = &track[123];
   track[64].edge[DIR_AHEAD].dist = 239;
+  track[64].zone = 11;
   track[65].name = "E2";
   track[65].type = NODE_SENSOR;
   track[65].num = 65;
@@ -1748,6 +1893,7 @@ void trackb_init(struct TrackNode *track) {
   track[65].edge[DIR_AHEAD].src = &track[65];
   track[65].edge[DIR_AHEAD].dest = &track[78];
   track[65].edge[DIR_AHEAD].dist = 201;
+  track[65].zone = 10;
   track[66].name = "E3";
   track[66].type = NODE_SENSOR;
   track[66].num = 66;
@@ -1756,6 +1902,7 @@ void trackb_init(struct TrackNode *track) {
   track[66].edge[DIR_AHEAD].src = &track[66];
   track[66].edge[DIR_AHEAD].dest = &track[48];
   track[66].edge[DIR_AHEAD].dist = 201;
+  track[66].zone = 12;
   track[67].name = "E4";
   track[67].type = NODE_SENSOR;
   track[67].num = 67;
@@ -1764,6 +1911,7 @@ void trackb_init(struct TrackNode *track) {
   track[67].edge[DIR_AHEAD].src = &track[67];
   track[67].edge[DIR_AHEAD].dest = &track[99];
   track[67].edge[DIR_AHEAD].dist = 239;
+  track[67].zone = 13;
   track[68].name = "E5";
   track[68].type = NODE_SENSOR;
   track[68].num = 68;
@@ -1772,6 +1920,7 @@ void trackb_init(struct TrackNode *track) {
   track[68].edge[DIR_AHEAD].src = &track[68];
   track[68].edge[DIR_AHEAD].dest = &track[53];
   track[68].edge[DIR_AHEAD].dist = 282;
+  track[68].zone = 14;
   track[69].name = "E6";
   track[69].type = NODE_SENSOR;
   track[69].num = 69;
@@ -1780,6 +1929,7 @@ void trackb_init(struct TrackNode *track) {
   track[69].edge[DIR_AHEAD].src = &track[69];
   track[69].edge[DIR_AHEAD].dest = &track[98];
   track[69].edge[DIR_AHEAD].dist = 50;
+  track[69].zone = 13;
   track[70].name = "E7";
   track[70].type = NODE_SENSOR;
   track[70].num = 70;
@@ -1788,6 +1938,7 @@ void trackb_init(struct TrackNode *track) {
   track[70].edge[DIR_AHEAD].src = &track[70];
   track[70].edge[DIR_AHEAD].dest = &track[54];
   track[70].edge[DIR_AHEAD].dist = 376;
+  track[70].zone = 8;
   track[71].name = "E8";
   track[71].type = NODE_SENSOR;
   track[71].num = 71;
@@ -1796,6 +1947,7 @@ void trackb_init(struct TrackNode *track) {
   track[71].edge[DIR_AHEAD].src = &track[71];
   track[71].edge[DIR_AHEAD].dest = &track[45];
   track[71].edge[DIR_AHEAD].dist = 780;
+  track[71].zone = 5;
   track[72].name = "E9";
   track[72].type = NODE_SENSOR;
   track[72].num = 72;
@@ -1804,6 +1956,7 @@ void trackb_init(struct TrackNode *track) {
   track[72].edge[DIR_AHEAD].src = &track[72];
   track[72].edge[DIR_AHEAD].dest = &track[95];
   track[72].edge[DIR_AHEAD].dist = 239;
+  track[72].zone = 15;
   track[73].name = "E10";
   track[73].type = NODE_SENSOR;
   track[73].num = 73;
@@ -1812,6 +1965,7 @@ void trackb_init(struct TrackNode *track) {
   track[73].edge[DIR_AHEAD].src = &track[73];
   track[73].edge[DIR_AHEAD].dest = &track[76];
   track[73].edge[DIR_AHEAD].dist = 282;
+  track[73].zone = 17;
   track[74].name = "E11";
   track[74].type = NODE_SENSOR;
   track[74].num = 74;
@@ -1820,6 +1974,7 @@ void trackb_init(struct TrackNode *track) {
   track[74].edge[DIR_AHEAD].src = &track[74];
   track[74].edge[DIR_AHEAD].dest = &track[57];
   track[74].edge[DIR_AHEAD].dist = 282;
+  track[74].zone = 16;
   track[75].name = "E12";
   track[75].type = NODE_SENSOR;
   track[75].num = 75;
@@ -1828,6 +1983,7 @@ void trackb_init(struct TrackNode *track) {
   track[75].edge[DIR_AHEAD].src = &track[75];
   track[75].edge[DIR_AHEAD].dest = &track[92];
   track[75].edge[DIR_AHEAD].dist = 43;
+  track[75].zone = 24;
   track[76].name = "E13";
   track[76].type = NODE_SENSOR;
   track[76].num = 76;
@@ -1836,6 +1992,7 @@ void trackb_init(struct TrackNode *track) {
   track[76].edge[DIR_AHEAD].src = &track[76];
   track[76].edge[DIR_AHEAD].dest = &track[112];
   track[76].edge[DIR_AHEAD].dist = 43;
+  track[76].zone = 18;
   track[77].name = "E14";
   track[77].type = NODE_SENSOR;
   track[77].num = 77;
@@ -1844,6 +2001,7 @@ void trackb_init(struct TrackNode *track) {
   track[77].edge[DIR_AHEAD].src = &track[77];
   track[77].edge[DIR_AHEAD].dest = &track[72];
   track[77].edge[DIR_AHEAD].dist = 282;
+  track[77].zone = 17;
   track[78].name = "E15";
   track[78].type = NODE_SENSOR;
   track[78].num = 78;
@@ -1852,6 +2010,7 @@ void trackb_init(struct TrackNode *track) {
   track[78].edge[DIR_AHEAD].src = &track[78];
   track[78].edge[DIR_AHEAD].dest = &track[105];
   track[78].edge[DIR_AHEAD].dist = 246;
+  track[78].zone = 6;
   track[79].name = "E16";
   track[79].type = NODE_SENSOR;
   track[79].num = 79;
@@ -1860,6 +2019,7 @@ void trackb_init(struct TrackNode *track) {
   track[79].edge[DIR_AHEAD].src = &track[79];
   track[79].edge[DIR_AHEAD].dest = &track[64];
   track[79].edge[DIR_AHEAD].dist = 201;
+  track[79].zone = 10;
   track[80].name = "BR1";
   track[80].type = NODE_BRANCH;
   track[80].num = 1;

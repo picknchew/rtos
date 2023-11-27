@@ -140,6 +140,16 @@ void terminal_screen_task() {
         );
         Reply(tid, NULL, 0);
         break;
+      case TERMINAL_ZONE_RESERVATION:
+        terminal_update_zone_reservation(
+            &screen,
+            req.update_zone_reservation_req.zone_num,
+            req.update_zone_reservation_req.train_num,
+            req.update_zone_reservation_req.type
+        );
+        Reply(tid, NULL, 0);
+        break;
+
     }
   }
 }
@@ -237,6 +247,14 @@ void TerminalUpdateDistance(int tid, const char *begin, const char *end, int dis
   struct TerminalRequest req = {
       .type = TERMINAL_DISTANCE,
       .update_distance_req = {.begin = begin, .end = end, .distance = distance}
+  };
+  Send(tid, (const char *) &req, sizeof(req), NULL, 0);
+}
+
+void TerminalUpdateZoneReservation(int tid, int zone, int train, int type) {
+  struct TerminalRequest req = {
+      .type = TERMINAL_ZONE_RESERVATION,
+      .update_zone_reservation_req = {.train_num = train, .type = type, .zone_num = zone}
   };
   Send(tid, (const char *) &req, sizeof(req), NULL, 0);
 }

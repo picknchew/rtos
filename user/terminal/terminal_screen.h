@@ -36,6 +36,7 @@ struct TerminalView {
       FixedPointInt,
       FixedPointInt
   );
+  void (*update_zone_reservation)(struct TerminalScreen *, int, int, int);
   void (*update_selected_track)(struct TerminalScreen *, char);
   // void (*print_next_sensor)(struct TerminalScreen *, int);
 };
@@ -94,6 +95,16 @@ inline void terminal_update_switch_state(
 ) {
   screen->view.update_switch_state(screen, switch_num, dir);
 }
+
+inline void terminal_update_zone_reservation(
+    struct TerminalScreen *screen,
+    int zone,
+    int train,
+    int type
+) {
+  screen->view.update_zone_reservation(screen, zone, train, type);
+}
+
 
 inline void terminal_update_idle(
     struct TerminalScreen *screen,

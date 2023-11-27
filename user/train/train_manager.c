@@ -31,7 +31,8 @@ enum TrainState {
   DECELERATING,
   SHORT_MOVE_DECELERATING,
   STOPPED,
-  WAITING_FOR_INITIAL_POS
+  WAITING_FOR_INITIAL_POS,
+  LOCKED
 };
 
 const char *train_state_to_string(enum TrainState state) {
@@ -113,6 +114,8 @@ struct Train {
 
   FixedPointInt acceleration;
   FixedPointInt velocity;
+  int lock_begin_time;
+  char train_color;
 };
 
 // ticks to wait after a short move.
@@ -871,6 +874,67 @@ static void handle_tick(
       continue;
     }
 
+    struct TrackNode *last_node = train->last_known_pos.position.node;
+    struct RoutePlan plan = train->plan;
+    // index of current path in route plan
+    unsigned int path_index = train->path_index;
+    struct SimplePath current_path = train->plan.paths[path_index];
+    
+    // last node is either in the current path or the last node of last simple path.
+    int start = (current_path.start_index-1>=0)?current_path.start_index-1:current_path.start_index; 
+    int last_node_index_path = -1;
+    for(int i=start;i<=current_path.end_index;i++){
+      if (plan.path.nodes[i]->index==last_node->index){
+        last_node_index_path = i;
+        break;
+      }
+    }
+    if (last_node_index_path==-1){
+      TerminalLogPrint(terminal,"last_know_pos can not be found in recent simple path.");
+      break;
+    }
+
+    // nodes to be reserved by the train
+    int range = (last_node_index_path+5)>=(plan.path.nodes_len-1)?(plan.path.nodes_len-1):(last_node_index_path+5);
+    // reserve at most 5 sensors ahead
+    bool success_res = true;
+    enum TrainState previous_state = train->state;
+    for (int i=last_node_index_path+1;i<=range;i++){
+      struct TrackNode *node = plan.path.nodes[i];
+      int zone = node->zone;
+      if (!ReserveTrack(zone,train->train_index)){
+        train->state = LOCKED;
+        TrainSetSpeed(train_tid,train->train,0);
+        success_res = false;
+        break;
+      }
+    }
+    if (success_res){
+      if (train->state==LOCKED){
+        train->state = STOPPED;
+        TerminalLogPrint(terminal, "train %d is unlocked.",train->train);
+      }
+    }else {
+      // record the locking start time
+      if (previous_state!=LOCKED){
+        // first time locked
+        train->lock_begin_time = Time(clock_server);
+        TerminalLogPrint(terminal, "train %d is locked.",train->train);
+      }
+      // reroute after 10s waiting 
+      if (Time(clock_server)-train->lock_begin_time>=1000){
+        train->lock_begin_time = Time(clock_server);
+        TrainReverse(train_tid, train->train);
+        train->plan = CreatePlan(train_planner, &train->last_known_pos.position.node->reverse, &train->plan.dest);
+        train->state = LOCKED;
+        train->path_index = 0;
+        train->last_sensor_index = -1;
+        train->last_switch_index = -1;
+      }
+      continue;
+    }
+
+
     int time = Time(clock_server);
     train_update_terminal(terminal, train, time);
 
@@ -1219,6 +1283,15 @@ static void handle_update_sensors_request(
     if (train == NULL) {
       continue;
     }
+    
+    struct TrackNode *last_node = train->last_known_pos.position.node;
+    if (last_node!=NULL){
+      int zone = last_node->zone;
+      if (ZoneOccupied(zone)==train->train_index){
+        ReleaseReservations(zone);
+      }
+    }
+
 
     struct TrackNode *sensor_node = &track[sensor];
     // do not update location again if we've already seen the sensor.
