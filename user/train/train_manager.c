@@ -864,6 +864,7 @@ static void train_update_next_sensor(struct Train *train, int current_time) {
 }
 
 static const int FLIP_SWITCH_DIST = 200;
+static const int DEADLOCK_DURATION = 1000;
 
 static void handle_tick(
     int terminal,
@@ -880,36 +881,30 @@ static void handle_tick(
       continue;
     }
 
-    struct TrackNode *last_node = train->last_known_pos.position.node;
     struct RoutePlan plan = train->plan;
     // index of current path in route plan
     unsigned int path_index = train->path_index;
     struct SimplePath cur_path = train->plan.paths[path_index];
 
-    // last node is either in the current path or the last node of last simple path.
-    int start = (cur_path.start_index - 1 >= 0) ? cur_path.start_index - 1 : cur_path.start_index;
-    int last_node_index_path = -1;
-    for (int i = start; i <= cur_path.end_index; i++) {
-      if (plan.path.nodes[i]->index == last_node->index) {
-        last_node_index_path = i;
-        break;
-      }
-    }
-    if (last_node_index_path == -1) {
-      TerminalLogPrint(terminal, "last_know_pos can not be found in recent simple path.");
-      break;
-    }
+    struct TrackNode *last_sensor = train->last_known_pos.position.node;
+    int last_node_index = train->last_sensor_index;
 
-    // nodes to be reserved by the train
-    int range = (last_node_index_path + 5) >= (plan.path.nodes_len - 1)
-                    ? (plan.path.nodes_len - 1)
-                    : (last_node_index_path + 5);
+    int time = Time(clock_server);
+
+    train_update_terminal(terminal, train, time);
+
+    update_train_pos(time, train);
+
     // reserve at most 5 sensors ahead
+    // nodes to be reserved by the train
+    int range = max(last_node_index - 5, 0);
     bool success_res = true;
     enum TrainState previous_state = train->state;
-    for (int i = last_node_index_path + 1; i <= range; i++) {
+
+    for (int i = range; i >= 0; --i) {
       struct TrackNode *node = plan.path.nodes[i];
       int zone = node->zone;
+
       if (!ReserveTrack(zone, train->train_index)) {
         train->state = LOCKED;
         TrainSetSpeed(train_tid, train->train, 0);
@@ -917,6 +912,7 @@ static void handle_tick(
         break;
       }
     }
+
     if (success_res) {
       if (train->state == LOCKED) {
         train->state = STOPPED;
@@ -926,28 +922,22 @@ static void handle_tick(
       // record the locking start time
       if (previous_state != LOCKED) {
         // first time locked
-        train->lock_begin_time = Time(clock_server);
+        train->lock_begin_time = time;
         TerminalLogPrint(terminal, "train %d is locked.", train->train);
       }
+
       // reroute after 10s waiting
-      if (Time(clock_server) - train->lock_begin_time >= 1000) {
-        train->lock_begin_time = Time(clock_server);
+      if (time - train->lock_begin_time >= DEADLOCK_DURATION) {
+        train->lock_begin_time = time;
         TrainReverse(train_tid, train->train);
 
         route_train_randomly(terminal, train_planner, train);
-
         train->state = LOCKED;
-        train->path_index = 0;
-        train->last_sensor_index = -1;
-        train->last_switch_index = -1;
       }
+
       continue;
     }
 
-    int time = Time(clock_server);
-    train_update_terminal(terminal, train, time);
-
-    update_train_pos(time, train);
     struct Path *path = &train->plan.path;
 
     // TODO:
@@ -1206,7 +1196,7 @@ static void handle_tick(
 // train 58 - C4
 // train 77 - B9
 // train 78 - C3
-int initial_sensors[] = {0, 35, 14, 9, 4, 9, 24, 34};
+int initial_sensors[] = {0, 35, 14, 9, 4, 12, 24, 34};
 int active_trains[] = {58};
 int train_speeds[] = {10, 10, 10, 10, 10, 10, 10, 10};
 
