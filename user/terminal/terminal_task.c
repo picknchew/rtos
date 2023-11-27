@@ -148,7 +148,7 @@ void terminal_task() {
   int terminal_screen = WhoIs("terminal");
   int train_tid = WhoIs("train");
   int train_calib_tid = WhoIs("train_calib");
-  int train_router_tid = WhoIs("train_router");
+  int train_manager_tid = WhoIs("train_manager");
 
   Create(TERMINAL_TASK_PRIORITY, terminal_key_press_task);
 
@@ -160,7 +160,7 @@ void terminal_task() {
   while (true) {
     Receive(&tid, (char *) &ch, sizeof(ch));
 
-    if (terminal_handle_keypress(&terminal, train_tid, train_calib_tid, train_router_tid, ch)) {
+    if (terminal_handle_keypress(&terminal, train_tid, train_calib_tid, train_manager_tid, ch)) {
       TerminalUpdateStatus(terminal_screen, "Exited.");
       Exit();
     }

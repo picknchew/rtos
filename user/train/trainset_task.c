@@ -71,10 +71,10 @@ void train_task() {
 
     switch (req.type) {
       case SET_SPEED:
-        Reply(tid, NULL, 0);
         trainset_set_train_speed(
             &trainset, terminal, req.set_train_speed_req.train, req.set_train_speed_req.speed
         );
+        Reply(tid, NULL, 0);
         break;
       case SET_SWITCH_DIR:
         Reply(tid, NULL, 0);
@@ -92,10 +92,10 @@ void train_task() {
         trainset_train_reverse(&trainset, terminal, req.reverse_req.train);
         break;
       case REVERSE_TRAIN_INSTANT:
-        Reply(tid, NULL, 0);
         trainset_set_train_speed(
             &trainset, terminal, req.reverse_req.train, SPEED_REVERSE_DIRECTION
         );
+        Reply(tid, NULL, 0);
         break;
       case IS_VALID_TRAIN:
         res.is_valid_train = trainset_is_valid_train(req.is_valid_train_req.train);

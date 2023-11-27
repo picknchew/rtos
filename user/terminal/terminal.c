@@ -24,7 +24,7 @@ bool terminal_execute_command(
     struct Terminal *terminal,
     int train_tid,
     int train_calib_tid,
-    int train_router_tid,
+    int train_manager_tid,
     char *command
 ) {
   char *saveptr = NULL;
@@ -189,16 +189,10 @@ bool terminal_execute_command(
     );
 
     TrainCalibratorBeginShortMove(train_calib_tid, train_number, train_speed, train_timetostop);
-  } else if (strcmp("rt", command_name)) {
+  } else if (strcmp("rt1", command_name)) {
     char *str_train_number = strtok_r(NULL, CHAR_DELIMITER, &saveptr);
     if (!str_train_number || !is_number(str_train_number)) {
       TerminalUpdateStatus(terminal->screen_tid, "Train provided is not a valid train!");
-      return false;
-    }
-
-    char *str_train_speed = strtok_r(NULL, CHAR_DELIMITER, &saveptr);
-    if (!str_train_speed || !is_number(str_train_speed)) {
-      TerminalUpdateStatus(terminal->screen_tid, "Must provide a valid speed!");
       return false;
     }
 
@@ -207,59 +201,68 @@ bool terminal_execute_command(
       TerminalUpdateStatus(terminal->screen_tid, "Must provide a valid sensor!");
       return false;
     }
-    // TODO: better error checking for dest sensor
-
-    char *str_dest_offset = strtok_r(NULL, CHAR_DELIMITER, &saveptr);
-    if (!str_dest_offset || !is_number(str_dest_offset)) {
-      TerminalUpdateStatus(terminal->screen_tid, "Must provide a valid offset!");
-    }
 
     int train_number = atoi(str_train_number);
-    int train_speed = atoi(str_train_speed);
-
-    int dest_offset = atoi(str_dest_offset);
-
     if (!trainset_is_valid_train(train_number)) {
       TerminalUpdateStatus(terminal->screen_tid, "Train provided is not a valid train!");
       return false;
     }
 
-    if (train_speed < 0 || train_speed > 14) {
-      TerminalUpdateStatus(terminal->screen_tid, "Must provide a valid speed!");
-      return false;
-    }
-
-    if (dest_offset < 0) {
-      TerminalUpdateStatus(terminal->screen_tid, "Must provide a valid sensor offset!");
-      return false;
-    }
     TerminalUpdateStatus(
         terminal->screen_tid,
-        "Beginning routing of train %d at speed %d to sensor %s with offset %d",
+        "Beginning routing of train %d at A5 to sensor %s",
         train_number,
-        train_speed,
-        str_dest_sensor,
-        dest_offset
+        str_dest_sensor
     );
 
-    static const int loop_switches[] = {14, 13, 10, 9, 8, 17, 16, 15};
-    static int loop_switch_dirs[] = {
-        TRAINSET_DIRECTION_CURVED,
-        TRAINSET_DIRECTION_STRAIGHT,
-        TRAINSET_DIRECTION_STRAIGHT,
-        TRAINSET_DIRECTION_CURVED,
-        TRAINSET_DIRECTION_CURVED,
-        TRAINSET_DIRECTION_STRAIGHT,
-        TRAINSET_DIRECTION_STRAIGHT,
-        TRAINSET_DIRECTION_CURVED
-    };
-    for (int i = 0; i < 8; i++) {
-      TrainSetSwitchDir(train_tid, loop_switches[i], loop_switch_dirs[i]);
+    TrainManagerRouteOneReturn(train_manager_tid, train_number, str_dest_sensor);
+  } else if (strcmp("rt", command_name)) {
+    char *str_train_number = strtok_r(NULL, CHAR_DELIMITER, &saveptr);
+    if (!str_train_number || !is_number(str_train_number)) {
+      TerminalUpdateStatus(terminal->screen_tid, "Train provided is not a valid train!");
+      return false;
     }
 
-    TrainRouterRouteTrain(
-        train_router_tid, train_number, train_speed, str_dest_sensor, dest_offset
+    char *str_train_number2 = strtok_r(NULL, CHAR_DELIMITER, &saveptr);
+    if (!str_train_number2 || !is_number(str_train_number2)) {
+      TerminalUpdateStatus(terminal->screen_tid, "Train provided is not a valid train!");
+      return false;
+    }
+
+    char *str_dest_sensor = strtok_r(NULL, CHAR_DELIMITER, &saveptr);
+    if (!str_dest_sensor || strlen(str_dest_sensor) > 3) {
+      TerminalUpdateStatus(terminal->screen_tid, "Must provide a valid sensor!");
+      return false;
+    }
+    
+    char *str_dest_sensor2 = strtok_r(NULL, CHAR_DELIMITER, &saveptr);
+    if (!str_dest_sensor2 || strlen(str_dest_sensor2) > 3) {
+      TerminalUpdateStatus(terminal->screen_tid, "Must provide a valid sensor!");
+      return false;
+    }
+
+    int train_number = atoi(str_train_number);
+    if (!trainset_is_valid_train(train_number)) {
+      TerminalUpdateStatus(terminal->screen_tid, "Train provided is not a valid train!");
+      return false;
+    }
+
+    int train_number2 = atoi(str_train_number2);
+    if (!trainset_is_valid_train(train_number2)) {
+      TerminalUpdateStatus(terminal->screen_tid, "Train provided is not a valid train!");
+      return false;
+    }
+
+    TerminalUpdateStatus(
+        terminal->screen_tid,
+        "Beginning routing of train %d/%d at A5/C3 to sensors %s/%s",
+        train_number,
+        train_number2,
+        str_dest_sensor,
+        str_dest_sensor2
     );
+
+    TrainManagerRouteReturn(train_manager_tid, train_number, train_number2, str_dest_sensor, str_dest_sensor2);
   } else if (strcmp("track", command_name)) {
     char *str_track = strtok_r(NULL, CHAR_DELIMITER, &saveptr);
     if (!str_track || strlen(str_track) != 1) {
@@ -280,6 +283,38 @@ bool terminal_execute_command(
           terminal->screen_tid, "Track provided is not a valid track! Entered %s", str_track
       );
     }
+  } else if (strcmp("rd", command_name)) {
+    char *str_train_number = strtok_r(NULL, CHAR_DELIMITER, &saveptr);
+    if (!str_train_number || !is_number(str_train_number)) {
+      TerminalUpdateStatus(terminal->screen_tid, "Train provided is not a valid train!");
+      return false;
+    }
+
+    char *str_train_number2 = strtok_r(NULL, CHAR_DELIMITER, &saveptr);
+    if (!str_train_number2 || !is_number(str_train_number2)) {
+      TerminalUpdateStatus(terminal->screen_tid, "Train provided is not a valid train!");
+      return false;
+    }
+
+    int train_number = atoi(str_train_number);
+    if (!trainset_is_valid_train(train_number)) {
+      TerminalUpdateStatus(terminal->screen_tid, "Train provided is not a valid train!");
+      return false;
+    }
+
+    int train_number2 = atoi(str_train_number2);
+    if (!trainset_is_valid_train(train_number2)) {
+      TerminalUpdateStatus(terminal->screen_tid, "Train provided is not a valid train!");
+      return false;
+    }
+
+    TrainManagerRandomlyRoute(train_manager_tid, train_number, train_number2);
+    TerminalUpdateStatus(
+        terminal->screen_tid,
+        "Beginning random routing of trains %d/%d at A5/C3.",
+        train_number,
+        train_number2
+    );
   } else {
     TerminalUpdateStatus(terminal->screen_tid, "Invalid command!");
   }
@@ -295,13 +330,13 @@ bool terminal_handle_keypress(
     struct Terminal *terminal,
     int train_tid,
     int train_calib_tid,
-    int train_router_tid,
+    int train_manager_tid,
     char c
 ) {
   if (c == CHAR_COMMAND_END) {
     terminal->command_buffer[terminal->command_len] = '\0';
     bool exit = terminal_execute_command(
-        terminal, train_tid, train_calib_tid, train_router_tid, terminal->command_buffer
+        terminal, train_tid, train_calib_tid, train_manager_tid, terminal->command_buffer
     );
     terminal_clear_command_buffer(terminal);
     TerminalUpdateCommand(terminal->screen_tid, terminal->command_buffer, terminal->command_len);

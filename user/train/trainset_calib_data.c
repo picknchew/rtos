@@ -9,11 +9,11 @@ int TRAINSET_ACCEL_TIMES[TRAINSET_NUM_TRAINS][TRAIN_SPEED_MAX + 1];
 int TRAINSET_DECEL_TIMES[TRAINSET_NUM_TRAINS][TRAIN_SPEED_MAX + 1];
 
 // distances in mm scaled by 10
-static FixedPointInt train47_dists[] = {69, 122, 276, 560, 2437, 7000, 11100};
-static int train58_delays[] = {40, 50, 75, 100, 200, 300, 400};
+static FixedPointInt train47_dists[] = {65, 122, 275, 560, 2438, 7000, 11100};
+static int train47_delays[] = {40, 50, 75, 100, 200, 300, 400};
 
 static FixedPointInt train58_dists[] = {105, 175, 528, 945, 4576};
-static int train47_delays[] = {40, 50, 75, 100, 200};
+static int train58_delays[] = {40, 50, 75, 100, 200};
 
 static FixedPointInt train54_dists[] = {51, 118, 283, 495, 5758, 7790, 9855, 11460, 12500, 17900};
 static int train54_delays[] = {40, 50, 75, 100, 300, 325, 350, 375, 400, 500};
@@ -93,9 +93,9 @@ void trainset_calib_data_init() {
   TRAINSET_MEASURED_SPEEDS[trainset_get_train_index(47)][13] = 566;
   TRAINSET_STOPPING_DISTANCES[trainset_get_train_index(47)][13] = 920;
 
-  TRAINSET_MEASURED_SPEEDS[trainset_get_train_index(47)][10] = 477;
+  TRAINSET_MEASURED_SPEEDS[trainset_get_train_index(47)][10] = 360; //477
   TRAINSET_STOPPING_DISTANCES[trainset_get_train_index(47)][10] = 885;
-  TRAINSET_ACCEL_DISTANCES[trainset_get_train_index(47)][10] = 379;
+  TRAINSET_ACCEL_DISTANCES[trainset_get_train_index(47)][10] = 379; // 379
   TRAINSET_ACCEL_TIMES[trainset_get_train_index(47)][10] = 436;
 
   TRAINSET_MEASURED_SPEEDS[trainset_get_train_index(47)][7] = 351;
