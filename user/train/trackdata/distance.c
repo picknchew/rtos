@@ -8,7 +8,8 @@
 #include "track_data.h"
 
 // TESTED
-struct TrackDistance track_distance(struct TrackNode *track, struct TrackNode begin) {
+struct TrackDistance
+track_distance(struct TrackNode *track, struct TrackNode begin, struct TrackNode end) {
   // struct TrackNode *track;
   // tracka_init(track);
   // from sensor A3
@@ -22,7 +23,7 @@ struct TrackDistance track_distance(struct TrackNode *track, struct TrackNode be
   while (true) {
     // nextnode = *sensor.edge[DIR_AHEAD].dest;
     // dist+=sensor.edge[DIR_AHEAD].dist;
-    if ((dist != 0) && (node.num == begin.num)) {
+    if ((dist != 0) && (node.index == end.index)) {
       // loop
       ret.distance = dist;
       ret.end = node.name;

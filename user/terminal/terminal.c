@@ -147,6 +147,48 @@ bool terminal_execute_command(
     );
 
     TrainCalibratorBeginCalibration(train_calib_tid, train_number, train_speed);
+     } else if (strcmp("sm", command_name)) {
+    char *str_train_number = strtok_r(NULL, CHAR_DELIMITER, &saveptr);
+    if (!str_train_number || !is_number(str_train_number)) {
+      TerminalUpdateStatus(terminal->screen_tid, "Train provided is not a valid train!");
+      return false;
+    }
+
+    char *str_train_speed = strtok_r(NULL, CHAR_DELIMITER, &saveptr);
+    if (!str_train_speed || !is_number(str_train_speed)) {
+      TerminalUpdateStatus(terminal->screen_tid, "Must provide a valid speed!");
+      return false;
+    }
+
+    char *str_train_time = strtok_r(NULL, CHAR_DELIMITER, &saveptr);
+    if (!is_number(str_train_speed)) {
+      TerminalUpdateStatus(terminal->screen_tid, "Must provide a valid speed!");
+      return false;
+    }
+
+    int train_number = atoi(str_train_number);
+    int train_speed = atoi(str_train_speed);
+    int train_timetostop = atoi(str_train_time);
+
+    if (!trainset_is_valid_train(train_number)) {
+      TerminalUpdateStatus(terminal->screen_tid, "Train provided is not a valid train!");
+      return false;
+    }
+
+    if (train_speed < 0 || train_speed > 14) {
+      TerminalUpdateStatus(terminal->screen_tid, "Must provide a valid speed!");
+      return false;
+    }
+
+    TerminalUpdateStatus(
+        terminal->screen_tid,
+        "Beginning short move of train %d at speed %d stop after %d",
+        train_number,
+        train_speed,
+        train_timetostop
+    );
+
+    TrainCalibratorBeginShortMove(train_calib_tid, train_number, train_speed, train_timetostop);
   } else if (strcmp("rt", command_name)) {
     char *str_train_number = strtok_r(NULL, CHAR_DELIMITER, &saveptr);
     if (!str_train_number || !is_number(str_train_number)) {

@@ -9,14 +9,14 @@ int TRAINSET_ACCEL_TIMES[TRAINSET_NUM_TRAINS][TRAIN_SPEED_MAX + 1];
 int TRAINSET_DECEL_TIMES[TRAINSET_NUM_TRAINS][TRAIN_SPEED_MAX + 1];
 
 // distances in mm scaled by 10
-static FixedPointInt train58_dists[] = {69, 122, 276, 560, 2437};
-static int train58_delays[] = {40, 50, 75, 100, 200};
+static FixedPointInt train47_dists[] = {69, 122, 276, 560, 2437, 7000, 11100};
+static int train58_delays[] = {40, 50, 75, 100, 200, 300, 400};
 
-static FixedPointInt train47_dists[] = {105, 175, 528, 945, 4576};
+static FixedPointInt train58_dists[] = {105, 175, 528, 945, 4576};
 static int train47_delays[] = {40, 50, 75, 100, 200};
 
-static FixedPointInt train54_dists[] = {51, 118, 283, 495, 5758, 7790, 9855, 11460, 12500};
-static int train54_delays[] = {40, 50, 75, 100, 300, 325, 350, 375, 400};
+static FixedPointInt train54_dists[] = {51, 118, 283, 495, 5758, 7790, 9855, 11460, 12500, 17900};
+static int train54_delays[] = {40, 50, 75, 100, 300, 325, 350, 375, 400, 500};
 
 static void shortmove_dist_init(FixedPointInt *dists, int len);
 
@@ -109,12 +109,18 @@ void trainset_calib_data_init() {
   }
 
   shortmove_dist_init(train58_dists, 5);
-  shortmove_dist_init(train54_dists, 9);
-  shortmove_dist_init(train47_dists, 5);
+  shortmove_dist_init(train54_dists, 10);
+  shortmove_dist_init(train47_dists, 7);
 }
 
 // first two points are for the line
-int interpolate_linear(FixedPointInt x1, int64_t y1, FixedPointInt x2, int64_t y2, int interpolate_x) {
+int interpolate_linear(
+    FixedPointInt x1,
+    int64_t y1,
+    FixedPointInt x2,
+    int64_t y2,
+    int interpolate_x
+) {
   FixedPointInt slope = fixed_point_int_from(fixed_point_int_from(y2 - y1)) / (x2 - x1);
   FixedPointInt b = fixed_point_int_from(y1) - fixed_point_int_get(slope * x1);
 
@@ -158,10 +164,10 @@ int shortmove_get_duration(int train, int speed, int dist) {
       ret = interpolate(train58_dists, train58_delays, 5, dist);
       break;
     case 54:
-      ret = interpolate(train54_dists, train54_delays, 9, dist);
+      ret = interpolate(train54_dists, train54_delays, 10, dist);
       break;
     case 47:
-      ret = interpolate(train47_dists, train47_delays, 5, dist);
+      ret = interpolate(train47_dists, train47_delays, 7, dist);
       break;
   }
 
