@@ -162,10 +162,10 @@ uint64_t rand() {
 }
 
 // https://stackoverflow.com/a/1101217
-uint32_t sqrt(uint32_t n) {
-  uint32_t op = n;
-  uint32_t res = 0;
-  uint32_t one = 1uL << 30;  // The second-to-top bit is set: use 1u << 14 for uint16_t type; use
+int64_t sqrt(int64_t n) {
+  int64_t op = n;
+  int64_t res = 0;
+  int64_t one = 1uL << 62;  // The second-to-top bit is set: use 1u << 14 for uint16_t type; use
                              // 1uL<<30 for uint32_t type
 
   // "one" starts at the highest power of four <= than the argument.

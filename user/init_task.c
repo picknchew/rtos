@@ -1,6 +1,7 @@
 #include "init_task.h"
 
 #include "idle_task.h"
+#include "irq.h"
 #include "server/clock_server.h"
 #include "server/io_server.h"
 #include "server/name_server.h"
@@ -14,11 +15,11 @@
 #include "test/testk3.h"
 #include "timer.h"
 #include "train/train_dispatcher.h"
+#include "train/train_manager.h"
 #include "train/train_planner.h"
 #include "train/train_router.h"
 #include "train/train_sensor_notifier.h"
 #include "train/trainset_task.h"
-#include "train/train_manager.h"
 
 void init_task() {
 #if BENCHMARK
@@ -44,10 +45,9 @@ void init_task() {
   Create(TRAIN_TASK_PRIORITY, train_task);
   // Create(TRAIN_TASK_PRIORITY, train_router_task);
   Create(TRAIN_TASK_PRIORITY, train_planner_task);
-  Create(TRAIN_TASK_PRIORITY, train_manager_task);
+  Create(3, train_manager_task);
 
-  Create(TRAIN_TASK_PRIORITY, train_sensor_notifier_task);
-
+  Create(NOTIFIER_PRIORITY, train_sensor_notifier_task);
 
   Create(TERMINAL_TASK_PRIORITY, terminal_task);
 

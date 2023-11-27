@@ -15,10 +15,10 @@ static int train58_delays[] = {40, 50, 75, 100, 200};
 static FixedPointInt train47_dists[] = {105, 175, 528, 945, 4576};
 static int train47_delays[] = {40, 50, 75, 100, 200};
 
-static FixedPointInt train54_dists[] = {51, 118, 283, 495, 5758};
-static int train54_delays[] = {40, 50, 75, 100, 300};
+static FixedPointInt train54_dists[] = {51, 118, 283, 495, 5758, 7790, 9855, 11460, 12500};
+static int train54_delays[] = {40, 50, 75, 100, 300, 325, 350, 375, 400};
 
-static void shortmove_dist_init(FixedPointInt *dists);
+static void shortmove_dist_init(FixedPointInt *dists, int len);
 
 void trainset_calib_data_init() {
   for (int i = 0; i < TRAINSET_NUM_TRAINS; ++i) {
@@ -108,9 +108,9 @@ void trainset_calib_data_init() {
     }
   }
 
-  shortmove_dist_init(train58_dists);
-  shortmove_dist_init(train54_dists);
-  shortmove_dist_init(train47_dists);
+  shortmove_dist_init(train58_dists, 5);
+  shortmove_dist_init(train54_dists, 5);
+  shortmove_dist_init(train47_dists, 5);
 }
 
 // first two points are for the line
@@ -138,8 +138,8 @@ int interpolate(FixedPointInt *dists, int *delays, int len, int x) {
   return interpolate_linear(x1, y1, x2, y2, x);
 }
 
-static void shortmove_dist_init(FixedPointInt *dists) {
-  for (int i = 0; i < 5; ++i) {
+static void shortmove_dist_init(FixedPointInt *dists, int len) {
+  for (int i = 0; i < len; ++i) {
     // dists are scaled by 10, scale them so they are fixed point ints.
     dists[i] *= FIXED_POINT_MULTIPLIER / 10;
   }
@@ -158,7 +158,7 @@ int shortmove_get_duration(int train, int speed, int dist) {
       ret = interpolate(train58_dists, train58_delays, 5, dist);
       break;
     case 54:
-      ret = interpolate(train54_dists, train54_delays, 5, dist);
+      ret = interpolate(train54_dists, train54_delays, 9, dist);
       break;
     case 47:
       ret = interpolate(train47_dists, train47_delays, 5, dist);

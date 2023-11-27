@@ -11,7 +11,7 @@
 #include "user/server/name_server.h"
 #include "user/train/train_calibrator.h"
 
-const int TERMINAL_TASK_PRIORITY = 3;
+const int TERMINAL_TASK_PRIORITY = 4;
 
 void terminal_key_press_task() {
   int terminal = MyParentTid();

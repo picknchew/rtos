@@ -12,7 +12,7 @@
 #define VELOCITY_BASE_LINE 24
 static int velocity_offset = 0;
 
-#define LOG_BASE_LINE 0
+#define LOG_BASE_LINE 1
 static int log_offset = 0;
 
 static const int SWITCHES_TITLE_ROW = 5;
@@ -22,6 +22,8 @@ static const int SECOND_COL = 40;
 
 static const int THIRD_COL = 140;
 static int TRAIN_INFO_ROW = 23;
+
+static int log_num = 0;
 
 static void init_switch_states(struct TerminalScreen *screen) {
   velocity_offset = 0;
@@ -124,10 +126,11 @@ static char get_switch_dir_char(enum SwitchDirection dir) {
 static void update_status_va(struct TerminalScreen *screen, char *fmt, va_list va) {
   terminal_save_cursor(screen);
   terminal_move_cursor(screen, 20, 1);
-  terminal_cursor_delete_line(screen);
   terminal_puts(screen, "\033[32m");
 
   terminal_format_print(screen, fmt, va);
+  // padding to clear previous values
+  terminal_printf(screen, "%64c", ' ');
 
   terminal_cursor_reset_text(screen);
   terminal_restore_cursor(screen);
@@ -182,7 +185,8 @@ static void update_command(struct TerminalScreen *screen, char *command, unsigne
   terminal_move_cursor(screen, 19, 1);
   terminal_puts(screen, "> ");
   terminal_putl(screen, command, len);
-  terminal_cursor_delete_line(screen);
+  // padding to clear previous values
+  terminal_printf(screen, "%64c", ' ');
   terminal_restore_cursor(screen);
 }
 
@@ -245,7 +249,8 @@ static void update_sensors(struct TerminalScreen *screen, bool *sensors, size_t 
       terminal_printf(screen, " %c%d", ch, i % 16 + 1);
     }
   }
-  terminal_cursor_delete_line(screen);
+  // padding to clear previous values
+  terminal_printf(screen, "%20c", ' ');
 
   terminal_restore_cursor(screen);
 }
@@ -268,10 +273,9 @@ update_idle(struct TerminalScreen *screen, uint64_t idle, int idle_pct, int rece
 
   terminal_print_title(screen, "Idle time: ");
   terminal_printf(
-      screen, "(%u%% of uptime) %u:%u:%u:%u", idle_pct, hours, minutes, seconds, centiseconds
+      screen, "(%u%% of uptime) %u:%u:%u:%5u", idle_pct, hours, minutes, seconds, centiseconds
   );
 
-  terminal_cursor_delete_line(screen);
   terminal_restore_cursor(screen);
 }
 
@@ -296,20 +300,20 @@ print_loop_time(struct TerminalScreen *screen, int train, int speed, int time, i
   terminal_restore_cursor(screen);
 }
 
-int logOffset = 0;
-
 static void log_print_va(struct TerminalScreen *screen, char *fmt, va_list va) {
   terminal_save_cursor(screen);
   terminal_move_cursor(screen, LOG_BASE_LINE + log_offset, THIRD_COL);
-  terminal_cursor_delete_line(screen);
   ++log_offset;
+  terminal_printf(screen, "[%d] ", log_num);
   terminal_format_print(screen, fmt, va);
   terminal_restore_cursor(screen);
+  
+  ++log_num;
 
   // restart at the top and overwrite
   terminal_save_cursor(screen);
   if (log_offset == 81) {
-    for (int i = 0; i < 80; ++i) {
+    for (int i = 0; i < 81; ++i) {
       terminal_move_cursor(screen, LOG_BASE_LINE + i, THIRD_COL);
       terminal_cursor_delete_line(screen);
     }
@@ -328,6 +332,8 @@ static void print_next_sensor_time(struct TerminalScreen *screen, int time) {
 }
 
 static void screen_init(struct TerminalScreen *screen) {
+  log_num = 0;
+
   terminal_clear_screen(screen);
   terminal_hide_cursor(screen);
 

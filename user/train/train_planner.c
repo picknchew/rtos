@@ -49,7 +49,10 @@ static void reserve_track_direction(struct TrackEdge *edge) {
 static struct TrackNodePriorityQueue queue;
 
 // Dijikstra's algorithm
-static struct Path get_shortest_path(struct TrackNode *src, struct TrackNode *dest) {
+static struct Path get_shortest_path(struct TrainPosition *src, struct TrackNode *dest) {
+  int terminal = WhoIs("terminal");
+  struct TrackNode *src_node = src->position.node;
+
   // cost includes cost for reversing.
   int cost[TRACK_MAX] = {0};
   // initially filled with null
@@ -58,7 +61,7 @@ static struct Path get_shortest_path(struct TrackNode *src, struct TrackNode *de
 
   for (int i = 0; i < TRACK_MAX; ++i) {
     struct TrackNode *node = &track[i];
-    if (node != src && node) {
+    if (node != src_node && node) {
       cost[i] = INT_MAX;
       prev[i] = NULL;
     }
@@ -66,7 +69,7 @@ static struct Path get_shortest_path(struct TrackNode *src, struct TrackNode *de
     track_node_priority_queue_add(&queue, node, cost[i]);
   }
 
-  directions[src->index] = DIR_AHEAD;
+  directions[src_node->index] = src->last_dir;
   // directions[src->reverse->index] = DIR_REVERSE;
 
   while (!track_node_priority_queue_empty(&queue)) {
@@ -84,7 +87,8 @@ static struct Path get_shortest_path(struct TrackNode *src, struct TrackNode *de
     switch (node->type) {
       case NODE_BRANCH:
         // if a track direction is unavailable, we try to find an alternative path.
-        if (is_track_available(&node->edge[DIR_CURVED])) {
+        if (is_track_available(&node->edge[DIR_CURVED]) &&
+            ((node != src_node) || (node == src_node && src->last_dir == DIR_CURVED))) {
           neighbour = node->edge[DIR_CURVED].dest;
           alt_cost = cost[node->index] + node->edge[DIR_CURVED].dist;
 
@@ -114,9 +118,11 @@ static struct Path get_shortest_path(struct TrackNode *src, struct TrackNode *de
         }
 
         // forward
-        if (!is_track_available(&node->edge[DIR_AHEAD])) {
+        if (!is_track_available(&node->edge[DIR_AHEAD]) ||
+            (node == src_node && src->last_dir != DIR_AHEAD)) {
           break;
         }
+
 
         neighbour = node->edge[DIR_AHEAD].dest;
         alt_cost = cost[node->index] + node->edge[DIR_AHEAD].dist;
@@ -150,7 +156,7 @@ static struct Path get_shortest_path(struct TrackNode *src, struct TrackNode *de
     struct TrackNode *path_node = dest;
     struct TrackNode *prev_node = NULL;
 
-    while (path_node && (path_node != src)) {
+    while (path_node && (path_node != src_node)) {
       // remove extra reverse at the end.
       if (dest_reversed && path_node == dest->reverse) {
         path_node = prev[path_node->index];
@@ -219,7 +225,7 @@ route_plan_init(struct Path *path, struct TrackPosition *src, struct TrackPositi
 enum TrainPlannerRequestType { CREATE_PLAN, TRACK_CROSSED };
 
 struct TrainPlannerCreatePlanRequest {
-  struct TrackPosition *src;
+  struct TrainPosition *src;
   struct TrackPosition *dest;
 };
 
@@ -238,19 +244,26 @@ struct TrainPlannerRequest {
 
 static struct RoutePlan handle_create_plan(struct TrainPlannerCreatePlanRequest *req) {
   int terminal = WhoIs("terminal");
-  struct Path path = get_shortest_path(req->src->node, req->dest->node);
+  struct Path path = get_shortest_path(req->src, req->dest->node);
 
-  if (path.path_found && path.nodes[0] == req->dest->node->reverse) {
+  if (path.path_found && path.nodes[0] == req->dest->node->reverse && req->dest->offset > 0) {
+    // TODO: account for reverse destination node offset
+    // need to remove last node if we're going reverse and subtract offset from previous node
+    // offsets
     int dest_dir = path.directions[0];
     int reverse_offset = req->dest->node->edge[dest_dir].dist - req->dest->offset;
     // change destination to match path if it goes to the reverse node
     struct TrackPosition route_dest = {.node = path.nodes[0], .offset = reverse_offset};
-    struct RoutePlan plan = route_plan_init(&path, req->src, &route_dest);
+    struct RoutePlan plan = route_plan_init(&path, &req->src->position, &route_dest);
+
+    TerminalLogPrint(terminal, "reverse node offset %d", reverse_offset);
 
     return plan;
   }
 
-  struct RoutePlan plan = route_plan_init(&path, req->src, req->dest);
+  TerminalLogPrint(terminal, "returning normal destination with offset %d", req->dest->offset);
+
+  struct RoutePlan plan = route_plan_init(&path, &req->src->position, req->dest);
   return plan;
 }
 
