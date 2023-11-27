@@ -17,5 +17,5 @@ struct RoutePlan {
 
 void train_planner_task();
 
-struct RoutePlan CreatePlan(int tid, struct TrackPosition *src, struct TrackPosition *dest);
+struct RoutePlan CreatePlan(int tid, struct TrainPosition *src, struct TrackPosition *dest);
 void TrackCrossed(int tid, struct TrackEdge *edge);

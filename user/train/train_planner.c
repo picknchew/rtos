@@ -310,7 +310,7 @@ void train_planner_task() {
   }
 }
 
-struct RoutePlan CreatePlan(int tid, struct TrackPosition *src, struct TrackPosition *dest) {
+struct RoutePlan CreatePlan(int tid, struct TrainPosition *src, struct TrackPosition *dest) {
   struct TrainPlannerRequest req = {
       .type = CREATE_PLAN, .create_plan_req = {.src = src, .dest = dest}
   };

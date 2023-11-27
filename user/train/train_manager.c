@@ -688,8 +688,7 @@ static int get_next_switch_index(struct Train *train) {
 
 void route_train_randomly(int terminal, int train_planner, struct Train *train) {
   struct TrackPosition rand_dest = track_position_random(terminal);
-  // struct TrackPosition rand_dest = {.node = &track[44], .offset = 0};
-  train->plan = CreatePlan(train_planner, &train->est_pos.position, &rand_dest);
+  train->plan = CreatePlan(train_planner, &train->est_pos, &rand_dest);
 
   while (!train->plan.path_found) {
     TerminalLogPrint(
@@ -699,7 +698,7 @@ void route_train_randomly(int terminal, int train_planner, struct Train *train) 
         train->est_pos.position.node->name
     );
     rand_dest = track_position_random(terminal);
-    train->plan = CreatePlan(train_planner, &train->est_pos.position, &rand_dest);
+    train->plan = CreatePlan(train_planner, &train->est_pos, &rand_dest);
   }
 
   TerminalLogPrint(
@@ -769,19 +768,19 @@ static void train_update_next_sensor(struct Train *train, int current_time) {
 
     TerminalLogPrint(terminal, "next sensor is %s", train->next_sensor->name);
 
-    // // check if sensor is currently in the current simple path.
-    // struct SimplePath *cur_path = &train->plan.paths[train->path_index];
-    // if (cur_path->start_index >= next_sensor_index && next_sensor_index <= cur_path->end_index) {
-    //   // if it isn't in the current path, we can't provide an estimate yet
-    //   train->next_sensor_eta = 0;
-    //   return;
-    // }
+    // check if sensor is currently in the current simple path.
+    struct SimplePath *cur_path = &train->plan.paths[train->path_index];
+    if (cur_path->start_index >= next_sensor_index && next_sensor_index <= cur_path->end_index) {
+      // if it isn't in the current path, we can't provide an estimate yet
+      train->next_sensor_eta = 0;
+      return;
+    }
 
-    // struct TrackPosition next_sensor_pos = {.node = train->next_sensor, .offset = 0};
+    struct TrackPosition next_sensor_pos = {.node = train->next_sensor, .offset = 0};
 
-    // int dist_to_sensor =
-    //     get_distance_between(&train->plan.path, &train->est_pos.position, &next_sensor_pos);
-    // train->next_sensor_eta = train_get_travel_time(train, dist_to_sensor, current_time);
+    int dist_to_sensor =
+        get_distance_between(&train->plan.path, &train->est_pos.position, &next_sensor_pos, true);
+    train->next_sensor_eta = train_get_travel_time(train, dist_to_sensor, current_time);
   } else {
     train->next_sensor = NULL;
     train->next_sensor_eta = 0;
@@ -967,10 +966,8 @@ static void handle_tick(
           // train_position_add(train->est_pos, &train->plan.path, TRAIN_LEN);
 
           train->est_pos.position.node = train->est_pos.position.node->reverse;
-          // // TODO: account for length of train (5cm from sensor hit to front of other side).
-          // maybe make this value negative for reverse_node and add TRAIN_LEN
           train->est_pos.position.offset = -train->est_pos.position.offset + TRAIN_LEN;
-          // train->est_pos.position.offset = 0;
+
           TerminalLogPrint(terminal, "state change to STOPPED from PATH_BEGIN");
           TerminalLogPrint(terminal, "reversing");
           train->state = STOPPED;
@@ -1185,18 +1182,14 @@ static void handle_update_sensors_request(
       continue;
     }
 
-    TerminalLogPrint(terminal, "before get_next_sensor_index");
     int current_sensor_index = get_next_sensor_index(train);
     if (current_sensor_index != -1) {
       train->last_sensor_index = current_sensor_index;
     }
-    TerminalLogPrint(terminal, "before after_next_sensor_index");
 
     train->sensor_eta_error = train->next_sensor_eta - time;
 
-    TerminalLogPrint(terminal, "before update next sensor");
     train_update_next_sensor(train, time);
-    TerminalLogPrint(terminal, "after update next sensor");
 
     // TODO: only set speed if we haven't already seen this sensor
     if (train->state == CONSTANT_VELOCITY) {

@@ -77,6 +77,8 @@ void train_sensor_notifier_task() {
       max_time_taken = time_taken;
       TerminalUpdateMaxSensorDuration(terminal, time_taken);
     }
+
+    Delay(clock_server, 5);
   }
 
   Exit();
