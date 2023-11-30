@@ -1080,13 +1080,12 @@ static void handle_tick(
 
           for (int i = last_node_index; i >= 0; --i) {
             struct TrackNode *node = plan.path.nodes[i];
-            if (node->index == dest->index) {
-              break;
-            }
-
             int zone = node->zone;
             if ((node->type==NODE_SENSOR)&&(!ReserveTrack(zone, train->train_index))) {
               success_res = false;
+              break;
+            }
+            if (node->index == dest->index) {
               break;
             }
           }
