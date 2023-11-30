@@ -138,11 +138,13 @@ static void init_train_zones(struct TerminalScreen *screen, char track) {
   terminal_move_cursor(screen, ZONE_RESERVATION_BASE_LINE, ZONE_RESERVATION_BASE_COL);
   if (track=='A'){
     // zones_a_init();
-    terminal_puts(screen, track_a);
+    // terminal_puts(screen, track_a);
+    terminal_printf(screen,track_a);
     
   }else {
     // zones_b_init();
-    terminal_puts(screen, track_b);
+    // terminal_puts(screen, track_b);
+    terminal_printf(screen,track_b);
   } 
   terminal_restore_cursor(screen);
 }
@@ -314,7 +316,8 @@ static void update_zone_reservation(struct TerminalScreen *screen, int zone, int
       terminal_printf(screen, "\033[0;37m");
     }
 
-    terminal_putc(screen, '**');
+    terminal_putc(screen, '*');
+    terminal_putc(screen, '*');
   }
 
   terminal_printf(screen, "\033[0;37m");

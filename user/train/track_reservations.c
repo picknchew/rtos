@@ -282,7 +282,7 @@ bool ReserveTrack(int zone_num, int train_index) {
   int terminal = WhoIs("terminal");
 
   if (zones[zone_num].reserved && zones->reservedby != train_index) {
-    TerminalLogPrint(terminal, "failed to reserve zone %d for %d", zone_num, train_index);
+    TerminalLogPrint(terminal, "failed to reserve zone %d for %d, occupied by %d", zone_num, train_index,zones[zone_num].reservedby);
     return false;
   }
 
