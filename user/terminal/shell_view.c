@@ -137,8 +137,11 @@ static void init_train_zones(struct TerminalScreen *screen, char track) {
   terminal_save_cursor(screen);
   terminal_move_cursor(screen, ZONE_RESERVATION_BASE_LINE, ZONE_RESERVATION_BASE_COL);
   if (track=='A'){
+    // zones_a_init();
     terminal_puts(screen, track_a);
+    
   }else {
+    // zones_b_init();
     terminal_puts(screen, track_b);
   } 
   terminal_restore_cursor(screen);
@@ -433,7 +436,6 @@ static void screen_init(struct TerminalScreen *screen) {
 
   terminal_clear_screen(screen);
   terminal_hide_cursor(screen);
-  
   init_switch_states(screen);
   init_train_speeds(screen);
   init_train_info(screen);

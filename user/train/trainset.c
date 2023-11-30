@@ -50,7 +50,7 @@ int trainset_get_sensor_index(char *sensor) {
 
 void trainset_init(struct Trainset *trainset, int train_dispatcher_tid) {
   tracka_init(track);
-  zones_init();
+  zones_a_init();
   trainset_calib_data_init();
 
   trainset->last_track_switch_time = 0;
@@ -142,9 +142,11 @@ void trainset_set_track(struct Trainset *trainset, char track_type) {
   switch (track_type) {
     case 'A':
       tracka_init(track);
+      zones_a_init();
       break;
     case 'B':
       trackb_init(track);
+      zones_b_init();
       break;
     default:
       break;
