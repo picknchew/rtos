@@ -296,7 +296,7 @@ static void update_selected_track(struct TerminalScreen *screen, char track) {
   terminal_print_title(screen, "Selected track: ");
   terminal_putc(screen, track);
   terminal_restore_cursor(screen);
-  init_train_zones(screen,track);
+  // init_train_zones(screen,track);
 }
 
 static void update_zone_reservation(struct TerminalScreen *screen, int zone, int train, int type) {
@@ -463,7 +463,8 @@ struct TerminalView shell_view_create() {
       print_loop_time,
       update_train_info,
       update_zone_reservation,
-      update_selected_track
+      update_selected_track,
+      init_train_zones,
   };
 
   return view;

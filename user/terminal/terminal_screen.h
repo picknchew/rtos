@@ -38,6 +38,7 @@ struct TerminalView {
   );
   void (*update_zone_reservation)(struct TerminalScreen *, int, int, int);
   void (*update_selected_track)(struct TerminalScreen *, char);
+  void (*init_train_zones)(struct TerminalScreen *, char);
   // void (*print_next_sensor)(struct TerminalScreen *, int);
 };
 
@@ -170,6 +171,9 @@ inline void terminal_update_train_info(
 
 inline void terminal_update_selected_track(struct TerminalScreen *screen, char track) {
   screen->view.update_selected_track(screen, track);
+}
+inline void terminal_init_train_zones(struct TerminalScreen *screen, char track) {
+  screen->view.init_train_zones(screen, track);
 }
 
 inline void terminal_print_loop_time(
