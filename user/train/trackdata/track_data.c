@@ -1407,7 +1407,7 @@ void trackb_init(struct TrackNode *track) {
   track[11].edge[DIR_AHEAD].src = &track[11];
   track[11].edge[DIR_AHEAD].dest = &track[15];
   track[11].edge[DIR_AHEAD].dist = 814;
-  track[11].zone = 0;
+  track[11].zone = 3;
   track[12].name = "A13";
   track[12].type = NODE_SENSOR;
   track[12].num = 12;

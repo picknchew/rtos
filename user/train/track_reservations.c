@@ -1,6 +1,7 @@
 #include "track_reservations.h"
 
 #include <stdbool.h>
+// #include <stdio.h>
 
 #include "track_position.h"
 #include "train_manager.h"
@@ -16,30 +17,31 @@
 static struct Zone zones[ZONE_NUMBERS];
 
 // // 20rows 50 cols
-// static const char  *track =
-//   // 012345678901234567890123456789012345678901234567 8 9
-//     "****-*********-**********************-*****     \r\n"//0 0-49
-//     "     *     *                               *    \r\n"//1 50-99
-//     "***-*     *   -********-*******-*****-***   -   \r\n"//2 100
-//     "   *     *  *         *         *        *   *  \r\n"//3 150
-//     "*-*     *  *           -       -           -  * \r\n"//4 200
-//     "       * *              *     *             *  *\r\n"//5 250
-//     "      **                 -   -                **\r\n"//6 300
-//     "      -                   ***                  *\r\n"//7 350
-//     "      *                    *                   *\r\n"//8 400
-//     "      *                    *                   *\r\n"//9 450
-//     "      -                   ***                  *\r\n"//10 500
-//     "      **                 -   -                **\r\n"//11 550
-//     "       * *              *     *             -  *\r\n"//12 600
-//     "*-*     * *            -       -           *  - \r\n"//13 650
-//     "   *     * *          *         *        *   *  \r\n"//14 700
-//     "*-*-*     * ***-*********-***-*****-*****   *   \r\n"//15 750
-//     "     *     ****-*********-***-*****-*******     \r\n"//16 800
-//     "*-***-*               *         *               \r\n"//17 850
-//     "       *               *       *                \r\n"//18 900
-//     "*-*****-*************-**********-************** \r\n";//19 950
+// static const char *track_b =
+// static const char *track_b =
+//      012345678901234567890123456789012345678901234567 8 9
+//     "**************-**********-*************-*****-* \r\n"  // 19 950
+//     "                *       *               *       \r\n"   // 18 900
+//     "               *         *               *-***-*\r\n"   // 17 850
+//     "     *******-*****-***-*********-****     *     \r\n"   // 16 800
+//     "   *   *****-*****-***-*********-*** *     *-*-*\r\n"   // 15 750
+//     "  *   *        *         *          * *     *   \r\n"   // 14 700
+//     " -  *           -       -            * *     -  \r\n"   // 13 650
+//     "*  -             *     *              * *     * \r\n"   // 12 600
+//     "**                -   -                 **    * \r\n"   // 11 550
+//     "*                  ***                   -    * \r\n"   // 10 500
+//     "*                   *                    *    * \r\n"   // 9 450
+//     "*                   *                    *    * \r\n"   // 8 400
+//     "*                  ***                   -    * \r\n"   // 7 350
+//     "**                -   -                 **    * \r\n"   // 6 300
+//     "*  *             *     *              * *     * \r\n"   // 5 250
+//     " *  -           -       -           *  *     -  \r\n"   // 4 200
+//     "  *   *        *         *         *  *     *   \r\n"   // 3 150
+//     "   -   ***-*****-*******-********-   *     *-***\r\n"   // 2 100
+//     "    *                               *     *     \r\n"   // 1 50-99
+//     "     *****-**********************-*********-****\r\n";   // 0 0-49
 
-void zones_init() {
+void zones_a_init() {
   // *(*(track + 2) + 1) = ".";
   for (int i = 0; i < ZONE_NUMBERS; i++) {
     zones[i].id = i;
@@ -78,14 +80,14 @@ void zones_init() {
   zones[4].tracks[12] = 100 + 10;
   zones[4].tracks[13] = 150 + 3;
   zones[4].tracks[14] = 150 + 9;
-  zones[4].tracks[15] = 200 + 2;
+  zones[4].tracks[22] = 200 + 2;
   zones[4].tracks[16] = 200 + 8;
   zones[4].tracks[17] = 150 + 12;
   zones[4].tracks[18] = 200 + 11;
   zones[4].tracks[19] = 250 + 7;
   zones[4].tracks[20] = 250 + 9;
   zones[4].tracks[21] = 300 + 6;
-  zones[4].tracks[22] = 300 + 7;
+  zones[4].tracks[15] = 300 + 7;
   zones[4].len = 23;
   zones[4].color = green;
   for (int i = 0; i < 22; i++) {
@@ -272,6 +274,28 @@ void zones_init() {
   zones[33].color = red;
 }
 
+void zones_b_init(){
+  // zone 0 is not used. 
+  zones_a_init();
+  for(int i=0;i<ZONE_NUMBERS;i++){
+    for(int j=0;j<zones[i].len;j++){
+      int row = zones[i].tracks[j] /50;
+      int col = zones[i].tracks[j] %50;
+      row = 19-row;
+      col = 47-col;
+      zones[i].tracks[j] = row*50+col;
+    }
+  }
+  // modify zone[3]
+  for(int i=0;i<8;i++){
+    zones[3].tracks[i] = 350+50*i+46;
+  }zones[3].len = 8;
+  zones[4].len = zones[4].len-1;
+  zones[26].len = zones[26].len -1;
+
+
+}
+
 bool ReserveTrack(int zone_num, int train_index) {
   int terminal = WhoIs("terminal");
 
@@ -305,7 +329,7 @@ struct Zone getZone(int zone) {
 // int main(){
 //     int base_row = 2;
 //     int base_col = 2;
-//     zones_init();
+//     zones_b_init();
 //     printf("\033[2J");
 //     printf(black);
 //     // printf(track);
@@ -314,7 +338,7 @@ struct Zone getZone(int zone) {
 //             int row = zones[i].tracks[j]/50;
 //             int col = zones[i].tracks[j]%50;
 
-//             printf(color[2]);
+//             // printf(color[2]);
 //             printf("\033[%d;%dH",row+base_row,col+base_col);
 //             printf("*");
 //         }

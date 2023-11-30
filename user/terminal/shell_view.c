@@ -19,7 +19,7 @@ static int log_offset = 0;
 #define ZONE_RESERVATION_BASE_LINE 37
 #define ZONE_RESERVATION_BASE_COL 1
 // 20rows 50 cols
-static const char *track =
+static const char *track_a =
     // 012345678901234567890123456789012345678901234567 8 9
     "****-*********-**********************-*****     \r\n"   // 0 0-49
     "     *     *                               *    \r\n"   // 1 50-99
@@ -41,6 +41,30 @@ static const char *track =
     "*-***-*               *         *               \r\n"   // 17 850
     "       *               *       *                \r\n"   // 18 900
     "*-*****-*************-**********-************** \r\n";  // 19 950
+
+static const char *track_b =
+    // 012345678901234567890123456789012345678901234567 8 9
+    "**************-**********-*************-*****-* \r\n"  // 19 950
+    "                *       *               *       \r\n"   // 18 900
+    "               *         *               *-***-*\r\n"   // 17 850
+    "     *******-*****-***-*********-****     *     \r\n"   // 16 800
+    "   *   *****-*****-***-*********-*** *     *-*-*\r\n"   // 15 750
+    "  *   *        *         *          * *     *   \r\n"   // 14 700
+    " -  *           -       -            * *     *- \r\n"   // 13 650
+    "*  -             *     *              * *     * \r\n"   // 12 600
+    "**                -   -                 **    * \r\n"   // 11 550
+    "*                  ***                   -    * \r\n"   // 10 500
+    "*                   *                    *    * \r\n"   // 9 450
+    "*                   *                    *    * \r\n"   // 8 400
+    "*                  ***                   -    * \r\n"   // 7 350
+    "**                -   -                 **    * \r\n"   // 6 300
+    "*  *             *     *              * *     * \r\n"   // 5 250
+    " *  -           -       -           *  *     *- \r\n"   // 4 200
+    "  *   *        *         *         *  *     *   \r\n"   // 3 150
+    "   -   ***-*****-*******-********-   *     *-***\r\n"   // 2 100
+    "    *                               *     *     \r\n"   // 1 50-99
+    "     *****-**********************-*********-****\r\n";   // 0 0-49
+
 
 static const char *color[6] =
     {"\033[0;31m", "\033[0;32m", "\033[0;33m", "\033[0;34m", "\033[0;35m", "\033[0;36m"};
@@ -109,10 +133,14 @@ static void init_train_speeds(struct TerminalScreen *screen) {
   terminal_restore_cursor(screen);
 }
 
-static void init_train_zones(struct TerminalScreen *screen) {
+static void init_train_zones(struct TerminalScreen *screen, char track) {
   terminal_save_cursor(screen);
   terminal_move_cursor(screen, ZONE_RESERVATION_BASE_LINE, ZONE_RESERVATION_BASE_COL);
-  terminal_puts(screen, track);
+  if (track=='A'){
+    terminal_puts(screen, track_a);
+  }else {
+    terminal_puts(screen, track_b);
+  } 
   terminal_restore_cursor(screen);
 }
 
@@ -265,6 +293,7 @@ static void update_selected_track(struct TerminalScreen *screen, char track) {
   terminal_print_title(screen, "Selected track: ");
   terminal_putc(screen, track);
   terminal_restore_cursor(screen);
+  init_train_zones(screen,track);
 }
 
 static void update_zone_reservation(struct TerminalScreen *screen, int zone, int train, int type) {
@@ -404,12 +433,13 @@ static void screen_init(struct TerminalScreen *screen) {
 
   terminal_clear_screen(screen);
   terminal_hide_cursor(screen);
-  init_train_zones(screen);
+  
   init_switch_states(screen);
   init_train_speeds(screen);
   init_train_info(screen);
   // A is the default track
   update_selected_track(screen, 'A');
+  init_train_zones(screen,'A');
   update_sensors(screen, NULL, 0);
   update_command(screen, "", 0);
   update_max_sensor_duration(screen, 0);
