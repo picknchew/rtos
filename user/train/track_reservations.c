@@ -1,12 +1,12 @@
 #include "track_reservations.h"
 
 #include <stdbool.h>
-// #include <stdio.h>
+#include <stdio.h>
 
-#include "track_position.h"
-#include "train_manager.h"
-#include "user/server/name_server.h"
-#include "user/terminal/terminal_task.h"
+// #include "track_position.h"
+// #include "train_manager.h"
+// #include "user/server/name_server.h"
+// #include "user/terminal/terminal_task.h"
 // static const char *color[6] = {"\033[0;31m",
 //                                 "\033[0;32m",
 //                                 "\033[0;33m",
@@ -249,6 +249,11 @@ void zones_a_init() {
   zones[33].tracks[0] = 850;
   zones[33].len = 1;
   zones[33].color = red;
+  for(int i=0;i<ZONE_NUMBERS;i++){
+    for(int j=0;j<zones[i].len;j++){
+      zones[i].tracks[j] *=2;
+    }
+  }
 }
 
 void zones_b_init(){
@@ -256,16 +261,16 @@ void zones_b_init(){
   zones_a_init();
   for(int i=0;i<ZONE_NUMBERS;i++){
     for(int j=0;j<zones[i].len;j++){
-      int row = zones[i].tracks[j] /50;
-      int col = zones[i].tracks[j] %50;
+      int row = zones[i].tracks[j] /100;
+      int col = zones[i].tracks[j] %100;
       row = 19-row;
-      col = 47-col;
-      zones[i].tracks[j] = row*50+col;
+      col = 98-col;
+      zones[i].tracks[j] = row*100+col;
     }
   }
   // modify zone[3]
   for(int i=0;i<8;i++){
-    zones[3].tracks[i] = 350+50*i+46;
+    zones[3].tracks[i] = (350+50*i+46)*2;
   }zones[3].len = 8;
   zones[4].len = zones[4].len-1;
   zones[26].len = zones[26].len -1;
@@ -312,12 +317,12 @@ struct Zone getZone(int zone) {
 //     // printf(track);
 //     for(int i=0;i<ZONE_NUMBERS;i++){
 //         for(int j=0;j<zones[i].len;j++){
-//             int row = zones[i].tracks[j]/50;
-//             int col = zones[i].tracks[j]%50;
+//             int row = zones[i].tracks[j]/100;
+//             int col = zones[i].tracks[j]%100;
 
 //             // printf(color[2]);
 //             printf("\033[%d;%dH",row+base_row,col+base_col);
-//             printf("*");
+//             printf("**");
 //         }
 //     }
 //     printf("\033[25;50H");

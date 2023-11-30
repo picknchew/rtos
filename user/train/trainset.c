@@ -51,6 +51,7 @@ int trainset_get_sensor_index(char *sensor) {
 void trainset_init(struct Trainset *trainset, int train_dispatcher_tid) {
   tracka_init(track);
   zones_a_init();
+  // ! initial zones for trains init
   trainset_calib_data_init();
 
   trainset->last_track_switch_time = 0;

@@ -867,6 +867,7 @@ static void train_update_next_sensor(struct Train *train, int current_time) {
 
 static const int FLIP_SWITCH_DIST = 200;
 static const int DEADLOCK_DURATION = 3000;
+static const int WAIT_DURATION = 300;
 
 static void handle_tick(
     int terminal,
@@ -1084,7 +1085,7 @@ static void handle_tick(
             }
 
             int zone = node->zone;
-            if (!ReserveTrack(zone, train->train_index)) {
+            if ((node->type==NODE_SENSOR)&&(!ReserveTrack(zone, train->train_index))) {
               success_res = false;
               break;
             }
@@ -1133,13 +1134,12 @@ static void handle_tick(
 
           for (int i = last_node_index; i >= 0; --i) {
             struct TrackNode *node = plan.path.nodes[i];
-            if (node->index == dest->index) {
+            int zone = node->zone;
+            if ((node->type==NODE_SENSOR)&&!ReserveTrack(zone, train->train_index)) {
+              success_res = false;
               break;
             }
-            int zone = node->zone;
-
-            if (!ReserveTrack(zone, train->train_index)) {
-              success_res = false;
+            if (node->index == dest->index) {
               break;
             }
           }
@@ -1203,6 +1203,8 @@ static void handle_tick(
           train->lock_begin_time = time;
           TrainReverse(train_tid, train->train);
           reroute_train(terminal, train_planner, train);
+          train->state = PATH_BEGIN;
+        }if (time - train->lock_begin_time >= WAIT_DURATION) {
           train->state = PATH_BEGIN;
         }
         break;
