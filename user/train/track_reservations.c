@@ -1,12 +1,12 @@
 #include "track_reservations.h"
 
 #include <stdbool.h>
-#include <stdio.h>
+// #include <stdio.h>
 
-// #include "track_position.h"
-// #include "train_manager.h"
-// #include "user/server/name_server.h"
-// #include "user/terminal/terminal_task.h"
+#include "track_position.h"
+#include "train_manager.h"
+#include "user/server/name_server.h"
+#include "user/terminal/terminal_task.h"
 // static const char *color[6] = {"\033[0;31m",
 //                                 "\033[0;32m",
 //                                 "\033[0;33m",
@@ -264,13 +264,13 @@ void zones_b_init(){
       int row = zones[i].tracks[j] /100;
       int col = zones[i].tracks[j] %100;
       row = 19-row;
-      col = 98-col;
-      zones[i].tracks[j] = row*100+col;
+      col = 97-col;
+      zones[i].tracks[j] = row*100+col-1;
     }
   }
   // modify zone[3]
   for(int i=0;i<8;i++){
-    zones[3].tracks[i] = (350+50*i+46)*2;
+    zones[3].tracks[i] = (350+50*i+47)*2;
   }zones[3].len = 8;
   zones[4].len = zones[4].len-1;
   zones[26].len = zones[26].len -1;
@@ -314,14 +314,13 @@ struct Zone getZone(int zone) {
 //     zones_b_init();
 //     printf("\033[2J");
 //     printf(black);
-//     // printf(track);
+//     printf(track_b);
 //     for(int i=0;i<ZONE_NUMBERS;i++){
 //         for(int j=0;j<zones[i].len;j++){
 //             int row = zones[i].tracks[j]/100;
 //             int col = zones[i].tracks[j]%100;
-
-//             // printf(color[2]);
-//             printf("\033[%d;%dH",row+base_row,col+base_col);
+//             printf("\033[0;31m");
+//             printf("\033[%d;%dH",row,col);
 //             printf("**");
 //         }
 //     }
