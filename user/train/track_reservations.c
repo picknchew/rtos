@@ -270,7 +270,7 @@ void zones_b_init(){
   }
   // modify zone[3]
   for(int i=0;i<8;i++){
-    zones[3].tracks[i] = (350+50*i+47)*2;
+    zones[3].tracks[i] = (350+50*i+47)*2-1;
   }zones[3].len = 8;
   zones[4].len = zones[4].len-1;
   zones[26].len = zones[26].len -1;
