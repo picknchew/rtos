@@ -1085,7 +1085,23 @@ static void handle_tick(
 
           train->est_pos.position.node = train->est_pos.position.node->reverse;
           train->est_pos.position.offset = -train->est_pos.position.offset + TRAIN_LEN;
-          // train->est_pos.position.offset = 0;
+
+          
+          // int zone = train->plan.path.nodes[current_path.start_index]->zone;
+          // bool success_res = true;
+          // // train->est_pos.position.offset = 0;
+          // if (!ReserveTrack(zone,train->train_index)){
+          //   success_res = false;
+          //   break;
+          // }
+          // if (success_res){
+          //   TerminalLogPrint(terminal,"REVERSE reservation successful");
+          // }else {
+          //   TerminalLogPrint(terminal,"REVERSE reservation unsuccessful");
+          //   train->state = LOCKED;
+          //   train->lock_begin_time = time;
+          //   continue;
+          // }
           TerminalLogPrint(terminal, "state change to STOPPED from PATH_BEGIN");
           TerminalLogPrint(terminal, "Train %d reversing", train->train);
           train->state = STOPPED;
@@ -1095,6 +1111,8 @@ static void handle_tick(
         // short move (possibly add a buffer additionally?)
         if (dist_to_current_dest < TRAINSET_STOPPING_DISTANCES[train->train_index][train->speed] +
                                        TRAINSET_ACCEL_DISTANCES[train->train_index][train->speed]) {
+
+          // get_distance_between(path, &train->est_pos.position, &current_path_dest_pos, true);
           train->move_start_time = time;
           train->move_duration =
               shortmove_get_duration(train->train, train->speed, dist_to_current_dest);
@@ -1114,21 +1132,21 @@ static void handle_tick(
           int last_node_index = train->last_sensor_index;
           TerminalLogPrint(terminal, "Last sensor index %d", last_node_index);
           struct TrackNode *dest = current_path_dest_pos.node;
-          bool success_res = true;
-          // bool success_res = ReserveByDistance(1000,train);
+          // bool success_res = true;
+          bool success_res = ReserveByDistance(dist_to_current_dest,train);
 
           // reserve by distance
-          for (int i = last_node_index; i >= 0; --i) {
-            struct TrackNode *node = plan.path.nodes[i];
-            int zone = node->zone;
-            if (node->index == dest->index) {
-              break;
-            }
-            if (!ReserveTrack(zone, train->train_index)) {
-              success_res = false;
-              break;
-            }
-          }
+          // for (int i = last_node_index; i >= 0; --i) {
+          //   struct TrackNode *node = plan.path.nodes[i];
+          //   int zone = node->zone;
+          //   if (node->index == dest->index) {
+          //     break;
+          //   }
+          //   if ((node->type==NODE_SENSOR)&&!ReserveTrack(zone, train->train_index)) {
+          //     success_res = false;
+          //     break;
+          //   }
+          // }
 
           if (success_res) {
             TerminalLogPrint(terminal, "SHORT_MOVE reservation sucessful");
@@ -1177,7 +1195,7 @@ static void handle_tick(
             if (node->index == dest->index) {
               break;
             }
-            if ( !ReserveTrack(zone, train->train_index)) {
+            if ((node->type==NODE_SENSOR)&&!ReserveTrack(zone, train->train_index)) {
               success_res = false;
               break;
             }
