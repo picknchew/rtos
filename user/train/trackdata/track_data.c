@@ -1285,7 +1285,9 @@ void tracka_init(struct TrackNode *track) {
   track[143].type = NODE_EXIT;
   track[143].reverse = &track[142];
     for(int i=80;i<=143;i++){
-    track[i].zone = track[i].edge[0].reverse->dest->reverse->zone;
+      if (track[i].type==NODE_BRANCH||track[i].type==NODE_MERGE) {
+        track[i].zone = track[i].edge[0].reverse->dest->reverse->zone;
+      }
   }
 }
 
@@ -2544,6 +2546,8 @@ void trackb_init(struct TrackNode *track) {
   track[139].type = NODE_EXIT;
   track[139].reverse = &track[138];
   for(int i=80;i<=139;i++){
-    track[i].zone = track[i].edge[0].reverse->dest->reverse->zone;
+    if (track[i].type==NODE_BRANCH||track[i].type==NODE_MERGE) {
+      track[i].zone = track[i].edge[0].reverse->dest->reverse->zone;
+    }
   }
 }
