@@ -1076,19 +1076,21 @@ static void handle_tick(
 
           int last_node_index = train->last_sensor_index;
           struct TrackNode *dest = current_path_dest_pos.node;
-          bool success_res = true;
+          // bool success_res = true;
+          bool success_res = ReserveByDistance(1000,train);
 
-          for (int i = last_node_index; i >= 0; --i) {
-            struct TrackNode *node = plan.path.nodes[i];
-            int zone = node->zone;
-            if ((node->type==NODE_SENSOR)&&(!ReserveTrack(zone, train->train_index))) {
-              success_res = false;
-              break;
-            }
-            if (node->index == dest->index) {
-              break;
-            }
-          }
+          // reserve by distance 
+          // for (int i = last_node_index; i >= 0; --i) {
+          //   struct TrackNode *node = plan.path.nodes[i];
+          //   int zone = node->zone;
+          //   if ((node->type==NODE_SENSOR)&&(!ReserveTrack(zone, train->train_index))) {
+          //     success_res = false;
+          //     break;
+          //   }
+          //   if (node->index == dest->index) {
+          //     break;
+          //   }
+          // }
 
           if (success_res) {
             TerminalLogPrint(terminal, "SHORT_MOVE reservation sucessful");
@@ -1129,19 +1131,20 @@ static void handle_tick(
           struct RoutePlan plan = train->plan;
           int last_node_index = train->last_sensor_index;
           struct TrackNode *dest = current_path_dest_pos.node;
-          bool success_res = true;
+          // bool success_res = true;
 
-          for (int i = last_node_index; i >= 0; --i) {
-            struct TrackNode *node = plan.path.nodes[i];
-            int zone = node->zone;
-            if ((node->type==NODE_SENSOR)&&!ReserveTrack(zone, train->train_index)) {
-              success_res = false;
-              break;
-            }
-            if (node->index == dest->index) {
-              break;
-            }
-          }
+          // for (int i = last_node_index; i >= 0; --i) {
+          //   struct TrackNode *node = plan.path.nodes[i];
+          //   int zone = node->zone;
+          //   if ((node->type==NODE_SENSOR)&&!ReserveTrack(zone, train->train_index)) {
+          //     success_res = false;
+          //     break;
+          //   }
+          //   if (node->index == dest->index) {
+          //     break;
+          //   }
+          // }
+          bool success_res = ReserveByDistance(1000,train);
           if (success_res) {
             TerminalLogPrint(terminal, "ACCELERATION reservation sucessful");
           } else {
@@ -1693,3 +1696,38 @@ void TrainManagerUpdateSensors(int tid, bool *sensors) {
 // - reservations as we move
 // - check for reservations in our path.
 // - reroute train command.
+
+bool ReserveByDistance(int distance, struct Train* train){
+
+  // struct TrackNode *end = current_path_dest_pos.node;
+  struct RoutePlan plan = train->plan;
+  // // index of current path in route plan
+  // unsigned int path_index = train->path_index;
+  // struct SimplePath cur_path = train->plan.paths[path_index];
+
+  int last_node_index = train->last_sensor_index;
+  // use distance for reservation
+  // struct TrackNode *dest = current_path_dest_pos.node;
+  bool success_res = true;
+
+  struct TrackNode *node = plan.path.nodes[last_node_index];
+  int pre_dist = node->edge[plan.path.directions[last_node_index]].dist - train->est_pos.position.offset;
+  int reserved_distance = pre_dist;
+
+  for (int i = last_node_index-1; i >= 0; --i) {
+    struct TrackNode *node = plan.path.nodes[i];
+    int zone = node->zone;
+    
+    if ((node->type==NODE_SENSOR)&&(!ReserveTrack(zone, train->train_index))) {
+      success_res = false;
+      break;
+    }else {
+      reserved_distance += node->edge[plan.path.directions[i]].dist;
+    }
+    if (reserved_distance>=distance) {
+      break;
+    }
+  }
+  // if reserved distance <= distance...
+  return success_res;
+}

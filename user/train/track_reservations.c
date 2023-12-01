@@ -308,6 +308,7 @@ struct Zone getZone(int zone) {
   return zones[zone];
 }
 
+
 // int main(){
 //     int base_row = 2;
 //     int base_col = 2;
