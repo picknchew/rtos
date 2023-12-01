@@ -212,7 +212,7 @@ void tracka_init(struct TrackNode *track) {
   track[20].edge[DIR_AHEAD].src = &track[20];
   track[20].edge[DIR_AHEAD].dest = &track[50];
   track[20].edge[DIR_AHEAD].dist = 404;
-  track[20].zone = 9; 
+  track[20].zone = 9;
   track[21].name = "B6";
   track[21].type = NODE_SENSOR;
   track[21].num = 21;
@@ -1284,6 +1284,9 @@ void tracka_init(struct TrackNode *track) {
   track[143].name = "EX10";
   track[143].type = NODE_EXIT;
   track[143].reverse = &track[142];
+    for(int i=80;i<=143;i++){
+    track[i].zone = track[i].edge[0].reverse->dest->reverse->zone;
+  }
 }
 
 void trackb_init(struct TrackNode *track) {
@@ -1488,7 +1491,7 @@ void trackb_init(struct TrackNode *track) {
   track[20].edge[DIR_AHEAD].src = &track[20];
   track[20].edge[DIR_AHEAD].dest = &track[50];
   track[20].edge[DIR_AHEAD].dist = 404;
-  track[20].zone = 9; 
+  track[20].zone = 9;
   track[21].name = "B6";
   track[21].type = NODE_SENSOR;
   track[21].num = 21;
@@ -2540,4 +2543,7 @@ void trackb_init(struct TrackNode *track) {
   track[139].name = "EX10";
   track[139].type = NODE_EXIT;
   track[139].reverse = &track[138];
+  for(int i=80;i<=139;i++){
+    track[i].zone = track[i].edge[0].reverse->dest->reverse->zone;
+  }
 }

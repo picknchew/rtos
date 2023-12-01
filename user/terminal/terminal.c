@@ -147,7 +147,7 @@ bool terminal_execute_command(
     );
 
     TrainCalibratorBeginCalibration(train_calib_tid, train_number, train_speed);
-     } else if (strcmp("sm", command_name)) {
+  } else if (strcmp("sm", command_name)) {
     char *str_train_number = strtok_r(NULL, CHAR_DELIMITER, &saveptr);
     if (!str_train_number || !is_number(str_train_number)) {
       TerminalUpdateStatus(terminal->screen_tid, "Train provided is not a valid train!");
@@ -234,7 +234,7 @@ bool terminal_execute_command(
       TerminalUpdateStatus(terminal->screen_tid, "Must provide a valid sensor!");
       return false;
     }
-    
+
     char *str_dest_sensor2 = strtok_r(NULL, CHAR_DELIMITER, &saveptr);
     if (!str_dest_sensor2 || strlen(str_dest_sensor2) > 3) {
       TerminalUpdateStatus(terminal->screen_tid, "Must provide a valid sensor!");
@@ -262,7 +262,9 @@ bool terminal_execute_command(
         str_dest_sensor2
     );
 
-    TrainManagerRouteReturn(train_manager_tid, train_number, train_number2, str_dest_sensor, str_dest_sensor2);
+    TrainManagerRouteReturn(
+        train_manager_tid, train_number, train_number2, str_dest_sensor, str_dest_sensor2
+    );
   } else if (strcmp("track", command_name)) {
     char *str_track = strtok_r(NULL, CHAR_DELIMITER, &saveptr);
     if (!str_track || strlen(str_track) != 1) {

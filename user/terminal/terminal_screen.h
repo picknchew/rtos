@@ -97,15 +97,10 @@ inline void terminal_update_switch_state(
   screen->view.update_switch_state(screen, switch_num, dir);
 }
 
-inline void terminal_update_zone_reservation(
-    struct TerminalScreen *screen,
-    int zone,
-    int train,
-    int type
-) {
+inline void
+terminal_update_zone_reservation(struct TerminalScreen *screen, int zone, int train, int type) {
   screen->view.update_zone_reservation(screen, zone, train, type);
 }
-
 
 inline void terminal_update_idle(
     struct TerminalScreen *screen,
@@ -172,6 +167,7 @@ inline void terminal_update_train_info(
 inline void terminal_update_selected_track(struct TerminalScreen *screen, char track) {
   screen->view.update_selected_track(screen, track);
 }
+
 inline void terminal_init_train_zones(struct TerminalScreen *screen, char track) {
   screen->view.init_train_zones(screen, track);
 }

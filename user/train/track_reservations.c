@@ -249,40 +249,45 @@ void zones_a_init() {
   zones[33].tracks[0] = 850;
   zones[33].len = 1;
   zones[33].color = red;
-  for(int i=0;i<ZONE_NUMBERS;i++){
-    for(int j=0;j<zones[i].len;j++){
-      zones[i].tracks[j] *=2;
+  for (int i = 0; i < ZONE_NUMBERS; i++) {
+    for (int j = 0; j < zones[i].len; j++) {
+      zones[i].tracks[j] *= 2;
     }
   }
 }
 
-void zones_b_init(){
-  // zone 0 is not used. 
+void zones_b_init() {
+  // zone 0 is not used.
   zones_a_init();
-  for(int i=0;i<ZONE_NUMBERS;i++){
-    for(int j=0;j<zones[i].len;j++){
-      int row = zones[i].tracks[j] /100;
-      int col = zones[i].tracks[j] %100;
-      row = 19-row;
-      col = 97-col;
-      zones[i].tracks[j] = row*100+col-1;
+  for (int i = 0; i < ZONE_NUMBERS; i++) {
+    for (int j = 0; j < zones[i].len; j++) {
+      int row = zones[i].tracks[j] / 100;
+      int col = zones[i].tracks[j] % 100;
+      row = 19 - row;
+      col = 97 - col;
+      zones[i].tracks[j] = row * 100 + col - 1;
     }
   }
   // modify zone[3]
-  for(int i=0;i<8;i++){
-    zones[3].tracks[i] = (350+50*i+47)*2-1;
-  }zones[3].len = 8;
-  zones[4].len = zones[4].len-1;
-  zones[26].len = zones[26].len -1;
-
-
+  for (int i = 0; i < 8; i++) {
+    zones[3].tracks[i] = (350 + 50 * i + 47) * 2 - 1;
+  }
+  zones[3].len = 8;
+  zones[4].len = zones[4].len - 1;
+  zones[26].len = zones[26].len - 1;
 }
 
 bool ReserveTrack(int zone_num, int train_index) {
   int terminal = WhoIs("terminal");
 
   if (zones[zone_num].reserved && zones[zone_num].reservedby != train_index) {
-    TerminalLogPrint(terminal, "failed to reserve zone %d for %d, occupied by %d", zone_num, train_index,zones[zone_num].reservedby);
+    TerminalLogPrint(
+        terminal,
+        "failed to reserve zone %d for %d, occupied by %d",
+        zone_num,
+        train_index,
+        zones[zone_num].reservedby
+    );
     return false;
   }
 
@@ -307,7 +312,6 @@ void ReleaseReservations(int zone) {
 struct Zone getZone(int zone) {
   return zones[zone];
 }
-
 
 // int main(){
 //     int base_row = 2;

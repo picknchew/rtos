@@ -34,7 +34,7 @@ struct TerminalUpdateTrainSpeedRequest {
   uint8_t train_speed;
 };
 
-struct TerminalUpdateZoneReservationRequest{
+struct TerminalUpdateZoneReservationRequest {
   int zone_num;
   int train_num;
   int type;

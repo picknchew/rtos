@@ -94,7 +94,7 @@ void terminal_screen_task() {
       case UPDATE_SELECTED_TRACK:
         Reply(tid, NULL, 0);
         terminal_update_selected_track(&screen, req.update_selected_track_req.track);
-        terminal_init_train_zones(&screen,req.update_selected_track_req.track);
+        terminal_init_train_zones(&screen, req.update_selected_track_req.track);
         break;
       case UPDATE_COMMAND:
         terminal_update_command(
