@@ -756,6 +756,7 @@ void tracka_init(struct TrackNode *track) {
   track[80].edge[DIR_CURVED].src = &track[80];
   track[80].edge[DIR_CURVED].dest = &track[8];
   track[80].edge[DIR_CURVED].dist = 229;
+  track[80].zone = 26;
   track[81].name = "MR1";
   track[81].type = NODE_MERGE;
   track[81].num = 1;
@@ -764,6 +765,7 @@ void tracka_init(struct TrackNode *track) {
   track[81].edge[DIR_AHEAD].src = &track[81];
   track[81].edge[DIR_AHEAD].dest = &track[83];
   track[81].edge[DIR_AHEAD].dist = 188;
+  track[81].zone = 26;
   track[82].name = "BR2";
   track[82].type = NODE_BRANCH;
   track[82].num = 2;
@@ -776,6 +778,7 @@ void tracka_init(struct TrackNode *track) {
   track[82].edge[DIR_CURVED].src = &track[82];
   track[82].edge[DIR_CURVED].dest = &track[6];
   track[82].edge[DIR_CURVED].dist = 229;
+  track[82].zone = 26;
   track[83].name = "MR2";
   track[83].type = NODE_MERGE;
   track[83].num = 2;
@@ -784,6 +787,7 @@ void tracka_init(struct TrackNode *track) {
   track[83].edge[DIR_AHEAD].src = &track[83];
   track[83].edge[DIR_AHEAD].dest = &track[85];
   track[83].edge[DIR_AHEAD].dist = 185;
+  track[83].zone = 26;
   track[84].name = "BR3";
   track[84].type = NODE_BRANCH;
   track[84].num = 3;
@@ -796,6 +800,7 @@ void tracka_init(struct TrackNode *track) {
   track[84].edge[DIR_CURVED].src = &track[84];
   track[84].edge[DIR_CURVED].dest = &track[82];
   track[84].edge[DIR_CURVED].dist = 185;
+  track[84].zone = 26;
   track[85].name = "MR3";
   track[85].type = NODE_MERGE;
   track[85].num = 3;
@@ -804,6 +809,7 @@ void tracka_init(struct TrackNode *track) {
   track[85].edge[DIR_AHEAD].src = &track[85];
   track[85].edge[DIR_AHEAD].dest = &track[38];
   track[85].edge[DIR_AHEAD].dist = 128;
+  track[85].zone = 26;
   track[86].name = "BR4";
   track[86].type = NODE_BRANCH;
   track[86].num = 4;
@@ -816,6 +822,7 @@ void tracka_init(struct TrackNode *track) {
   track[86].edge[DIR_CURVED].src = &track[86];
   track[86].edge[DIR_CURVED].dest = &track[13];
   track[86].edge[DIR_CURVED].dist = 236;
+  track[86].zone = 4;
   track[87].name = "MR4";
   track[87].type = NODE_MERGE;
   track[87].num = 4;
@@ -824,6 +831,7 @@ void tracka_init(struct TrackNode *track) {
   track[87].edge[DIR_AHEAD].src = &track[87];
   track[87].edge[DIR_AHEAD].dest = &track[103];
   track[87].edge[DIR_AHEAD].dist = 185;
+  track[87].zone = 4;
   track[88].name = "BR5";
   track[88].type = NODE_BRANCH;
   track[88].num = 5;
@@ -836,6 +844,7 @@ void tracka_init(struct TrackNode *track) {
   track[88].edge[DIR_CURVED].src = &track[88];
   track[88].edge[DIR_CURVED].dest = &track[93];
   track[88].edge[DIR_CURVED].dist = 371;
+  track[88].zone = 24;
   track[89].name = "MR5";
   track[89].type = NODE_MERGE;
   track[89].num = 5;
@@ -844,6 +853,7 @@ void tracka_init(struct TrackNode *track) {
   track[89].edge[DIR_AHEAD].src = &track[89];
   track[89].edge[DIR_AHEAD].dest = &track[114];
   track[89].edge[DIR_AHEAD].dist = 155;
+  track[89].zone = 24;
   track[90].name = "BR6";
   track[90].type = NODE_BRANCH;
   track[90].num = 6;
@@ -856,6 +866,7 @@ void tracka_init(struct TrackNode *track) {
   track[90].edge[DIR_CURVED].src = &track[90];
   track[90].edge[DIR_CURVED].dest = &track[115];
   track[90].edge[DIR_CURVED].dist = 371;
+  track[90].zone = 24;
   track[91].name = "MR6";
   track[91].type = NODE_MERGE;
   track[91].num = 6;
@@ -864,6 +875,7 @@ void tracka_init(struct TrackNode *track) {
   track[91].edge[DIR_AHEAD].src = &track[91];
   track[91].edge[DIR_AHEAD].dest = &track[37];
   track[91].edge[DIR_AHEAD].dist = 61;
+  track[91].zone = 24;
   track[92].name = "BR7";
   track[92].type = NODE_BRANCH;
   track[92].num = 7;
@@ -876,6 +888,7 @@ void tracka_init(struct TrackNode *track) {
   track[92].edge[DIR_CURVED].src = &track[92];
   track[92].edge[DIR_CURVED].dest = &track[89];
   track[92].edge[DIR_CURVED].dist = 371;
+  track[92].zone = 24;
   track[93].name = "MR7";
   track[93].type = NODE_MERGE;
   track[93].num = 7;
@@ -884,6 +897,7 @@ void tracka_init(struct TrackNode *track) {
   track[93].edge[DIR_AHEAD].src = &track[93];
   track[93].edge[DIR_AHEAD].dest = &track[74];
   track[93].edge[DIR_AHEAD].dist = 50;
+  track[93].zone = 24;
   track[94].name = "BR8";
   track[94].type = NODE_BRANCH;
   track[94].num = 8;
@@ -896,6 +910,7 @@ void tracka_init(struct TrackNode *track) {
   track[94].edge[DIR_CURVED].src = &track[94];
   track[94].edge[DIR_CURVED].dest = &track[73];
   track[94].edge[DIR_CURVED].dist = 239;
+  track[94].zone = 15;
   track[95].name = "MR8";
   track[95].type = NODE_MERGE;
   track[95].num = 8;
@@ -904,6 +919,7 @@ void tracka_init(struct TrackNode *track) {
   track[95].edge[DIR_AHEAD].src = &track[95];
   track[95].edge[DIR_AHEAD].dest = &track[96];
   track[95].edge[DIR_AHEAD].dist = 155;
+  track[95].zone = 15;
   track[96].name = "BR9";
   track[96].type = NODE_BRANCH;
   track[96].num = 9;
@@ -916,6 +932,7 @@ void tracka_init(struct TrackNode *track) {
   track[96].edge[DIR_CURVED].src = &track[96];
   track[96].edge[DIR_CURVED].dest = &track[52];
   track[96].edge[DIR_CURVED].dist = 239;
+  track[96].zone = 15;
   track[97].name = "MR9";
   track[97].type = NODE_MERGE;
   track[97].num = 9;
@@ -924,6 +941,7 @@ void tracka_init(struct TrackNode *track) {
   track[97].edge[DIR_AHEAD].src = &track[97];
   track[97].edge[DIR_AHEAD].dest = &track[94];
   track[97].edge[DIR_AHEAD].dist = 155;
+  track[97].zone = 15;
   track[98].name = "BR10";
   track[98].type = NODE_BRANCH;
   track[98].num = 10;
@@ -936,6 +954,7 @@ void tracka_init(struct TrackNode *track) {
   track[98].edge[DIR_CURVED].src = &track[98];
   track[98].edge[DIR_CURVED].dest = &track[66];
   track[98].edge[DIR_CURVED].dist = 239;
+  track[98].zone = 13;
   track[99].name = "MR10";
   track[99].type = NODE_MERGE;
   track[99].num = 10;
@@ -944,6 +963,7 @@ void tracka_init(struct TrackNode *track) {
   track[99].edge[DIR_AHEAD].src = &track[99];
   track[99].edge[DIR_AHEAD].dest = &track[68];
   track[99].edge[DIR_AHEAD].dist = 50;
+  track[99].zone = 13;
   track[100].name = "BR11";
   track[100].type = NODE_BRANCH;
   track[100].num = 11;
@@ -956,6 +976,7 @@ void tracka_init(struct TrackNode *track) {
   track[100].edge[DIR_CURVED].src = &track[100];
   track[100].edge[DIR_CURVED].dest = &track[107];
   track[100].edge[DIR_CURVED].dist = 495;
+  track[100].zone = 4;
   track[101].name = "MR11";
   track[101].type = NODE_MERGE;
   track[101].num = 11;
@@ -964,6 +985,7 @@ void tracka_init(struct TrackNode *track) {
   track[101].edge[DIR_AHEAD].src = &track[101];
   track[101].edge[DIR_AHEAD].dest = &track[44];
   track[101].edge[DIR_AHEAD].dist = 43;
+  track[101].zone = 4;
   track[102].name = "BR12";
   track[102].type = NODE_BRANCH;
   track[102].num = 12;
@@ -976,6 +998,7 @@ void tracka_init(struct TrackNode *track) {
   track[102].edge[DIR_CURVED].src = &track[102];
   track[102].edge[DIR_CURVED].dest = &track[86];
   track[102].edge[DIR_CURVED].dist = 185;
+  track[102].zone = 4;
   track[103].name = "MR12";
   track[103].type = NODE_MERGE;
   track[103].num = 12;
@@ -984,6 +1007,7 @@ void tracka_init(struct TrackNode *track) {
   track[103].edge[DIR_AHEAD].src = &track[103];
   track[103].edge[DIR_AHEAD].dest = &track[101];
   track[103].edge[DIR_AHEAD].dist = 188;
+  track[103].zone = 4;
   track[104].name = "BR13";
   track[104].type = NODE_BRANCH;
   track[104].num = 13;
@@ -996,6 +1020,7 @@ void tracka_init(struct TrackNode *track) {
   track[104].edge[DIR_CURVED].src = &track[104];
   track[104].edge[DIR_CURVED].dest = &track[79];
   track[104].edge[DIR_CURVED].dist = 246;
+  track[104].zone = 6;
   track[105].name = "MR13";
   track[105].type = NODE_MERGE;
   track[105].num = 13;
@@ -1004,6 +1029,7 @@ void tracka_init(struct TrackNode *track) {
   track[105].edge[DIR_AHEAD].src = &track[105];
   track[105].edge[DIR_AHEAD].dest = &track[43];
   track[105].edge[DIR_AHEAD].dist = 120;
+  track[105].zone = 6;
   track[106].name = "BR14";
   track[106].type = NODE_BRANCH;
   track[106].num = 14;
@@ -1016,6 +1042,7 @@ void tracka_init(struct TrackNode *track) {
   track[106].edge[DIR_CURVED].src = &track[106];
   track[106].edge[DIR_CURVED].dest = &track[42];
   track[106].edge[DIR_CURVED].dist = 333;
+  track[106].zone = 4;
   track[107].name = "MR14";
   track[107].type = NODE_MERGE;
   track[107].num = 14;
@@ -1024,6 +1051,7 @@ void tracka_init(struct TrackNode *track) {
   track[107].edge[DIR_AHEAD].src = &track[107];
   track[107].edge[DIR_AHEAD].dest = &track[3];
   track[107].edge[DIR_AHEAD].dist = 43;
+  track[107].zone = 4;
   track[108].name = "BR15";
   track[108].type = NODE_BRANCH;
   track[108].num = 15;
@@ -1036,6 +1064,7 @@ void tracka_init(struct TrackNode *track) {
   track[108].edge[DIR_CURVED].src = &track[108];
   track[108].edge[DIR_CURVED].dest = &track[41];
   track[108].edge[DIR_CURVED].dist = 326;
+  track[108].zone = 21;
   track[109].name = "MR15";
   track[109].type = NODE_MERGE;
   track[109].num = 15;
@@ -1044,6 +1073,7 @@ void tracka_init(struct TrackNode *track) {
   track[109].edge[DIR_AHEAD].src = &track[109];
   track[109].edge[DIR_AHEAD].dest = &track[30];
   track[109].edge[DIR_AHEAD].dist = 50;
+  track[109].zone = 21;
   track[110].name = "BR16";
   track[110].type = NODE_BRANCH;
   track[110].num = 16;
@@ -1056,6 +1086,7 @@ void tracka_init(struct TrackNode *track) {
   track[110].edge[DIR_CURVED].src = &track[110];
   track[110].edge[DIR_CURVED].dest = &track[18];
   track[110].edge[DIR_CURVED].dist = 239;
+  track[110].zone = 22;
   track[111].name = "MR16";
   track[111].type = NODE_MERGE;
   track[111].num = 16;
@@ -1064,6 +1095,7 @@ void tracka_init(struct TrackNode *track) {
   track[111].edge[DIR_AHEAD].src = &track[111];
   track[111].edge[DIR_AHEAD].dest = &track[40];
   track[111].edge[DIR_AHEAD].dist = 128;
+  track[111].zone = 22;
   track[112].name = "BR17";
   track[112].type = NODE_BRANCH;
   track[112].num = 17;
@@ -1076,6 +1108,7 @@ void tracka_init(struct TrackNode *track) {
   track[112].edge[DIR_CURVED].src = &track[112];
   track[112].edge[DIR_CURVED].dest = &track[62];
   track[112].edge[DIR_CURVED].dist = 246;
+  track[112].zone = 18;
   track[113].name = "MR17";
   track[113].type = NODE_MERGE;
   track[113].num = 17;
@@ -1084,6 +1117,7 @@ void tracka_init(struct TrackNode *track) {
   track[113].edge[DIR_AHEAD].src = &track[113];
   track[113].edge[DIR_AHEAD].dest = &track[77];
   track[113].edge[DIR_AHEAD].dist = 43;
+  track[113].zone = 18;
   track[114].name = "BR18";
   track[114].type = NODE_BRANCH;
   track[114].num = 18;
@@ -1096,6 +1130,7 @@ void tracka_init(struct TrackNode *track) {
   track[114].edge[DIR_CURVED].src = &track[114];
   track[114].edge[DIR_CURVED].dest = &track[91];
   track[114].edge[DIR_CURVED].dist = 371;
+  track[114].zone = 24;
   track[115].name = "MR18";
   track[115].type = NODE_MERGE;
   track[115].num = 18;
@@ -1104,6 +1139,7 @@ void tracka_init(struct TrackNode *track) {
   track[115].edge[DIR_AHEAD].src = &track[115];
   track[115].edge[DIR_AHEAD].dest = &track[88];
   track[115].edge[DIR_AHEAD].dist = 155;
+  track[115].zone=  24;
   track[116].name = "BR153";
   track[116].type = NODE_BRANCH;
   track[116].num = 153;
@@ -1116,6 +1152,7 @@ void tracka_init(struct TrackNode *track) {
   track[116].edge[DIR_CURVED].src = &track[116];
   track[116].edge[DIR_CURVED].dest = &track[32];
   track[116].edge[DIR_CURVED].dist = 246;
+  track[116].zone = 11;
   track[117].name = "MR153";
   track[117].type = NODE_MERGE;
   track[117].num = 153;
@@ -1124,6 +1161,7 @@ void tracka_init(struct TrackNode *track) {
   track[117].edge[DIR_AHEAD].src = &track[117];
   track[117].edge[DIR_AHEAD].dest = &track[119];
   track[117].edge[DIR_AHEAD].dist = 0;
+  track[117].zone = 11;
   track[118].name = "BR154";
   track[118].type = NODE_BRANCH;
   track[118].num = 154;
@@ -1136,6 +1174,7 @@ void tracka_init(struct TrackNode *track) {
   track[118].edge[DIR_CURVED].src = &track[118];
   track[118].edge[DIR_CURVED].dest = &track[29];
   track[118].edge[DIR_CURVED].dist = 239;
+  track[118].zone = 11;
   track[119].name = "MR154";
   track[119].type = NODE_MERGE;
   track[119].num = 154;
@@ -1144,6 +1183,7 @@ void tracka_init(struct TrackNode *track) {
   track[119].edge[DIR_AHEAD].src = &track[119];
   track[119].edge[DIR_AHEAD].dest = &track[122];
   track[119].edge[DIR_AHEAD].dist = 0;
+  track[119].zone = 11;
   track[120].name = "BR155";
   track[120].type = NODE_BRANCH;
   track[120].num = 155;
@@ -1156,6 +1196,7 @@ void tracka_init(struct TrackNode *track) {
   track[120].edge[DIR_CURVED].src = &track[120];
   track[120].edge[DIR_CURVED].dest = &track[49];
   track[120].edge[DIR_CURVED].dist = 246;
+  track[120].zone = 11;
   track[121].name = "MR155";
   track[121].type = NODE_MERGE;
   track[121].num = 155;
@@ -1164,6 +1205,7 @@ void tracka_init(struct TrackNode *track) {
   track[121].edge[DIR_AHEAD].src = &track[121];
   track[121].edge[DIR_AHEAD].dest = &track[123];
   track[121].edge[DIR_AHEAD].dist = 0;
+  track[121].zone = 11;
   track[122].name = "BR156";
   track[122].type = NODE_BRANCH;
   track[122].num = 156;
@@ -1176,6 +1218,7 @@ void tracka_init(struct TrackNode *track) {
   track[122].edge[DIR_CURVED].src = &track[122];
   track[122].edge[DIR_CURVED].dest = &track[65];
   track[122].edge[DIR_CURVED].dist = 239;
+  track[122].zone = 11;
   track[123].name = "MR156";
   track[123].type = NODE_MERGE;
   track[123].num = 156;
@@ -1184,6 +1227,7 @@ void tracka_init(struct TrackNode *track) {
   track[123].edge[DIR_AHEAD].src = &track[123];
   track[123].edge[DIR_AHEAD].dest = &track[118];
   track[123].edge[DIR_AHEAD].dist = 0;
+  track[123].zone = 11;
   track[124].name = "EN1";
   track[124].type = NODE_ENTER;
   track[124].reverse = &track[125];
@@ -2037,6 +2081,7 @@ void trackb_init(struct TrackNode *track) {
   track[80].edge[DIR_CURVED].src = &track[80];
   track[80].edge[DIR_CURVED].dest = &track[8];
   track[80].edge[DIR_CURVED].dist = 229;
+  track[80].zone = 26;
   track[81].name = "MR1";
   track[81].type = NODE_MERGE;
   track[81].num = 1;
@@ -2045,6 +2090,7 @@ void trackb_init(struct TrackNode *track) {
   track[81].edge[DIR_AHEAD].src = &track[81];
   track[81].edge[DIR_AHEAD].dest = &track[83];
   track[81].edge[DIR_AHEAD].dist = 188;
+  track[81].zone = 26;
   track[82].name = "BR2";
   track[82].type = NODE_BRANCH;
   track[82].num = 2;
@@ -2057,6 +2103,7 @@ void trackb_init(struct TrackNode *track) {
   track[82].edge[DIR_CURVED].src = &track[82];
   track[82].edge[DIR_CURVED].dest = &track[6];
   track[82].edge[DIR_CURVED].dist = 229;
+  track[82].zone = 26;
   track[83].name = "MR2";
   track[83].type = NODE_MERGE;
   track[83].num = 2;
@@ -2065,6 +2112,7 @@ void trackb_init(struct TrackNode *track) {
   track[83].edge[DIR_AHEAD].src = &track[83];
   track[83].edge[DIR_AHEAD].dest = &track[85];
   track[83].edge[DIR_AHEAD].dist = 185;
+  track[83].zone = 26;
   track[84].name = "BR3";
   track[84].type = NODE_BRANCH;
   track[84].num = 3;
@@ -2077,6 +2125,7 @@ void trackb_init(struct TrackNode *track) {
   track[84].edge[DIR_CURVED].src = &track[84];
   track[84].edge[DIR_CURVED].dest = &track[82];
   track[84].edge[DIR_CURVED].dist = 185;
+  track[84].zone = 26;
   track[85].name = "MR3";
   track[85].type = NODE_MERGE;
   track[85].num = 3;
@@ -2085,6 +2134,7 @@ void trackb_init(struct TrackNode *track) {
   track[85].edge[DIR_AHEAD].src = &track[85];
   track[85].edge[DIR_AHEAD].dest = &track[38];
   track[85].edge[DIR_AHEAD].dist = 128;
+  track[85].zone = 26;
   track[86].name = "BR4";
   track[86].type = NODE_BRANCH;
   track[86].num = 4;
@@ -2097,6 +2147,7 @@ void trackb_init(struct TrackNode *track) {
   track[86].edge[DIR_CURVED].src = &track[86];
   track[86].edge[DIR_CURVED].dest = &track[13];
   track[86].edge[DIR_CURVED].dist = 236;
+  track[86].zone = 4;
   track[87].name = "MR4";
   track[87].type = NODE_MERGE;
   track[87].num = 4;
@@ -2105,6 +2156,7 @@ void trackb_init(struct TrackNode *track) {
   track[87].edge[DIR_AHEAD].src = &track[87];
   track[87].edge[DIR_AHEAD].dest = &track[103];
   track[87].edge[DIR_AHEAD].dist = 185;
+  track[87].zone = 4;
   track[88].name = "BR5";
   track[88].type = NODE_BRANCH;
   track[88].num = 5;
@@ -2117,6 +2169,7 @@ void trackb_init(struct TrackNode *track) {
   track[88].edge[DIR_CURVED].src = &track[88];
   track[88].edge[DIR_CURVED].dest = &track[93];
   track[88].edge[DIR_CURVED].dist = 371;
+  track[88].zone = 24;
   track[89].name = "MR5";
   track[89].type = NODE_MERGE;
   track[89].num = 5;
@@ -2125,6 +2178,7 @@ void trackb_init(struct TrackNode *track) {
   track[89].edge[DIR_AHEAD].src = &track[89];
   track[89].edge[DIR_AHEAD].dest = &track[114];
   track[89].edge[DIR_AHEAD].dist = 155;
+  track[89].zone = 24;
   track[90].name = "BR6";
   track[90].type = NODE_BRANCH;
   track[90].num = 6;
@@ -2137,6 +2191,7 @@ void trackb_init(struct TrackNode *track) {
   track[90].edge[DIR_CURVED].src = &track[90];
   track[90].edge[DIR_CURVED].dest = &track[115];
   track[90].edge[DIR_CURVED].dist = 371;
+  track[90].zone = 24;
   track[91].name = "MR6";
   track[91].type = NODE_MERGE;
   track[91].num = 6;
@@ -2145,6 +2200,7 @@ void trackb_init(struct TrackNode *track) {
   track[91].edge[DIR_AHEAD].src = &track[91];
   track[91].edge[DIR_AHEAD].dest = &track[37];
   track[91].edge[DIR_AHEAD].dist = 61;
+  track[91].zone = 24;
   track[92].name = "BR7";
   track[92].type = NODE_BRANCH;
   track[92].num = 7;
@@ -2157,6 +2213,7 @@ void trackb_init(struct TrackNode *track) {
   track[92].edge[DIR_CURVED].src = &track[92];
   track[92].edge[DIR_CURVED].dest = &track[89];
   track[92].edge[DIR_CURVED].dist = 371;
+  track[92].zone = 24;
   track[93].name = "MR7";
   track[93].type = NODE_MERGE;
   track[93].num = 7;
@@ -2165,6 +2222,7 @@ void trackb_init(struct TrackNode *track) {
   track[93].edge[DIR_AHEAD].src = &track[93];
   track[93].edge[DIR_AHEAD].dest = &track[74];
   track[93].edge[DIR_AHEAD].dist = 43;
+  track[93].zone = 24;
   track[94].name = "BR8";
   track[94].type = NODE_BRANCH;
   track[94].num = 8;
@@ -2177,6 +2235,7 @@ void trackb_init(struct TrackNode *track) {
   track[94].edge[DIR_CURVED].src = &track[94];
   track[94].edge[DIR_CURVED].dest = &track[73];
   track[94].edge[DIR_CURVED].dist = 239;
+  track[94].zone = 15;
   track[95].name = "MR8";
   track[95].type = NODE_MERGE;
   track[95].num = 8;
@@ -2185,6 +2244,7 @@ void trackb_init(struct TrackNode *track) {
   track[95].edge[DIR_AHEAD].src = &track[95];
   track[95].edge[DIR_AHEAD].dest = &track[96];
   track[95].edge[DIR_AHEAD].dist = 155;
+  track[95].zone = 15;
   track[96].name = "BR9";
   track[96].type = NODE_BRANCH;
   track[96].num = 9;
@@ -2197,6 +2257,7 @@ void trackb_init(struct TrackNode *track) {
   track[96].edge[DIR_CURVED].src = &track[96];
   track[96].edge[DIR_CURVED].dest = &track[52];
   track[96].edge[DIR_CURVED].dist = 229;
+  track[96].zone = 15;
   track[97].name = "MR9";
   track[97].type = NODE_MERGE;
   track[97].num = 9;
@@ -2205,6 +2266,7 @@ void trackb_init(struct TrackNode *track) {
   track[97].edge[DIR_AHEAD].src = &track[97];
   track[97].edge[DIR_AHEAD].dest = &track[94];
   track[97].edge[DIR_AHEAD].dist = 155;
+  track[97].zone = 15;
   track[98].name = "BR10";
   track[98].type = NODE_BRANCH;
   track[98].num = 10;
@@ -2217,6 +2279,7 @@ void trackb_init(struct TrackNode *track) {
   track[98].edge[DIR_CURVED].src = &track[98];
   track[98].edge[DIR_CURVED].dest = &track[66];
   track[98].edge[DIR_CURVED].dist = 239;
+  track[98].zone = 13;
   track[99].name = "MR10";
   track[99].type = NODE_MERGE;
   track[99].num = 10;
@@ -2225,6 +2288,7 @@ void trackb_init(struct TrackNode *track) {
   track[99].edge[DIR_AHEAD].src = &track[99];
   track[99].edge[DIR_AHEAD].dest = &track[68];
   track[99].edge[DIR_AHEAD].dist = 50;
+  track[99].zone = 13;
   track[100].name = "BR11";
   track[100].type = NODE_BRANCH;
   track[100].num = 11;
@@ -2237,6 +2301,7 @@ void trackb_init(struct TrackNode *track) {
   track[100].edge[DIR_CURVED].src = &track[100];
   track[100].edge[DIR_CURVED].dest = &track[107];
   track[100].edge[DIR_CURVED].dist = 495;
+  track[100].zone = 4;
   track[101].name = "MR11";
   track[101].type = NODE_MERGE;
   track[101].num = 11;
@@ -2245,6 +2310,7 @@ void trackb_init(struct TrackNode *track) {
   track[101].edge[DIR_AHEAD].src = &track[101];
   track[101].edge[DIR_AHEAD].dest = &track[44];
   track[101].edge[DIR_AHEAD].dist = 50;
+  track[101].zone = 4;
   track[102].name = "BR12";
   track[102].type = NODE_BRANCH;
   track[102].num = 12;
@@ -2257,6 +2323,7 @@ void trackb_init(struct TrackNode *track) {
   track[102].edge[DIR_CURVED].src = &track[102];
   track[102].edge[DIR_CURVED].dest = &track[86];
   track[102].edge[DIR_CURVED].dist = 185;
+  track[102].zone = 4;
   track[103].name = "MR12";
   track[103].type = NODE_MERGE;
   track[103].num = 12;
@@ -2265,6 +2332,7 @@ void trackb_init(struct TrackNode *track) {
   track[103].edge[DIR_AHEAD].src = &track[103];
   track[103].edge[DIR_AHEAD].dest = &track[101];
   track[103].edge[DIR_AHEAD].dist = 188;
+  track[103].zone = 4;
   track[104].name = "BR13";
   track[104].type = NODE_BRANCH;
   track[104].num = 13;
@@ -2277,6 +2345,7 @@ void trackb_init(struct TrackNode *track) {
   track[104].edge[DIR_CURVED].src = &track[104];
   track[104].edge[DIR_CURVED].dest = &track[79];
   track[104].edge[DIR_CURVED].dist = 246;
+  track[104].zone = 6;
   track[105].name = "MR13";
   track[105].type = NODE_MERGE;
   track[105].num = 13;
@@ -2285,6 +2354,7 @@ void trackb_init(struct TrackNode *track) {
   track[105].edge[DIR_AHEAD].src = &track[105];
   track[105].edge[DIR_AHEAD].dest = &track[43];
   track[105].edge[DIR_AHEAD].dist = 120;
+  track[105].zone = 6;
   track[106].name = "BR14";
   track[106].type = NODE_BRANCH;
   track[106].num = 14;
@@ -2297,6 +2367,7 @@ void trackb_init(struct TrackNode *track) {
   track[106].edge[DIR_CURVED].src = &track[106];
   track[106].edge[DIR_CURVED].dest = &track[42];
   track[106].edge[DIR_CURVED].dist = 333;
+  track[106].zone = 4;
   track[107].name = "MR14";
   track[107].type = NODE_MERGE;
   track[107].num = 14;
@@ -2305,6 +2376,7 @@ void trackb_init(struct TrackNode *track) {
   track[107].edge[DIR_AHEAD].src = &track[107];
   track[107].edge[DIR_AHEAD].dest = &track[3];
   track[107].edge[DIR_AHEAD].dist = 43;
+  track[107].zone = 4;
   track[108].name = "BR15";
   track[108].type = NODE_BRANCH;
   track[108].num = 15;
@@ -2317,6 +2389,7 @@ void trackb_init(struct TrackNode *track) {
   track[108].edge[DIR_CURVED].src = &track[108];
   track[108].edge[DIR_CURVED].dest = &track[41];
   track[108].edge[DIR_CURVED].dist = 326;
+  track[108].zone = 21;
   track[109].name = "MR15";
   track[109].type = NODE_MERGE;
   track[109].num = 15;
@@ -2325,6 +2398,7 @@ void trackb_init(struct TrackNode *track) {
   track[109].edge[DIR_AHEAD].src = &track[109];
   track[109].edge[DIR_AHEAD].dest = &track[30];
   track[109].edge[DIR_AHEAD].dist = 50;
+  track[109].zone = 21;
   track[110].name = "BR16";
   track[110].type = NODE_BRANCH;
   track[110].num = 16;
@@ -2337,6 +2411,7 @@ void trackb_init(struct TrackNode *track) {
   track[110].edge[DIR_CURVED].src = &track[110];
   track[110].edge[DIR_CURVED].dest = &track[18];
   track[110].edge[DIR_CURVED].dist = 239;
+  track[110].zone = 22;
   track[111].name = "MR16";
   track[111].type = NODE_MERGE;
   track[111].num = 16;
@@ -2345,6 +2420,7 @@ void trackb_init(struct TrackNode *track) {
   track[111].edge[DIR_AHEAD].src = &track[111];
   track[111].edge[DIR_AHEAD].dest = &track[40];
   track[111].edge[DIR_AHEAD].dist = 128;
+  track[111].zone = 22;
   track[112].name = "BR17";
   track[112].type = NODE_BRANCH;
   track[112].num = 17;
@@ -2357,6 +2433,7 @@ void trackb_init(struct TrackNode *track) {
   track[112].edge[DIR_CURVED].src = &track[112];
   track[112].edge[DIR_CURVED].dest = &track[62];
   track[112].edge[DIR_CURVED].dist = 246;
+  track[112].zone = 18;
   track[113].name = "MR17";
   track[113].type = NODE_MERGE;
   track[113].num = 17;
@@ -2365,6 +2442,7 @@ void trackb_init(struct TrackNode *track) {
   track[113].edge[DIR_AHEAD].src = &track[113];
   track[113].edge[DIR_AHEAD].dest = &track[77];
   track[113].edge[DIR_AHEAD].dist = 43;
+  track[113].zone = 18;
   track[114].name = "BR18";
   track[114].type = NODE_BRANCH;
   track[114].num = 18;
@@ -2377,6 +2455,7 @@ void trackb_init(struct TrackNode *track) {
   track[114].edge[DIR_CURVED].src = &track[114];
   track[114].edge[DIR_CURVED].dest = &track[91];
   track[114].edge[DIR_CURVED].dist = 371;
+  track[114].zone = 24;
   track[115].name = "MR18";
   track[115].type = NODE_MERGE;
   track[115].num = 18;
@@ -2385,6 +2464,7 @@ void trackb_init(struct TrackNode *track) {
   track[115].edge[DIR_AHEAD].src = &track[115];
   track[115].edge[DIR_AHEAD].dest = &track[88];
   track[115].edge[DIR_AHEAD].dist = 155;
+  track[115].zone=  24;
   track[116].name = "BR153";
   track[116].type = NODE_BRANCH;
   track[116].num = 153;
@@ -2397,6 +2477,7 @@ void trackb_init(struct TrackNode *track) {
   track[116].edge[DIR_CURVED].src = &track[116];
   track[116].edge[DIR_CURVED].dest = &track[32];
   track[116].edge[DIR_CURVED].dist = 246;
+  track[116].zone = 11;
   track[117].name = "MR153";
   track[117].type = NODE_MERGE;
   track[117].num = 153;
@@ -2405,6 +2486,7 @@ void trackb_init(struct TrackNode *track) {
   track[117].edge[DIR_AHEAD].src = &track[117];
   track[117].edge[DIR_AHEAD].dest = &track[119];
   track[117].edge[DIR_AHEAD].dist = 0;
+  track[117].zone = 11;
   track[118].name = "BR154";
   track[118].type = NODE_BRANCH;
   track[118].num = 154;
@@ -2417,6 +2499,7 @@ void trackb_init(struct TrackNode *track) {
   track[118].edge[DIR_CURVED].src = &track[118];
   track[118].edge[DIR_CURVED].dest = &track[29];
   track[118].edge[DIR_CURVED].dist = 239;
+  track[118].zone = 11;
   track[119].name = "MR154";
   track[119].type = NODE_MERGE;
   track[119].num = 154;
@@ -2425,6 +2508,7 @@ void trackb_init(struct TrackNode *track) {
   track[119].edge[DIR_AHEAD].src = &track[119];
   track[119].edge[DIR_AHEAD].dest = &track[122];
   track[119].edge[DIR_AHEAD].dist = 0;
+  track[119].zone = 11;
   track[120].name = "BR155";
   track[120].type = NODE_BRANCH;
   track[120].num = 155;
@@ -2437,6 +2521,7 @@ void trackb_init(struct TrackNode *track) {
   track[120].edge[DIR_CURVED].src = &track[120];
   track[120].edge[DIR_CURVED].dest = &track[49];
   track[120].edge[DIR_CURVED].dist = 246;
+  track[120].zone = 11;
   track[121].name = "MR155";
   track[121].type = NODE_MERGE;
   track[121].num = 155;
@@ -2445,6 +2530,7 @@ void trackb_init(struct TrackNode *track) {
   track[121].edge[DIR_AHEAD].src = &track[121];
   track[121].edge[DIR_AHEAD].dest = &track[123];
   track[121].edge[DIR_AHEAD].dist = 0;
+  track[121].zone = 11;
   track[122].name = "BR156";
   track[122].type = NODE_BRANCH;
   track[122].num = 156;
@@ -2457,6 +2543,7 @@ void trackb_init(struct TrackNode *track) {
   track[122].edge[DIR_CURVED].src = &track[122];
   track[122].edge[DIR_CURVED].dest = &track[65];
   track[122].edge[DIR_CURVED].dist = 239;
+  track[122].zone = 11;
   track[123].name = "MR156";
   track[123].type = NODE_MERGE;
   track[123].num = 156;
@@ -2465,6 +2552,7 @@ void trackb_init(struct TrackNode *track) {
   track[123].edge[DIR_AHEAD].src = &track[123];
   track[123].edge[DIR_AHEAD].dest = &track[118];
   track[123].edge[DIR_AHEAD].dist = 0;
+  track[123].zone = 11;
   track[124].name = "EN1";
   track[124].type = NODE_ENTER;
   track[124].reverse = &track[125];
