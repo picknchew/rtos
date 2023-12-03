@@ -343,7 +343,8 @@ void train_init(struct Train *train, int train_num) {
 
   train->terminal_update_time = -100;
 
-  train->lock_begin_time = 0;
+  // train->lock_begin_time = 0;
+  train->lock_begin_time = -1;
 }
 
 static inline int get_constant_velocity_travel_time(struct Train *train, int dist) {
@@ -441,7 +442,7 @@ inline int get_dist_constant_velocity(FixedPointInt velocity, int time) {
   return fixed_point_int_get(velocity * time);
 }
 
-bool ReserveByDistance(int distance, struct Train *train) {
+bool ReserveByDistance(int terminal, int distance, struct Train *train) {
   // struct TrackNode *end = current_path_dest_pos.node;
   struct RoutePlan plan = train->plan;
   // // index of current path in route plan
@@ -457,26 +458,29 @@ bool ReserveByDistance(int distance, struct Train *train) {
   int pre_dist =
       node->edge[plan.path.directions[last_node_index]].dist - train->est_pos.position.offset;
   int reserved_distance = pre_dist;
-
+  TerminalLogPrint(terminal, "last node name %s", node->name);
+  TerminalLogPrint(terminal, "last node index -1  %s", plan.path.nodes[last_node_index - 1]->name);
 
   for (int i = last_node_index - 1; i >= 0; --i) {
     struct TrackNode *node = plan.path.nodes[i];
     int zone = node->zone;
-    if ((node->type==NODE_SENSOR||node->type==NODE_BRANCH||node->type==NODE_MERGE)&&!ReservableTrack(zone, train->train_index)) {
+    if ((node->type == NODE_SENSOR || node->type == NODE_BRANCH || node->type == NODE_MERGE) &&
+        !ReservableTrack(zone, train->train_index)) {
       success_res = false;
       break;
-    } 
+    }
   }
 
-  if (success_res){
+  if (success_res) {
     for (int i = last_node_index - 1; i >= 0; --i) {
       struct TrackNode *node = plan.path.nodes[i];
       int zone = node->zone;
-      if ((node->type==NODE_SENSOR||node->type==NODE_BRANCH||node->type==NODE_MERGE)) {
+      if ((node->type == NODE_SENSOR || node->type == NODE_BRANCH || node->type == NODE_MERGE)) {
         ReserveTrack(zone, train->train_index);
         reserved_distance += node->edge[plan.path.directions[i]].dist;
+        TerminalLogPrint(terminal, "reserve for node %s", node->name);
       }
-      
+
       if (reserved_distance >= distance) {
         break;
       }
@@ -753,7 +757,7 @@ static int get_next_sensor_index(struct Train *train) {
   int last_sensor_index =
       train->last_sensor_index == -1 ? train->plan.path.nodes_len : train->last_sensor_index;
 
-  for (int i = last_sensor_index; i >= 0; --i) {
+  for (int i = last_sensor_index-1; i >= 0; --i) {
     struct TrackNode *node = train->plan.path.nodes[i];
 
     if (node->type == NODE_SENSOR) {
@@ -1097,7 +1101,6 @@ static void handle_tick(
           train->est_pos.position.node = train->est_pos.position.node->reverse;
           train->est_pos.position.offset = -train->est_pos.position.offset + TRAIN_LEN;
 
-          
           // int zone = train->plan.path.nodes[current_path.start_index]->zone;
           // bool success_res = true;
           // // train->est_pos.position.offset = 0;
@@ -1122,7 +1125,6 @@ static void handle_tick(
         // short move (possibly add a buffer additionally?)
         if (dist_to_current_dest < TRAINSET_STOPPING_DISTANCES[train->train_index][train->speed] +
                                        TRAINSET_ACCEL_DISTANCES[train->train_index][train->speed]) {
-
           // get_distance_between(path, &train->est_pos.position, &current_path_dest_pos, true);
           train->move_start_time = time;
           train->move_duration =
@@ -1144,7 +1146,7 @@ static void handle_tick(
           TerminalLogPrint(terminal, "Last sensor index %d", last_node_index);
           struct TrackNode *dest = current_path_dest_pos.node;
           // bool success_res = true;
-          bool success_res = ReserveByDistance(dist_to_current_dest,train);
+          bool success_res = ReserveByDistance(terminal, dist_to_current_dest, train);
 
           // reserve by distance
           // for (int i = last_node_index; i >= 0; --i) {
@@ -1199,28 +1201,36 @@ static void handle_tick(
           int last_node_index = train->last_sensor_index;
           struct TrackNode *dest = current_path_dest_pos.node;
           bool success_res = true;
+          TerminalLogPrint(terminal, "last node name %s", plan.path.nodes[last_node_index]->name);
+          TerminalLogPrint(
+              terminal, "last node index -1  %s", plan.path.nodes[last_node_index - 1]->name
+          );
 
-          for (int i = last_node_index-1; i >= 0; --i) {
+          for (int i = last_node_index - 1; i >= 0; --i) {
             struct TrackNode *node = plan.path.nodes[i];
             int zone = node->zone;
             if (node->index == dest->index) {
               break;
             }
-            if ((node->type==NODE_SENSOR||node->type==NODE_BRANCH||node->type==NODE_MERGE)&&!ReservableTrack(zone, train->train_index)) {
+            if ((node->type == NODE_SENSOR || node->type == NODE_BRANCH || node->type == NODE_MERGE
+                ) &&
+                !ReservableTrack(zone, train->train_index)) {
               success_res = false;
               break;
             }
           }
           // bool success_res = ReserveByDistance(1000,train);
           if (success_res) {
-            for (int i = last_node_index-1; i >= 0; --i) {
+            for (int i = last_node_index - 1; i >= 0; --i) {
               struct TrackNode *node = plan.path.nodes[i];
               int zone = node->zone;
               if (node->index == dest->index) {
                 break;
               }
-              if ((node->type==NODE_SENSOR||node->type==NODE_BRANCH||node->type==NODE_MERGE)){
-                ReserveTrack(zone,train->train_index);
+              if ((node->type == NODE_SENSOR || node->type == NODE_BRANCH ||
+                   node->type == NODE_MERGE)) {
+                ReserveTrack(zone, train->train_index);
+                TerminalLogPrint(terminal, "reserve for node %s", node->name);
               }
             }
             TerminalLogPrint(terminal, "ACCELERATION reservation sucessful");
@@ -1278,13 +1288,32 @@ static void handle_tick(
         train->state = PATH_BEGIN;
         break;
       case LOCKED:
-        if (time - train->lock_begin_time >= DEADLOCK_DURATION) {
+        if (train->lock_begin_time>=0 && (time - train->lock_begin_time >= DEADLOCK_DURATION)) {
           train->lock_begin_time = time;
-          TrainReverse(train_tid, train->train);
+
+          // // TrainReverse(train_tid, train->train);
+          train->pf_state = ROUTE_TO_SELECTED_DEST;
+          train->selected_dest = train->plan.path.nodes[train->plan.path.nodes_len-1];
+          train->est_pos.position.node = train->est_pos.position.node->reverse;
+          //offset
+          train->plan.path_found = false;
           reroute_train(terminal, train_planner, train);
-          train->state = PATH_BEGIN;
+          // train->est_pos.position.node = train->est_pos.position.node->reverse;
+          // if (train->pf_state = ROUTE_TO_SELECTED_DEST){
+          //   reroute_train(terminal, train_planner, train);
+          // }
+          
+          if (train->plan.path_found) {
+            TrainReverse(train_tid, train->train);
+            train->state = PATH_BEGIN;
+          }else {
+            train->pf_state = ROUTE_TO_SELECTED_DEST;
+            train->est_pos.position.node = train->est_pos.position.node->reverse;
+            reroute_train(terminal, train_planner, train);
+          }
+
         }
-        if (time - train->lock_begin_time >= WAIT_DURATION) {
+        if (train->lock_begin_time>=0 && (time - train->lock_begin_time >= WAIT_DURATION)) {
           train->state = PATH_BEGIN;
         }
         break;
@@ -1340,7 +1369,8 @@ struct Train *sensor_get_train(struct Train *trains, int sensor) {
 void set_train_active(struct Train *train, int speed, int time) {
   train->active = true;
   train->speed = speed;
-  train->lock_begin_time = time;
+  // train->lock_begin_time = time;
+  train->lock_begin_time = -1;
 }
 
 static void

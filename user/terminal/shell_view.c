@@ -304,18 +304,18 @@ static void update_selected_track(struct TerminalScreen *screen, char track) {
 static void update_zone_reservation(struct TerminalScreen *screen, int zone, int train, int type) {
   terminal_save_cursor(screen);
   struct Zone zone_track = getZone(zone);
+
+  if (type == 0) {
+    terminal_puts(screen, color[train % 6]);
+  } else if (type == 1) {
+    terminal_printf(screen, "\033[0;37m");
+  }
   
   for (int i = 0; i < zone_track.len; i++) {
     int row = zone_track.tracks[i] / 100;
     int col = zone_track.tracks[i] % 100;
 
     terminal_move_cursor(screen, row + ZONE_RESERVATION_BASE_LINE, col + ZONE_RESERVATION_BASE_COL);
-    if (type == 0) {
-      terminal_puts(screen, color[train % 6]);
-    } else if (type == 1) {
-      terminal_printf(screen, "\033[0;37m");
-    }
-
     terminal_putc(screen, '*');
     terminal_putc(screen, '*');
   }
