@@ -311,12 +311,12 @@ int ZoneOccupied(int zone) {
 void ReleaseReservations(int zone) {
   int terminal = WhoIs("terminal");
   zones[zone].release_counter++;
-  if (zones[zone].release_counter == 2) {
-    zones[zone].reserved = false;
-    zones[zone].reservedby = -1;
-    zones[zone].release_counter = 0;
-    TerminalUpdateZoneReservation(terminal, zone, zones[zone].reservedby, 1);
-  }
+  // if (zones[zone].release_counter == 2) {
+  zones[zone].reserved = false;
+  zones[zone].reservedby = -1;
+  zones[zone].release_counter = 0;
+  TerminalUpdateZoneReservation(terminal, zone, zones[zone].reservedby, 1);
+  // }
 }
 
 struct Zone getZone(int zone) {

@@ -25,6 +25,7 @@ struct Zone {
 
 // returns false if track could not be reserved.
 bool ReserveTrack(int zone_num, int train_index);
+bool ReservableTrack(int zone_num, int train_index);
 void ReleaseReservations(int zone);
 struct Zone getZone(int zone);
 int ZoneOccupied(int zone);

@@ -320,7 +320,7 @@ static void update_zone_reservation(struct TerminalScreen *screen, int zone, int
     terminal_putc(screen, '*');
   }
 
-  terminal_printf(screen, "\033[0;37m");
+  terminal_puts(screen, "\033[0m");
   // terminal_move_cursor(screen, ZONE_RESERVATION_BASE_LINE + zone_offset,
   // ZONE_RESERVATION_BASE_COL);
   // ++zone_offset;
