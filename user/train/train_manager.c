@@ -1089,6 +1089,7 @@ static void handle_tick(
         // check if move is a reverse
         if (current_path.reverse) {
           TrainReverseInstant(train_tid, train->train);
+          TerminalLogPrint(terminal,"reverse 1");
           train->reversed = !train->reversed;
 
           // reverse train direciton and make the back of the train the front of the train.
@@ -1304,7 +1305,8 @@ static void handle_tick(
           // }
           
           if (train->plan.path_found) {
-            TrainReverse(train_tid, train->train);
+            // TrainReverse(train_tid, train->train);
+            TerminalLogPrint(terminal,"reverse 2");
             train->state = PATH_BEGIN;
           }else {
             train->pf_state = ROUTE_TO_SELECTED_DEST;
