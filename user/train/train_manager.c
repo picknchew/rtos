@@ -458,20 +458,31 @@ bool ReserveByDistance(int distance, struct Train *train) {
       node->edge[plan.path.directions[last_node_index]].dist - train->est_pos.position.offset;
   int reserved_distance = pre_dist;
 
+
   for (int i = last_node_index - 1; i >= 0; --i) {
     struct TrackNode *node = plan.path.nodes[i];
     int zone = node->zone;
-
-    if (!ReserveTrack(zone, train->train_index)) {
+    if ((node->type==NODE_SENSOR||node->type==NODE_BRANCH||node->type==NODE_MERGE)&&!ReservableTrack(zone, train->train_index)) {
       success_res = false;
       break;
-    } else {
-      reserved_distance += node->edge[plan.path.directions[i]].dist;
-    }
-    if (reserved_distance >= distance) {
-      break;
+    } 
+  }
+
+  if (success_res){
+    for (int i = last_node_index - 1; i >= 0; --i) {
+      struct TrackNode *node = plan.path.nodes[i];
+      int zone = node->zone;
+      if ((node->type==NODE_SENSOR||node->type==NODE_BRANCH||node->type==NODE_MERGE)) {
+        ReserveTrack(zone, train->train_index);
+        reserved_distance += node->edge[plan.path.directions[i]].dist;
+      }
+      
+      if (reserved_distance >= distance) {
+        break;
+      }
     }
   }
+
   // if reserved distance <= distance...
   return success_res;
 }
@@ -1189,19 +1200,29 @@ static void handle_tick(
           struct TrackNode *dest = current_path_dest_pos.node;
           bool success_res = true;
 
-          for (int i = last_node_index; i >= 0; --i) {
+          for (int i = last_node_index-1; i >= 0; --i) {
             struct TrackNode *node = plan.path.nodes[i];
             int zone = node->zone;
             if (node->index == dest->index) {
               break;
             }
-            if ((node->type==NODE_SENSOR)&&!ReserveTrack(zone, train->train_index)) {
+            if ((node->type==NODE_SENSOR||node->type==NODE_BRANCH||node->type==NODE_MERGE)&&!ReservableTrack(zone, train->train_index)) {
               success_res = false;
               break;
             }
           }
           // bool success_res = ReserveByDistance(1000,train);
           if (success_res) {
+            for (int i = last_node_index-1; i >= 0; --i) {
+              struct TrackNode *node = plan.path.nodes[i];
+              int zone = node->zone;
+              if (node->index == dest->index) {
+                break;
+              }
+              if ((node->type==NODE_SENSOR||node->type==NODE_BRANCH||node->type==NODE_MERGE)){
+                ReserveTrack(zone,train->train_index);
+              }
+            }
             TerminalLogPrint(terminal, "ACCELERATION reservation sucessful");
           } else {
             TerminalLogPrint(terminal, "ACCELERATION reservation unsucessful, train is LOCKED");

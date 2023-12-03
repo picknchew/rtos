@@ -24,6 +24,7 @@ void zones_a_init() {
     zones[i].id = i;
     zones[i].reserved = false;
     zones[i].reservedby = -1;
+    zones[i].release_counter = 0;
   }
   zones[0].tracks[0] = 650;
   zones[0].len = 1;
@@ -280,6 +281,16 @@ void zones_b_init() {
 bool ReserveTrack(int zone_num, int train_index) {
   int terminal = WhoIs("terminal");
 
+  zones[zone_num].reserved = true;
+  zones[zone_num].reservedby = train_index;
+  TerminalUpdateZoneReservation(terminal, zone_num, train_index, 0);
+  TerminalLogPrint(terminal, "successfuly reserved zone %d for %d", zone_num, train_index);
+  return true;
+}
+
+bool ReservableTrack(int zone_num, int train_index) {
+  int terminal = WhoIs("terminal");
+
   if (zones[zone_num].reserved && zones[zone_num].reservedby != train_index) {
     TerminalLogPrint(
         terminal,
@@ -290,11 +301,6 @@ bool ReserveTrack(int zone_num, int train_index) {
     );
     return false;
   }
-
-  zones[zone_num].reserved = true;
-  zones[zone_num].reservedby = train_index;
-  TerminalUpdateZoneReservation(terminal, zone_num, train_index, 0);
-  TerminalLogPrint(terminal, "successfuly reserved zone %d for %d", zone_num, train_index);
   return true;
 }
 
@@ -304,9 +310,13 @@ int ZoneOccupied(int zone) {
 
 void ReleaseReservations(int zone) {
   int terminal = WhoIs("terminal");
-  zones[zone].reserved = false;
-  zones[zone].reservedby = -1;
-  TerminalUpdateZoneReservation(terminal, zone, zones[zone].reservedby, 1);
+  zones[zone].release_counter++;
+  if (zones[zone].release_counter == 2) {
+    zones[zone].reserved = false;
+    zones[zone].reservedby = -1;
+    zones[zone].release_counter = 0;
+    TerminalUpdateZoneReservation(terminal, zone, zones[zone].reservedby, 1);
+  }
 }
 
 struct Zone getZone(int zone) {

@@ -20,6 +20,7 @@ struct Zone {
   int tracks[30];
   int len;
   const char *color;
+  int release_counter;
 };
 
 // returns false if track could not be reserved.
