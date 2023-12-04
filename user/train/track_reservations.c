@@ -313,6 +313,7 @@ bool ReservableTrack(int zone_num, int train_index) {
   return true;
 }
 
+// reserve from start_node_index to the end of the path
 bool ReservePath(
     struct RoutePlan *plan,
     struct SimplePath *path,
@@ -322,7 +323,7 @@ bool ReservePath(
   int terminal = WhoIs("terminal");
 
   // check if zones are reservable
-  for (int i = start_node_index; i < path->end_index; ++i) {
+  for (int i = start_node_index + 1; i <= path->end_index; ++i) {
     struct TrackNode *node = plan->path.nodes[i];
     int zone = node->zone;
 
@@ -332,7 +333,7 @@ bool ReservePath(
     }
   }
 
-  for (int i = start_node_index + 1; i < path->end_index; ++i) {
+  for (int i = start_node_index + 1; i <= path->end_index; ++i) {
     struct TrackNode *node = plan->path.nodes[i];
 
     int zone = node->zone;

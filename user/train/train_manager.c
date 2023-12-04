@@ -923,7 +923,7 @@ static void train_update_next_sensor(struct Train *train, int current_time) {
         next_sensor_index
     );
 
-    if (next_sensor_index > cur_path->start_index || next_sensor_index < cur_path->end_index) {
+    if (next_sensor_index >= cur_path->start_index || next_sensor_index <= cur_path->end_index) {
       // if it isn't in the current path, we can't provide an estimate yet
       train->next_sensor_eta = 0;
       return;
@@ -1115,6 +1115,13 @@ static void handle_tick(
         if (train->decel_begin_time + train->decel_duration <= time) {
           TerminalLogPrint(terminal, "state change to STOPPED from DECELERATING");
 
+          TerminalLogPrint(
+              terminal,
+              "decel_begin_time: %d, decel_duration: %d",
+              train->decel_begin_time,
+              train->decel_duration
+          );
+
           train->velocity = 0;
           train->acceleration = 0;
           train->state = STOPPED;
@@ -1244,19 +1251,19 @@ static void handle_tick(
           train->move_duration = get_move_time(train, dist_to_current_dest);
           train->move_stop_time = train->move_start_time + train->move_duration;
           TerminalLogPrint(terminal, "state change to ACCELERATING from PATH_BEGIN");
-          // check track reservation
-          TerminalLogPrint(terminal, "checking path reservation");
 
-          struct RoutePlan plan = train->plan;
-          int last_node_index = train->last_sensor_index;
           struct TrackNode *dest = current_path_dest_pos.node;
-          bool success_res = true;
           // TerminalLogPrint(terminal, "last node name %s",
           // plan.path.nodes[last_node_index]->name); TerminalLogPrint(
           //     terminal, "last node index -1  %s", plan.path.nodes[last_node_index - 1]->name
           // );
 
-          if (ReservePath(plan, path, train->last_sensor_index + 1, train->train_index)) {
+          if (ReservePath(
+                  &train->plan,
+                  &train->plan.paths[train->path_index],
+                  train->last_sensor_index + 1,
+                  train->train_index
+              )) {
             TerminalLogPrint(terminal, "ACCELERATION reservation sucessful");
           } else {
             TerminalLogPrint(terminal, "ACCELERATION reservation unsucessful, train is LOCKED");

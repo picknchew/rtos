@@ -53,7 +53,7 @@ void trainset_calib_data_init() {
     TRAINSET_ACCEL_TIMES[i][0] = 300;
     // default 5s
     TRAINSET_DECEL_TIMES[i][0] = 500;
-    TRAINSET_DECEL_TIMES[i][7] = 200;
+    TRAINSET_DECEL_TIMES[i][7] = 300;
     TRAINSET_DECEL_TIMES[i][10] = 300;
   }
 
