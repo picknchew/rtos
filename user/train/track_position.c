@@ -54,7 +54,7 @@ struct TrainPosition train_position_add(struct TrainPosition pos, struct Path *p
     node = node->edge[dir].dest;
     last_dir = dir;
 
-    --node_index;
+    ++node_index;
   }
 
   struct TrainPosition new_pos = {

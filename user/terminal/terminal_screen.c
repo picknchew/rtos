@@ -25,9 +25,12 @@ void terminal_putl(struct TerminalScreen *screen, const char *buf, size_t blen) 
 }
 
 int terminal_puts(struct TerminalScreen *screen, const char *str) {
-  int len = strlen(str);
-  terminal_putl(screen, str, len);
-  return len;
+  int i = 0;
+  while (str[i]) {
+    terminal_putc(screen, str[i]);
+    ++i;
+  }
+  return i;
 }
 
 void terminal_format_print(struct TerminalScreen *screen, char *fmt, va_list va) {

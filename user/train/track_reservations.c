@@ -279,66 +279,58 @@ void zones_b_init() {
   zones[26].len = zones[26].len - 1;
 }
 
-bool ReserveTrack(int zone_num, int train_index) {
-  int terminal = WhoIs("terminal");
-
-  // TerminalLogPrint(terminal, "enter reserve track");
-
+bool ReserveTrack(int terminal, int zone_num, int train_index) {
   if (zones[zone_num].reserved && zones[zone_num].reservedby != train_index) {
-    // TerminalLogPrint(terminal, "failed to reserve zone %d for %d", zone_num, train_index);
-    // TerminalLogPrint(terminal, "zone %d is currently reserved by %d", zone_num, train_index);
     return false;
   }
 
   zones[zone_num].reserved = true;
   zones[zone_num].reservedby = train_index;
   TerminalUpdateZoneReservation(terminal, zone_num, train_index, 0);
-  // TerminalLogPrint(terminal, "successfuly reserved zone %d for %d", zone_num, train_index);
+
   return true;
 }
 
 bool ReservableTrack(int zone_num, int train_index) {
-  int terminal = WhoIs("terminal");
-
   if (zones[zone_num].reserved && zones[zone_num].reservedby != train_index) {
-    TerminalLogPrint(
-        terminal,
-        "failed to reserve zone %d for %d, occupied by %d",
-        zone_num,
-        train_index,
-        zones[zone_num].reservedby
-    );
     return false;
   }
+
   return true;
 }
 
 // reserve from start_node_index to the end of the path
 bool ReservePath(
+    int terminal,
     struct RoutePlan *plan,
     struct SimplePath *path,
     int start_node_index,
     int train_index
 ) {
-  int terminal = WhoIs("terminal");
-
   // check if zones are reservable
-  for (int i = start_node_index + 1; i <= path->end_index; ++i) {
+  for (int i = start_node_index; i <= path->end_index; ++i) {
     struct TrackNode *node = plan->path.nodes[i];
     int zone = node->zone;
 
     if ((node->type == NODE_SENSOR || node->type == NODE_BRANCH || node->type == NODE_MERGE) &&
         !ReservableTrack(zone, train_index)) {
+            TerminalLogPrint(
+          terminal,
+          "failed to reserve zone %d for %d, occupied by %d",
+          zone,
+          train_index,
+          zones[zone].reservedby
+      );
       return false;
     }
   }
 
-  for (int i = start_node_index + 1; i <= path->end_index; ++i) {
+  for (int i = start_node_index; i <= path->end_index; ++i) {
     struct TrackNode *node = plan->path.nodes[i];
-
     int zone = node->zone;
+
     if ((node->type == NODE_SENSOR || node->type == NODE_BRANCH || node->type == NODE_MERGE)) {
-      ReserveTrack(zone, train_index);
+      ReserveTrack(terminal, zone, train_index);
       TerminalLogPrint(terminal, "reserve for node %s", node->name);
     }
   }
@@ -350,8 +342,7 @@ int ZoneOccupied(int zone) {
   return zones[zone].reservedby;
 }
 
-void ReleaseReservations(int zone) {
-  int terminal = WhoIs("terminal");
+void ReleaseReservations(int terminal, int zone) {
   zones[zone].release_counter++;
   // if (zones[zone].release_counter == 2) {
   zones[zone].reserved = false;
@@ -361,25 +352,6 @@ void ReleaseReservations(int zone) {
   // }
 }
 
-struct Zone getZone(int zone) {
-  return zones[zone];
+struct Zone *GetZone(int zone) {
+  return &zones[zone];
 }
-
-// int main(){
-//     int base_row = 2;
-//     int base_col = 2;
-//     zones_b_init();
-//     printf("\033[2J");
-//     printf(black);
-//     printf(track_b);
-//     for(int i=0;i<ZONE_NUMBERS;i++){
-//         for(int j=0;j<zones[i].len;j++){
-//             int row = zones[i].tracks[j]/100;
-//             int col = zones[i].tracks[j]%100;
-//             printf("\033[0;31m");
-//             printf("\033[%d;%dH",row,col);
-//             printf("**");
-//         }
-//     }
-//     printf("\033[25;50H");
-// }

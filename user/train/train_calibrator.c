@@ -1,5 +1,6 @@
 #include "train_calibrator.h"
 
+#include "selected_track.h"
 #include "syscall.h"
 #include "trackdata/distance.h"
 #include "trackdata/track_data.h"
@@ -69,7 +70,6 @@ struct TrainCalibrationRequest {
 };
 
 static const int CALIBRATION_LOOPS = 10;
-static struct TrackNode track[TRACK_MAX];
 
 void train_calibrator_task() {
   RegisterAs("train_calib");
@@ -77,9 +77,6 @@ void train_calibrator_task() {
   int train_tid = WhoIs("train");
   int terminal_tid = WhoIs("terminal");
   int clock_server = WhoIs("clock_server");
-
-  // tracka_init(track);
-  trackb_init(track);
 
   bool calibrating = false;
 
@@ -221,10 +218,8 @@ void train_calibrator_task() {
         //     TerminalLogPrint(terminal_tid, "time between sensor triggers: %d", tdelta);
         //     TerminalLogPrint(
         //         terminal_tid,
-        //         "Measured acceleration for train %d at speed %d, measured speed: %d, time to first "
-        //         "sensor: %d",
-        //         train,
-        //         speed,
+        //         "Measured acceleration for train %d at speed %d, measured speed: %d, time to
+        //         first " "sensor: %d", train, speed,
         //         // distance from B6 to C12.
         //         (351 * 1000) / (tdelta),
         //         t1 - t_start

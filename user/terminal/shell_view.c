@@ -178,9 +178,9 @@ static void init_train_zones(struct TerminalScreen *screen, char track) {
   terminal_move_cursor(screen, ZONE_RESERVATION_BASE_LINE, ZONE_RESERVATION_BASE_COL);
 
   if (track == 'A') {
-    terminal_printf(screen, track_a);
+    terminal_puts(screen, track_a);
   } else {
-    terminal_printf(screen, track_b);
+    terminal_puts(screen, track_b);
   }
 
   terminal_restore_cursor(screen);
@@ -322,7 +322,7 @@ static void update_train_info(
   terminal_printf(screen, "%4s + %6d", pos_node, pos_offset);
   terminal_printf(screen, "%14s", dest);
   terminal_printf(screen, "%15d", speed);
-  terminal_printf(screen, "%d", accel);
+  terminal_printf(screen, "%15d", accel);
 
   terminal_restore_cursor(screen);
 }
@@ -339,7 +339,7 @@ static void update_selected_track(struct TerminalScreen *screen, char track) {
 
 static void update_zone_reservation(struct TerminalScreen *screen, int zone, int train, int type) {
   terminal_save_cursor(screen);
-  struct Zone zone_track = getZone(zone);
+  struct Zone *zone_track = GetZone(zone);
 
   if (type == 0) {
     terminal_puts(screen, color[train % 6]);
@@ -347,9 +347,9 @@ static void update_zone_reservation(struct TerminalScreen *screen, int zone, int
     terminal_printf(screen, "\033[0;37m");
   }
 
-  for (int i = 0; i < zone_track.len; i++) {
-    int row = zone_track.tracks[i] / 100;
-    int col = zone_track.tracks[i] % 100;
+  for (int i = 0; i < zone_track->len; i++) {
+    int row = zone_track->tracks[i] / 100;
+    int col = zone_track->tracks[i] % 100;
 
     terminal_move_cursor(screen, row + ZONE_RESERVATION_BASE_LINE, col + ZONE_RESERVATION_BASE_COL);
     terminal_putc(screen, '*');
