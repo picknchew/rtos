@@ -18,7 +18,7 @@
 #include "user/terminal/terminal_task.h"
 #include "util.h"
 
-//m: initial zone res
+// m: initial zone res
 
 // 21cm
 static const int TRAIN_LEN = 210;
@@ -470,13 +470,13 @@ bool ReserveByDistance(int terminal, int distance, struct Train *train) {
         !ReservableTrack(zone, train->train_index)) {
       success_res = false;
       break;
-    }else {
+    } else {
       reserved_distance += node->edge[plan.path.directions[i]].dist;
-    }if (reserved_distance >= distance) {
-        break;
+    }
+    if (reserved_distance >= distance) {
+      break;
     }
   }
-  
   reserved_distance = pre_dist;
   if (success_res) {
     for (int i = last_node_index - 1; i >= 0; --i) {
@@ -764,7 +764,7 @@ static int get_next_sensor_index(struct Train *train) {
   int last_sensor_index =
       train->last_sensor_index == -1 ? train->plan.path.nodes_len : train->last_sensor_index;
 
-  for (int i = last_sensor_index-1; i >= 0; --i) {
+  for (int i = last_sensor_index - 1; i >= 0; --i) {
     struct TrackNode *node = train->plan.path.nodes[i];
 
     if (node->type == NODE_SENSOR) {
@@ -1096,7 +1096,7 @@ static void handle_tick(
         // check if move is a reverse
         if (current_path.reverse) {
           TrainReverseInstant(train_tid, train->train);
-          TerminalLogPrint(terminal,"reverse 1");
+          TerminalLogPrint(terminal, "reverse 1");
           train->reversed = !train->reversed;
 
           // reverse train direciton and make the back of the train the front of the train.
@@ -1296,33 +1296,32 @@ static void handle_tick(
         train->state = PATH_BEGIN;
         break;
       case LOCKED:
-        if (train->lock_begin_time>=0 && (time - train->lock_begin_time >= DEADLOCK_DURATION)) {
+        if (train->lock_begin_time >= 0 && (time - train->lock_begin_time >= DEADLOCK_DURATION)) {
           train->lock_begin_time = time;
 
           // // TrainReverse(train_tid, train->train);
           train->pf_state = ROUTE_TO_SELECTED_DEST;
-          train->selected_dest = train->plan.path.nodes[train->plan.path.nodes_len-1];
+          train->selected_dest = train->plan.path.nodes[train->plan.path.nodes_len - 1];
           train->est_pos.position.node = train->est_pos.position.node->reverse;
-          //offset
+          // offset
           train->plan.path_found = false;
           reroute_train(terminal, train_planner, train);
           // train->est_pos.position.node = train->est_pos.position.node->reverse;
           // if (train->pf_state = ROUTE_TO_SELECTED_DEST){
           //   reroute_train(terminal, train_planner, train);
           // }
-          
+
           if (train->plan.path_found) {
             // TrainReverse(train_tid, train->train);
-            TerminalLogPrint(terminal,"reverse 2");
+            TerminalLogPrint(terminal, "reverse 2");
             train->state = PATH_BEGIN;
-          }else {
+          } else {
             train->pf_state = ROUTE_TO_SELECTED_DEST;
             train->est_pos.position.node = train->est_pos.position.node->reverse;
             reroute_train(terminal, train_planner, train);
           }
-
         }
-        if (train->lock_begin_time>=0 && (time - train->lock_begin_time >= WAIT_DURATION)) {
+        if (train->lock_begin_time >= 0 && (time - train->lock_begin_time >= WAIT_DURATION)) {
           train->state = PATH_BEGIN;
         }
         break;
@@ -1434,6 +1433,7 @@ static void handle_update_sensors_request(
     struct TrackNode *last_node = train->last_known_pos.position.node;
     if (last_node != NULL) {
       int zone = last_node->zone;
+      TerminalLogPrint(terminal, "!!!!!!!train last know pos node %s", last_node->name);
       if (ZoneOccupied(zone) == train->train_index) {
         ReleaseReservations(zone);
       }
@@ -1518,11 +1518,14 @@ void handle_route_return_req(
   train1->selected_dest = &track[trainset_get_sensor_index(req->dest1)];
 
   // struct TrackNode *sensor1 = &track[trainset_get_sensor_index("A5")];
+  // ReserveTrack(track[trainset_get_sensor_index("A5")].reverse->zone,train1->train_index);
+  // train1->last_known_pos.position.node = track[trainset_get_sensor_index("A5")].reverse;
   struct TrackNode *sensor1 = &track[trainset_get_sensor_index("E8")];
-  ReserveTrack(track[trainset_get_sensor_index("E8")].reverse->zone,train1->train_index);
+  ReserveTrack(track[trainset_get_sensor_index("E8")].reverse->zone, train1->train_index);
+  // train1->last_known_pos.position.node = track[trainset_get_sensor_index("E8")].reverse;
   train1->initial_pos = sensor1;
 
-  train_update_pos_from_sensor(train1, sensor1, time);
+  train_update_pos_from_sensor(train1, sensor1->reverse, time);
   set_train_active(train1, 10, time);
   reroute_train(terminal, train_planner, train1);
 
@@ -1534,11 +1537,14 @@ void handle_route_return_req(
     train2->selected_dest = &track[trainset_get_sensor_index(req->dest2)];
 
     // struct TrackNode *sensor2 = &track[trainset_get_sensor_index("C3")];
+    // ReserveTrack(track[trainset_get_sensor_index("C3")].reverse->zone,train2->train_index);
+    // train2->last_known_pos.position.node = track[trainset_get_sensor_index("E8")].reverse;
     struct TrackNode *sensor2 = &track[trainset_get_sensor_index("A1")];
-    ReserveTrack(track[trainset_get_sensor_index("A1")].reverse->zone,train2->train_index);
+    ReserveTrack(track[trainset_get_sensor_index("A1")].reverse->zone, train2->train_index);
+    // train2->last_known_pos.position.node = track[trainset_get_sensor_index("A1")].reverse;
 
     train2->initial_pos = sensor2;
-    train_update_pos_from_sensor(train2, sensor2, time);
+    train_update_pos_from_sensor(train2, sensor2->reverse, time);
     set_train_active(train2, 10, time);
     reroute_train(terminal, train_planner, train2);
   }

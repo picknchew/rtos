@@ -108,8 +108,8 @@ void trainset_calib_data_init() {
     }
   }
 
-  shortmove_dist_init(train58_dists, 5);
-  shortmove_dist_init(train54_dists, 10);
+  shortmove_dist_init(train58_dists, 9);
+  shortmove_dist_init(train54_dists, 8);
   shortmove_dist_init(train47_dists, 7);
 }
 
@@ -161,10 +161,10 @@ int shortmove_get_duration(int train, int speed, int dist) {
   // assume train is speed 10 for now.
   switch (train) {
     case 58:
-      ret = interpolate(train58_dists, train58_delays, 5, dist);
+      ret = interpolate(train58_dists, train58_delays, 9, dist);
       break;
     case 54:
-      ret = interpolate(train54_dists, train54_delays, 10, dist);
+      ret = interpolate(train54_dists, train54_delays, 8, dist);
       break;
     case 47:
       ret = interpolate(train47_dists, train47_delays, 7, dist);
