@@ -18,6 +18,8 @@
 #include "user/terminal/terminal_task.h"
 #include "util.h"
 
+//m: initial zone res
+
 // 21cm
 static const int TRAIN_LEN = 210;
 // offset of the front of the traint from the sensor
@@ -468,9 +470,14 @@ bool ReserveByDistance(int terminal, int distance, struct Train *train) {
         !ReservableTrack(zone, train->train_index)) {
       success_res = false;
       break;
+    }else {
+      reserved_distance += node->edge[plan.path.directions[i]].dist;
+    }if (reserved_distance >= distance) {
+        break;
     }
   }
-
+  
+  reserved_distance = pre_dist;
   if (success_res) {
     for (int i = last_node_index - 1; i >= 0; --i) {
       struct TrackNode *node = plan.path.nodes[i];
@@ -1510,7 +1517,9 @@ void handle_route_return_req(
   train1->pf_state = ROUTE_TO_SELECTED_DEST;
   train1->selected_dest = &track[trainset_get_sensor_index(req->dest1)];
 
-  struct TrackNode *sensor1 = &track[trainset_get_sensor_index("A5")];
+  // struct TrackNode *sensor1 = &track[trainset_get_sensor_index("A5")];
+  struct TrackNode *sensor1 = &track[trainset_get_sensor_index("E8")];
+  ReserveTrack(track[trainset_get_sensor_index("E8")].reverse->zone,train1->train_index);
   train1->initial_pos = sensor1;
 
   train_update_pos_from_sensor(train1, sensor1, time);
@@ -1524,7 +1533,10 @@ void handle_route_return_req(
     train2->pf_state = ROUTE_TO_SELECTED_DEST;
     train2->selected_dest = &track[trainset_get_sensor_index(req->dest2)];
 
-    struct TrackNode *sensor2 = &track[trainset_get_sensor_index("C3")];
+    // struct TrackNode *sensor2 = &track[trainset_get_sensor_index("C3")];
+    struct TrackNode *sensor2 = &track[trainset_get_sensor_index("A1")];
+    ReserveTrack(track[trainset_get_sensor_index("A1")].reverse->zone,train2->train_index);
+
     train2->initial_pos = sensor2;
     train_update_pos_from_sensor(train2, sensor2, time);
     set_train_active(train2, 10, time);

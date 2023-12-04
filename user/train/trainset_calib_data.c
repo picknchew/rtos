@@ -12,11 +12,11 @@ int TRAINSET_DECEL_TIMES[TRAINSET_NUM_TRAINS][TRAIN_SPEED_MAX + 1];
 static FixedPointInt train47_dists[] = {65, 122, 275, 560, 2438, 7000, 11100};
 static int train47_delays[] = {40, 50, 75, 100, 200, 300, 400};
 
-static FixedPointInt train58_dists[] = {105, 175, 528, 945, 4576};
-static int train58_delays[] = {40, 50, 75, 100, 200};
+static FixedPointInt train58_dists[] = {105, 190, 1210, 2540, 4800, 6400, 8050, 9560, 11100};
+static int train58_delays[] = {40, 50, 100, 150, 200, 250, 300, 350, 400};
 
-static FixedPointInt train54_dists[] = {51, 118, 283, 495, 5758, 7790, 9855, 11460, 12500, 17900};
-static int train54_delays[] = {40, 50, 75, 100, 300, 325, 350, 375, 400, 500};
+static FixedPointInt train54_dists[] = {130, 570, 1180, 2150, 3500, 5660, 7920, 10370};
+static int train54_delays[] = {50, 100, 150, 200, 250, 300, 350, 400};
 
 static void shortmove_dist_init(FixedPointInt *dists, int len);
 
