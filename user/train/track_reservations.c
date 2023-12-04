@@ -5,6 +5,7 @@
 
 #include "track_position.h"
 #include "train_manager.h"
+#include "train_planner.h"
 #include "user/server/name_server.h"
 #include "user/terminal/terminal_task.h"
 // static const char *color[6] = {"\033[0;31m",
@@ -309,6 +310,38 @@ bool ReservableTrack(int zone_num, int train_index) {
     );
     return false;
   }
+  return true;
+}
+
+bool ReservePath(
+    struct RoutePlan *plan,
+    struct SimplePath *path,
+    int start_node_index,
+    int train_index
+) {
+  int terminal = WhoIs("terminal");
+
+  // check if zones are reservable
+  for (int i = start_node_index; i < path->end_index; ++i) {
+    struct TrackNode *node = plan->path.nodes[i];
+    int zone = node->zone;
+
+    if ((node->type == NODE_SENSOR || node->type == NODE_BRANCH || node->type == NODE_MERGE) &&
+        !ReservableTrack(zone, train_index)) {
+      return false;
+    }
+  }
+
+  for (int i = start_node_index + 1; i < path->end_index; ++i) {
+    struct TrackNode *node = plan->path.nodes[i];
+
+    int zone = node->zone;
+    if ((node->type == NODE_SENSOR || node->type == NODE_BRANCH || node->type == NODE_MERGE)) {
+      ReserveTrack(zone, train_index);
+      TerminalLogPrint(terminal, "reserve for node %s", node->name);
+    }
+  }
+
   return true;
 }
 

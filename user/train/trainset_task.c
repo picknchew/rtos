@@ -106,6 +106,10 @@ void train_task() {
             trainset_get_switch_state(&trainset, req.get_switch_state_req.switch_num);
         Reply(tid, (const char *) &res, sizeof(res));
         break;
+      case GET_SELECTED_TRACK:
+        res.selected_track = trainset_get_track();
+        Reply(tid, (const char *) &res, sizeof(res));
+        break;
       case SET_TRACK:
         Reply(tid, NULL, 0);
         trainset_set_track(&trainset, req.set_track_req.track);
@@ -146,6 +150,14 @@ void TrainReverseInstant(int tid, uint8_t train) {
 void TrainSetTrack(int tid, char track) {
   struct TrainRequest req = {.type = SET_TRACK, .set_track_req = {.track = track}};
   Send(tid, (const char *) &req, sizeof(req), NULL, 0);
+}
+
+enum Track TrainGetSelectedTrack(int tid) {
+  struct TrainResponse res;
+  struct TrainRequest req = {.type = GET_SELECTED_TRACK};
+  Send(tid, (const char *) &req, sizeof(req), (char *) &res, sizeof(res));
+
+  return res.selected_track;
 }
 
 void TrainSetSpeed(int tid, uint8_t train, uint8_t speed) {
