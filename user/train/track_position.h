@@ -1,7 +1,8 @@
 #pragma once
 
-#include "track_path.h"
 #include "trackdata/track_data.h"
+
+struct Path;
 
 struct TrackPosition {
   struct TrackNode *node;

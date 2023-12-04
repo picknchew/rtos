@@ -281,10 +281,18 @@ void zones_b_init() {
 bool ReserveTrack(int zone_num, int train_index) {
   int terminal = WhoIs("terminal");
 
+  // TerminalLogPrint(terminal, "enter reserve track");
+
+  if (zones[zone_num].reserved && zones[zone_num].reservedby != train_index) {
+    // TerminalLogPrint(terminal, "failed to reserve zone %d for %d", zone_num, train_index);
+    // TerminalLogPrint(terminal, "zone %d is currently reserved by %d", zone_num, train_index);
+    return false;
+  }
+
   zones[zone_num].reserved = true;
   zones[zone_num].reservedby = train_index;
   TerminalUpdateZoneReservation(terminal, zone_num, train_index, 0);
-  TerminalLogPrint(terminal, "successfuly reserved zone %d for %d", zone_num, train_index);
+  // TerminalLogPrint(terminal, "successfuly reserved zone %d for %d", zone_num, train_index);
   return true;
 }
 

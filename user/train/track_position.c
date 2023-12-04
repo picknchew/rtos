@@ -7,7 +7,8 @@
 #include "util.h"
 
 struct TrackPosition track_position_random() {
-  struct TrackNode *node = &track[rand() % TRACK_MAX];
+  // struct TrackNode *node = &track[rand() % TRACK_MAX];
+  struct TrackNode *node = &track[44];
 
   while (node->type != NODE_SENSOR) {
     node = &track[rand() % TRACK_MAX];
@@ -28,7 +29,7 @@ struct TrainPosition train_position_add(struct TrainPosition pos, struct Path *p
   // index of node in path
   int node_index = -1;
 
-  for (int i = path->nodes_len - 1; i >= 0; --i) {
+  for (int i = 0; i < path->nodes_len; ++i) {
     if (path->nodes[i] == node) {
       node_index = i;
       break;

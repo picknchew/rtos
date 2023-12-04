@@ -42,7 +42,6 @@ void train_sensor_notifier_task() {
   int marklin_tx = WhoIs("marklin_io_tx");
   int clock_server = WhoIs("clock_server");
 
-  // tasks to notify
   int train = WhoIs("train");
   int terminal = WhoIs("terminal");
   int train_calib = WhoIs("train_calib");
@@ -77,8 +76,6 @@ void train_sensor_notifier_task() {
       max_time_taken = time_taken;
       TerminalUpdateMaxSensorDuration(terminal, time_taken);
     }
-
-    Delay(clock_server, 5);
   }
 
   Exit();

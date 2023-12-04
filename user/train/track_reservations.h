@@ -23,6 +23,9 @@ struct Zone {
   int release_counter;
 };
 
+void zones_a_init();
+void zones_b_init();
+
 // returns false if track could not be reserved.
 bool ReserveTrack(int zone_num, int train_index);
 bool ReservableTrack(int zone_num, int train_index);

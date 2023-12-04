@@ -4,6 +4,7 @@
 
 #include "selected_track.h"
 #include "syscall.h"
+#include "track_reservations.h"
 #include "train_dispatcher.h"
 #include "trainset_calib_data.h"
 #include "trainset_task.h"

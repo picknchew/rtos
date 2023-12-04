@@ -6,6 +6,8 @@
 #include "trackdata/track_data.h"
 #include "track_path.h"
 
+extern const int REVERSE_OVERSHOOT_DIST;
+
 struct RoutePlan {
   struct Path path;
   struct SimplePath paths[TRACK_EDGE_MAX];
@@ -16,6 +18,8 @@ struct RoutePlan {
 };
 
 void train_planner_task();
+
+void route_plan_process(struct RoutePlan *plan);
 
 struct RoutePlan CreatePlan(int tid, struct TrainPosition *src, struct TrackPosition *dest);
 void TrackCrossed(int tid, struct TrackEdge *edge);

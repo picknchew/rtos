@@ -2,6 +2,7 @@
 
 #include <stdbool.h>
 
+#include "track_position.h"
 #include "trackdata/track_data.h"
 
 struct Path {
@@ -16,5 +17,6 @@ struct Path {
 struct SimplePath {
   int start_index;
   int end_index;
+  struct TrackPosition dest;
   bool reverse;
 };

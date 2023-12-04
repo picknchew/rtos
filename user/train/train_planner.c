@@ -16,7 +16,9 @@
 // cost of reversing in terms of distance.
 // ideally should be the distance that can be covered if we do not
 // stop then reaccelerate
-const int REVERSE_COST = 200;
+const int REVERSE_COST = 400;
+
+const int REVERSE_OVERSHOOT_DIST = 300;
 
 // we set directions for paths so that all trains
 // travel in the same direction if a train already has a path that goes
@@ -50,7 +52,6 @@ static struct TrackNodePriorityQueue queue;
 
 // Dijikstra's algorithm
 static struct Path get_shortest_path(struct TrainPosition *src, struct TrackNode *dest) {
-  int terminal = WhoIs("terminal");
   struct TrackNode *src_node = src->position.node;
 
   // cost includes cost for reversing.
@@ -123,7 +124,6 @@ static struct Path get_shortest_path(struct TrainPosition *src, struct TrackNode
           break;
         }
 
-
         neighbour = node->edge[DIR_AHEAD].dest;
         alt_cost = cost[node->index] + node->edge[DIR_AHEAD].dist;
 
@@ -184,6 +184,134 @@ static struct Path get_shortest_path(struct TrainPosition *src, struct TrackNode
   return path;
 }
 
+static struct TrackNodeQueue path_taken_stack;
+
+// transform RoutePlan to include nodes that we traverse when overshooting a branch
+// for reversing. reverse node ordering, and populate simple paths destination.
+void route_plan_process(struct RoutePlan *plan) {
+  int terminal = WhoIs("terminal");
+  // clear queue
+  track_node_queue_init(&path_taken_stack, track);
+
+  struct Path path = {.directions = {0}, .nodes_len = 0, .path_found = true};
+  int path_index = 0;
+
+  for (unsigned int i = 0; i < plan->paths_len; ++i) {
+    struct SimplePath *simple_path = &plan->paths[i];
+
+    // first path is reverse, we do not overshoot
+    if (i == 0 && simple_path->reverse) {
+      path.directions[path_index] = plan->path.directions[simple_path->start_index];
+      path.nodes[path_index] = plan->path.nodes[simple_path->start_index];
+
+      // update path with new index
+      simple_path->start_index = path_index;
+      simple_path->end_index = path_index++;
+      simple_path->dest.node = path.nodes[simple_path->end_index];
+      simple_path->dest.offset = 0;
+
+      continue;
+    }
+
+    if (simple_path->reverse) {
+      path.directions[path_index] = DIR_REVERSE;
+      // when we're reverse, we're still travelling in the forward direction
+      path.nodes[path_index] = track_node_queue_peek_tail(&path_taken_stack)->reverse;
+
+      simple_path->start_index = path_index;
+      simple_path->end_index = path_index++;
+      simple_path->dest.node = path.nodes[simple_path->end_index];
+      simple_path->dest.offset = 0;
+      continue;
+    }
+
+    int start_index = path_index;
+
+    // previous path was extended, we need to build a path from extended path to current path.
+    if (!track_node_queue_empty(&path_taken_stack)) {
+      struct TrackNode *node = track_node_queue_pop(&path_taken_stack);
+
+      TerminalLogPrint(terminal, "prefix extension %s", node->name);
+      while (!track_node_queue_empty(&path_taken_stack)) {
+        struct TrackNode *next_node = track_node_queue_pop(&path_taken_stack);
+
+        TerminalLogPrint(terminal, "next node %s", next_node->name);
+
+        if (node->edge[DIR_AHEAD].dest == next_node) {
+          path.directions[path_index] = DIR_AHEAD;
+        } else {
+          // must be a branch
+          path.directions[path_index] = DIR_CURVED;
+        }
+
+        // beginning from the extended path's last node we reversed on
+        path.nodes[path_index++] = node;
+        node = next_node;
+      }
+
+      // TerminalLogPrint(terminal, "add node %d", path_index);
+      // include last node
+      // placeholder direction
+      path.directions[path_index] = DIR_AHEAD;
+      path.nodes[path_index++] = node;
+
+      node = NULL;
+    }
+
+    // updating indices of existing nodes in path
+    for (int j = simple_path->start_index; j >= simple_path->end_index; --j) {
+      path.directions[path_index] = plan->path.directions[j];
+      path.nodes[path_index++] = plan->path.nodes[j];
+    }
+
+    // last path never overshoots
+    if (i == plan->paths_len - 1) {
+      simple_path->start_index = start_index;
+      simple_path->end_index = path_index - 1;
+
+      simple_path->dest.node = path.nodes[simple_path->end_index];
+      simple_path->dest.offset = 0;
+      break;
+    }
+
+    int last_dir = plan->path.directions[simple_path->end_index];
+    struct TrackNode *node = plan->path.nodes[simple_path->end_index]->edge[last_dir].dest;
+
+    // extend path by overshoot distance
+    int dist_left = REVERSE_OVERSHOOT_DIST;
+    // runs at least once if our overshoot distance is positive.
+    while (dist_left > 0) {
+      // keep updating destination
+      simple_path->dest.node = node;
+      simple_path->dest.offset = dist_left;
+
+      path.directions[path_index] = last_dir;
+      path.nodes[path_index++] = node;
+
+      dist_left -= node->edge[DIR_AHEAD].dist;
+      node = node->edge[DIR_AHEAD].dest;
+      // always take DIR_AHEAD for branch when overshooting
+      last_dir = DIR_AHEAD;
+
+      // start adding to stack only after the first node
+      // also add the next node after the last node, since our reverse offset is from
+      // the next node after the last.
+      track_node_queue_add(&path_taken_stack, node->reverse);
+    }
+
+    simple_path->start_index = start_index;
+    simple_path->end_index = path_index - 1;
+  }
+
+  path.nodes_len = path_index;
+  plan->path = path;
+
+  TerminalLogPrint(terminal, "new path %d:", path_index);
+  for (int i = 0; i < plan->path.nodes_len; ++i) {
+    TerminalLogPrint(terminal, "node %d: %s", i, plan->path.nodes[i]->name);
+  }
+}
+
 struct RoutePlan
 route_plan_init(struct Path *path, struct TrackPosition *src, struct TrackPosition *dest) {
   struct RoutePlan plan = {
@@ -218,6 +346,8 @@ route_plan_init(struct Path *path, struct TrackPosition *src, struct TrackPositi
     plan.paths[plan.paths_len].start_index = cur_path_start_index;
     plan.paths[plan.paths_len++].end_index = 0;
   }
+
+  // route_plan_process(&plan);
 
   return plan;
 }
