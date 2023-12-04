@@ -347,7 +347,7 @@ route_plan_init(struct Path *path, struct TrackPosition *src, struct TrackPositi
     plan.paths[plan.paths_len++].end_index = 0;
   }
 
-  // route_plan_process(&plan);
+  route_plan_process(&plan);
 
   return plan;
 }

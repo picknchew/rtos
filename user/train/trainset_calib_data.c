@@ -21,8 +21,8 @@ static int train47_delays[] = {40, 50, 75, 100, 200, 300, 400};
 // 300 - 80.5
 // 350 - 95.6cm
 // 400 - 111
-static FixedPointInt train58_dists[] = {105, 190, 1210, 2540, 4800, 5470, 6400, 8050, 9560, 11100};
-static int train58_delays[] = {40, 50, 100, 150, 200, 230, 250, 300, 350, 400};
+static FixedPointInt train58_dists[] = {105, 190, 1210, 1730, 2540, 4800, 5470, 6400, 8050, 9560, 11100};
+static int train58_delays[] = {40, 50, 100, 136, 150, 200, 230, 250, 300, 350, 400};
 
 // we should use train 58, 
 
@@ -67,7 +67,7 @@ void trainset_calib_data_init() {
   // recommended speed
   // accel time = 365
   TRAINSET_MEASURED_SPEEDS[trainset_get_train_index(58)][10] = 293; // 304 on track b
-  TRAINSET_STOPPING_DISTANCES[trainset_get_train_index(58)][10] = 573; // 573, 423
+  TRAINSET_STOPPING_DISTANCES[trainset_get_train_index(58)][10] = 423; // 573, 423
   TRAINSET_ACCEL_DISTANCES[trainset_get_train_index(58)][10] = 262; // missing by about 15cm
   TRAINSET_ACCEL_TIMES[trainset_get_train_index(58)][10] = 260;
 

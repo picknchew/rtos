@@ -140,7 +140,7 @@ static int get_distance_between_debug(
 
   int pos1_index = -1;
   // find pos1 index in path
-  for (int i = path->nodes_len - 1; i >= 0; --i) {
+  for (int i = 0; i < path->nodes_len; ++i) {
     if (src->node == path->nodes[i] || (!strict && src->node == path->nodes[i]->reverse)) {
       pos1_index = i;
       break;
@@ -156,7 +156,7 @@ static int get_distance_between_debug(
   TerminalLogPrint(WhoIs("terminal"), "found initial node index %d", pos1_index);
 
   // find distance from pos1 to pos2
-  for (int i = pos1_index; i >= 0; --i) {
+  for (int i = pos1_index; i < path->nodes_len; ++i) {
     struct TrackNode *node = path->nodes[i];
     int edge_dir = path->directions[i];
 
@@ -194,7 +194,7 @@ static int get_distance_between(
 
   int pos1_index = -1;
   // find pos1 index in path
-  for (int i = path->nodes_len - 1; i >= 0; --i) {
+  for (int i = 0; i < path->nodes_len; ++i) {
     if (src->node == path->nodes[i] || (!strict && src->node == path->nodes[i]->reverse)) {
       pos1_index = i;
       break;
@@ -208,7 +208,7 @@ static int get_distance_between(
   }
 
   // find distance from pos1 to pos2
-  for (int i = pos1_index; i >= 0; --i) {
+  for (int i = pos1_index; i < path->nodes_len; ++i) {
     struct TrackNode *node = path->nodes[i];
     int edge_dir = path->directions[i];
 
@@ -623,8 +623,8 @@ void update_train_pos(int time, struct Train *train) {
   struct TrackNode *current_path_dest = train->plan.path.nodes[current_path.end_index];
   int current_path_dest_dir = train->plan.path.directions[current_path.end_index];
   struct TrackPosition current_path_dest_pos = {
-      .node = current_path_dest,
-      .offset = current_path_dest->edge[current_path_dest_dir].dist + REVERSE_OVERSHOOT_DIST
+      .node = current_path.dest.node, .offset = current_path.dest.offset
+      // .offset = current_path_dest->edge[current_path_dest_dir].dist + REVERSE_OVERSHOOT_DIST
   };
 
   if (current_path_dest == train->plan.dest.node) {
@@ -772,10 +772,7 @@ void update_train_pos(int time, struct Train *train) {
 }
 
 static int get_next_sensor_index(struct Train *train) {
-  int last_sensor_index =
-      train->last_sensor_index == -1 ? train->plan.path.nodes_len : train->last_sensor_index;
-
-  for (int i = last_sensor_index - 1; i >= 0; --i) {
+  for (int i = train->last_sensor_index + 1; i < train->plan.path.nodes_len; ++i) {
     struct TrackNode *node = train->plan.path.nodes[i];
 
     if (node->type == NODE_SENSOR) {
@@ -787,10 +784,7 @@ static int get_next_sensor_index(struct Train *train) {
 }
 
 static int get_next_switch_index(struct Train *train) {
-  int last_switch_index =
-      train->last_switch_index == -1 ? train->plan.path.nodes_len : train->last_switch_index;
-
-  for (int i = last_switch_index - 1; i >= 0; --i) {
+  for (int i = train->last_switch_index + 1; i < train->plan.path.nodes_len; ++i) {
     struct TrackNode *node = train->plan.path.nodes[i];
 
     if (node->type == NODE_BRANCH) {
@@ -865,7 +859,7 @@ void reroute_train(int terminal, int train_planner, struct Train *train) {
         path.reverse
     );
 
-    for (int j = path.start_index; j >= path.end_index; --j) {
+    for (int j = path.start_index; j <= path.end_index; ++j) {
       switch (train->plan.path.directions[j]) {
         case DIR_AHEAD:
           TerminalLogPrint(
@@ -894,7 +888,7 @@ void reroute_train(int terminal, int train_planner, struct Train *train) {
   // if the train is currently on a sensor, then the path starts at a sensor, and we set
   // last sensor triggered to the first node.
   if (train->last_known_pos.position.node->type == NODE_SENSOR) {
-    train->last_sensor_index = train->plan.path.nodes_len - 1;
+    train->last_sensor_index = 0;
   } else {
     train->last_sensor_index = -1;
   }
@@ -1058,8 +1052,8 @@ static void handle_tick(
     struct TrackNode *current_path_dest = train->plan.path.nodes[current_path.end_index];
     int current_path_dest_dir = train->plan.path.directions[current_path.end_index];
     struct TrackPosition current_path_dest_pos = {
-        .node = current_path_dest,
-        .offset = current_path_dest->edge[current_path_dest_dir].dist + REVERSE_OVERSHOOT_DIST
+        .node = current_path.dest.node, .offset = current_path.dest.offset
+        // .offset = current_path_dest->edge[current_path_dest_dir].dist + REVERSE_OVERSHOOT_DIST
     };
 
     if (current_path_dest == train->plan.dest.node) {
@@ -1213,6 +1207,18 @@ static void handle_tick(
           //     break;
           //   }
           // }
+          for (int i = last_node_index; i < plan.path.nodes_len; ++i) {
+            struct TrackNode *node = plan.path.nodes[i];
+            if (node->index == dest->index) {
+              break;
+            }
+
+            int zone = node->zone;
+            if (!ReserveTrack(zone, train->train_index)) {
+              success_res = false;
+              break;
+            }
+          }
 
           if (success_res) {
             TerminalLogPrint(terminal, "SHORT_MOVE reservation sucessful");
@@ -1260,7 +1266,7 @@ static void handle_tick(
               terminal, "last node index -1  %s", plan.path.nodes[last_node_index - 1]->name
           );
 
-          for (int i = last_node_index - 1; i >= 0; --i) {
+          for (int i = last_node_index; i < plan.path.nodes_len; ++i) {
             struct TrackNode *node = plan.path.nodes[i];
             int zone = node->zone;
             if (node->index == dest->index) {
@@ -1410,7 +1416,7 @@ struct Train *sensor_get_train(struct Train *trains, int sensor) {
       continue;
     }
 
-    for (int i = train->plan.path.nodes_len - 1; i >= 0; --i) {
+    for (int i = 0; i < train->plan.path.nodes_len; ++i) {
       if (train->plan.path.nodes[i] == &track[sensor]) {
         return train;
       }
@@ -1526,8 +1532,8 @@ static void handle_update_sensors_request(
       struct TrackNode *current_path_dest = train->plan.path.nodes[cur_path->end_index];
       int current_path_dest_dir = train->plan.path.directions[cur_path->end_index];
       struct TrackPosition current_path_dest_pos = {
-          .node = current_path_dest,
-          .offset = current_path_dest->edge[current_path_dest_dir].dist + REVERSE_OVERSHOOT_DIST
+          .node = cur_path->dest.node, .offset = cur_path->dest.offset
+          // .offset = current_path_dest->edge[current_path_dest_dir].dist + REVERSE_OVERSHOOT_DIST
       };
 
       if (current_path_dest == train->plan.dest.node) {
@@ -1567,7 +1573,6 @@ void handle_route_return_req(
   // train1->last_known_pos.position.node = track[trainset_get_sensor_index("A5")].reverse;
   struct TrackNode *sensor1 = &track[trainset_get_sensor_index("E8")];
   ReserveTrack(track[trainset_get_sensor_index("E8")].reverse->zone, train1->train_index);
-  // train1->last_known_pos.position.node = track[trainset_get_sensor_index("E8")].reverse;
   train1->initial_pos = sensor1;
 
   train_update_pos_from_sensor(train1, sensor1->reverse, time);
@@ -1586,7 +1591,6 @@ void handle_route_return_req(
     // train2->last_known_pos.position.node = track[trainset_get_sensor_index("E8")].reverse;
     struct TrackNode *sensor2 = &track[trainset_get_sensor_index("A1")];
     ReserveTrack(track[trainset_get_sensor_index("A1")].reverse->zone, train2->train_index);
-    // train2->last_known_pos.position.node = track[trainset_get_sensor_index("A1")].reverse;
 
     train2->initial_pos = sensor2;
     train_update_pos_from_sensor(train2, sensor2->reverse, time);
