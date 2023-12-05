@@ -12,6 +12,7 @@
 #include "trackdata/track_node_queue.h"
 #include "user/server/name_server.h"
 #include "user/terminal/terminal_task.h"
+#include "user/train/track_reservations.h"
 
 // cost of reversing in terms of distance.
 // ideally should be the distance that can be covered if we do not
@@ -30,17 +31,18 @@ static int reserved_track_directions[TRACK_EDGE_MAX];
 // if the direction for the this TrackEdge is set to the same direction
 // of the TrackEdge passed in.
 static bool is_track_available(struct TrackEdge *edge) {
-  // printf("is track available");
-  struct TrackEdge *reverse_edge = edge->reverse;
+  // // printf("is track available");
+  // struct TrackEdge *reverse_edge = edge->reverse;
 
-  // reverse TrackEdge direction reserved
-  if (reserved_track_directions[reverse_edge->index] > 0) {
-    // printf("%d\r\n", edge);
-    // printf("track not available %d at %d", reserved_track_directions[reverse_edge->index],
-    // reverse_edge->index);
-    return false;
-  }
+  // // reverse TrackEdge direction reserved
+  // if (reserved_track_directions[reverse_edge->index] > 0) {
+  //   // printf("%d\r\n", edge);
+  //   // printf("track not available %d at %d", reserved_track_directions[reverse_edge->index],
+  //   // reverse_edge->index);
+  //   return false;
+  // }
 
+  // return true;
   return true;
 }
 
