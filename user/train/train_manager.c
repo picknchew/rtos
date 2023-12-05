@@ -331,7 +331,7 @@ void train_init(struct Train *train, int train_num) {
   train->move_stop_time = 0;
 
   train->last_sensor_index = 0;
-  train->last_switch_index = 0;
+  train->last_switch_index = -1;
 
   train->plan.path_found = false;
   train->path_index = 0;
@@ -700,7 +700,8 @@ void update_train_pos(int time, struct Train *train) {
         // train->est_pos = train_position_add(
         //     train->est_pos,
         //     &train->plan.path,
-        //     get_dist_travelled(train->velocity, 0, decel_end_time - train->est_pos_update_time)
+        //     get_dist_travelled(train->velocity, train->accelerdation, decel_end_time -
+        //     train->est_pos_update_time)
         // );
         train->est_pos_update_time = decel_end_time;
         // we don't set velocity here because when state changes it gets set to 0.
@@ -708,7 +709,9 @@ void update_train_pos(int time, struct Train *train) {
         train->est_pos = train_position_add(
             train->est_pos,
             &train->plan.path,
-            get_dist_travelled(train->velocity, 0, time - train->est_pos_update_time)
+            get_dist_travelled(
+                train->velocity, train->acceleration, time - train->est_pos_update_time
+            )
         );
 
         train->velocity += train->acceleration * (time - train->est_pos_update_time);
@@ -836,9 +839,10 @@ void reroute_train(int terminal, int train_planner, struct Train *train) {
   }
 
   train->path_index = 0;
-  // if the train is currently on a sensor, then the path starts at a sensor, and we set
-  // last sensor triggered to the first node.
-  if (train->last_known_pos.position.node->type == NODE_SENSOR) {
+  // if the train is currently at the first sensor in the path.
+  // position is known at this point
+  if (train->plan.path.nodes_len > 0 &&
+      train->plan.path.nodes[0] == train->last_known_pos.position.node) {
     train->last_sensor_index = 0;
   } else {
     train->last_sensor_index = -1;
@@ -980,7 +984,6 @@ static void handle_tick(
       }
     }
 
-    // TerminalLogPrint(terminal, "before current path decl");
     struct SimplePath current_path = train->plan.paths[train->path_index];
     // destination node of simple path
     struct TrackNode *current_path_dest = current_path.dest.node;
@@ -1125,7 +1128,7 @@ static void handle_tick(
                   terminal,
                   &train->plan,
                   &train->plan.paths[train->path_index],
-                  train->last_sensor_index,
+                  train->last_sensor_index + 1,
                   train->train_index
               )) {
             TerminalLogPrint(terminal, "SHORT_MOVE reservation successful");
@@ -1168,7 +1171,7 @@ static void handle_tick(
                   terminal,
                   &train->plan,
                   &train->plan.paths[train->path_index],
-                  train->last_sensor_index,
+                  train->last_sensor_index + 1,
                   train->train_index
               )) {
             TerminalLogPrint(terminal, "ACCELERATION reservation sucessful");
@@ -1217,7 +1220,6 @@ static void handle_tick(
           }
 
           reroute_train(terminal, train_planner, train);
-          train->last_sensor_index = -1;
           break;
         }
 
@@ -1382,7 +1384,6 @@ static void handle_update_sensors_request(
       TrainSetSpeed(train_tid, train->train, 0);
       set_train_active(train, train_speeds[train->train_index], time);
       reroute_train(terminal, train_planner, train);
-      train->last_sensor_index = 0;
       TerminalLogPrint(terminal, "Train %d active", train->train);
       // train_log(terminal, train);
       continue;
@@ -1479,13 +1480,21 @@ void handle_route_return_req(
 void handle_rand_route_req(
     int terminal,
     int clock_server,
+    int train_tid,
     int train_planner,
     struct TrainManagerRandRouteRequest *req,
     struct Train *trains
 ) {
   int time = Time(clock_server);
+  enum Track selected_track = TrainGetSelectedTrack(train_tid);
 
   struct Train *train1 = &trains[trainset_get_train_index(req->train1)];
+  struct TrackNode *sensor1 = selected_track == TRACK_A ? &track[trainset_get_sensor_index("A5")]
+                                                        : &track[trainset_get_sensor_index("E8")];
+
+  // destination is a sensor. we reverse it to fake entering our next zone.
+  ReserveTrack(terminal, sensor1->reverse->zone, train1->train_index);
+  train_update_pos_from_sensor(train1, sensor1->reverse, time);
 
   train1->pf_state = RAND_ROUTE;
   set_train_active(train1, train_speeds[train1->train_index], time);
@@ -1493,6 +1502,12 @@ void handle_rand_route_req(
 
   if (req->train2 != 0) {
     struct Train *train2 = &trains[trainset_get_train_index(req->train2)];
+    struct TrackNode *sensor2 = selected_track == TRACK_A ? &track[trainset_get_sensor_index("C3")]
+                                                          : &track[trainset_get_sensor_index("A1")];
+    // destination is a sensor. we reverse it to fake entering our next zone.
+    ReserveTrack(terminal, sensor2->reverse->zone, train2->train_index);
+    train_update_pos_from_sensor(train2, sensor2->reverse, time);
+
     train2->pf_state = RAND_ROUTE;
     set_train_active(train2, train_speeds[train2->train_index], time);
     reroute_train(terminal, train_planner, train2);
@@ -1590,7 +1605,7 @@ void train_manager_task() {
   // // train_log(terminal, train);
 
   // int sensor_index = initial_sensors[train->train_index];
-  // struct TrackNode *sensor_node = &track[sensor_index + 1];
+  // struct TrackNode *sensor_node = &track[16];
   // int time = Time(clock_server);
 
   // train->last_sensor_index = 0;
@@ -1670,7 +1685,13 @@ void train_manager_task() {
   //     dist_to_current_dest
   // );
 
-  // struct TrackPosition broken = {.node = &track[114]};
+  // for (int i = 0; i < train->plan.path.nodes_len; ++i) {
+  //       TerminalLogPrint(
+  //           WhoIs("terminal"), "node %s direction %d", train->plan.path.nodes[i]->name, train->plan.path.directions[i]
+  //       );
+  //     }
+
+  // struct TrackPosition broken = {.node = &track[16]};
   // int broken_dist = get_distance_between(&train->plan.path, &broken, &train->plan.dest, true);
 
   // TerminalLogPrint(terminal, "BROKEN DIST %d", broken_dist);
@@ -1684,10 +1705,29 @@ void train_manager_task() {
 
   // train_update_terminal(terminal, train, time);
 
-  // // TerminalLogPrint(terminal, "deceleration %d", get_train_decel(train));
+  // TerminalLogPrint(terminal, "deceleration %d", get_train_decel(train));
   // struct TrainPosition new_pos = train_position_reverse_node(train->est_pos, train_tid);
   // TerminalLogPrint(terminal, "new_pos: %s +%d", new_pos.position.node->name,
   // new_pos.position.offset);
+
+  // for (int i = 0; i < 1000; i += 50) {
+  //   TerminalLogPrint(terminal, "shortmove duration for %d to move %d", shortmove_get_duration(58,
+  //   10, i), i);
+  // }
+
+  // enum Track selected_track = TrainGetSelectedTrack(train_tid);
+
+  // struct Train *train1 = &trains[trainset_get_train_index(54)];
+  // struct TrackNode *sensor1 = selected_track == TRACK_A ? &track[trainset_get_sensor_index("A5")]
+  //                                                       : &track[trainset_get_sensor_index("E8")];
+
+  // // destination is a sensor. we reverse it to fake entering our next zone.
+  // ReserveTrack(terminal, sensor1->reverse->zone, train1->train_index);
+  // train_update_pos_from_sensor(train1, sensor1->reverse, Time(clock_server));
+
+  // train1->pf_state = RAND_ROUTE;
+  // set_train_active(train1, train_speeds[train1->train_index], Time(clock_server));
+  // reroute_train(terminal, train_planner, train1);
 
   // handle_tick(terminal, train_tid, train_planner, clock_server, trains);
 
@@ -1704,7 +1744,9 @@ void train_manager_task() {
         Reply(tid, NULL, 0);
         break;
       case TRAIN_MANAGER_RAND_ROUTE:
-        handle_rand_route_req(terminal, clock_server, train_planner, &req.rand_route_req, trains);
+        handle_rand_route_req(
+            terminal, clock_server, train_tid, train_planner, &req.rand_route_req, trains
+        );
         Reply(tid, NULL, 0);
         break;
       case TRAIN_MANAGER_UPDATE_SENSORS:

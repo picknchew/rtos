@@ -111,7 +111,7 @@ static struct Path get_shortest_path(struct TrainPosition *src, struct TrackNode
         // cost of reversing
         alt_cost = cost[node->index] + REVERSE_COST;
 
-        if (alt_cost < cost[neighbour->index]) {
+        if (alt_cost < cost[neighbour->index] && node->type != NODE_ENTER && node->type != NODE_EXIT) {
           cost[neighbour->index] = alt_cost;
           prev[neighbour->index] = node;
           directions[neighbour->index] = DIR_REVERSE;
@@ -281,11 +281,18 @@ void route_plan_process(struct RoutePlan *plan) {
     int dist_left = REVERSE_OVERSHOOT_DIST;
     // runs at least once if our overshoot distance is positive.
     while (dist_left > 0) {
+      // we will crash if we allow this because we can't go any further.
+      // so just skip all paths that overshoot on exits and enters.
+      if (node->type == NODE_ENTER || node->type == NODE_EXIT) {
+        path.path_found = false;
+        return;
+      }
+
       // keep updating destination
       simple_path->dest.node = node;
       simple_path->dest.offset = dist_left;
 
-      path.directions[path_index] = last_dir;
+      path.directions[path_index] = DIR_AHEAD;
       path.nodes[path_index++] = node;
 
       dist_left -= node->edge[DIR_AHEAD].dist;
