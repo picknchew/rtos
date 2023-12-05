@@ -18,5 +18,6 @@ struct SimplePath {
   int start_index;
   int end_index;
   struct TrackPosition dest;
+  int dest_dir;
   bool reverse;
 };

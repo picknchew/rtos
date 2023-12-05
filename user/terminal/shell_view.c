@@ -178,9 +178,9 @@ static void init_train_zones(struct TerminalScreen *screen, char track) {
   terminal_move_cursor(screen, ZONE_RESERVATION_BASE_LINE, ZONE_RESERVATION_BASE_COL);
 
   if (track == 'A') {
-    terminal_puts(screen, track_a);
+    terminal_printf(screen, track_a);
   } else {
-    terminal_puts(screen, track_b);
+    terminal_printf(screen, track_b);
   }
 
   terminal_restore_cursor(screen);
@@ -452,7 +452,7 @@ static void log_print_va(struct TerminalScreen *screen, char *fmt, va_list va) {
   // restart at the top and overwrite
   terminal_save_cursor(screen);
   if (log_offset == 81) {
-    for (int i = 0; i < 81; ++i) {
+    for (int i = 0; i < 100; ++i) {
       terminal_move_cursor(screen, LOG_BASE_LINE + i, THIRD_COL);
       terminal_cursor_delete_line(screen);
     }

@@ -19,13 +19,23 @@ static struct Zone zones[ZONE_NUMBERS];
 
 // // 20rows 50 cols
 
+void zone_init(struct Zone *zone, int id) {
+  zone->id = id;
+  zone->reserved = false;
+  zone->reservedby = -1;
+  zone->release_counter = 0;
+  zone->len = 0;
+  zone->color = NULL;
+  
+  for (int i = 0; i < 30; ++i) {
+    zone->tracks[i] = 0;
+  }
+}
+
 void zones_a_init() {
   // *(*(track + 2) + 1) = ".";
   for (int i = 0; i < ZONE_NUMBERS; i++) {
-    zones[i].id = i;
-    zones[i].reserved = false;
-    zones[i].reservedby = -1;
-    zones[i].release_counter = 0;
+    zone_init(&zones[i], i);
   }
   zones[0].tracks[0] = 650;
   zones[0].len = 1;
@@ -325,11 +335,11 @@ bool ReservePath(
     }
   }
 
-  for (int i = start_node_index; i <= path->end_index; ++i) {
-    struct TrackNode *node = plan->path.nodes[i];
+    for (int i = start_node_index; i <= path->end_index; ++i) {
+        struct TrackNode *node = plan->path.nodes[i];
     int zone = node->zone;
 
-    if ((node->type == NODE_SENSOR || node->type == NODE_BRANCH || node->type == NODE_MERGE)) {
+    if (node->type == NODE_SENSOR || node->type == NODE_BRANCH || node->type == NODE_MERGE) {
       ReserveTrack(terminal, zone, train_index);
       TerminalLogPrint(terminal, "reserve for node %s", node->name);
     }

@@ -8,7 +8,7 @@
 #define TASKS_MAX 128
 #define NUM_REGISTERS 31
 
-#define STACK_SIZE 163840
+#define STACK_SIZE 524288
 
 enum TaskStatus {
   TASK_ACTIVE,

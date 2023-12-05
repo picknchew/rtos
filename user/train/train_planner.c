@@ -209,19 +209,20 @@ void route_plan_process(struct RoutePlan *plan) {
       simple_path->end_index = path_index++;
       simple_path->dest.node = path.nodes[simple_path->end_index];
       simple_path->dest.offset = 0;
-
+      simple_path->dest_dir = path.directions[simple_path->end_index];
       continue;
     }
 
     if (simple_path->reverse) {
       path.directions[path_index] = DIR_REVERSE;
-      // when we're reverse, we're still travelling in the forward direction
+      // when we reverse, we're still travelling in the forward direction
       path.nodes[path_index] = track_node_queue_peek_tail(&path_taken_stack)->reverse;
 
       simple_path->start_index = path_index;
       simple_path->end_index = path_index++;
       simple_path->dest.node = path.nodes[simple_path->end_index];
       simple_path->dest.offset = 0;
+      simple_path->dest_dir = path.directions[simple_path->end_index];
       continue;
     }
 
@@ -270,6 +271,7 @@ void route_plan_process(struct RoutePlan *plan) {
       simple_path->end_index = path_index - 1;
 
       simple_path->dest.node = path.nodes[simple_path->end_index];
+      simple_path->dest_dir = path.directions[simple_path->end_index];
       simple_path->dest.offset = 0;
       break;
     }
@@ -291,6 +293,7 @@ void route_plan_process(struct RoutePlan *plan) {
       // keep updating destination
       simple_path->dest.node = node;
       simple_path->dest.offset = dist_left;
+      simple_path->dest_dir = DIR_AHEAD;
 
       path.directions[path_index] = DIR_AHEAD;
       path.nodes[path_index++] = node;
