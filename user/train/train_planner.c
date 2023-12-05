@@ -18,7 +18,7 @@
 // stop then reaccelerate
 const int REVERSE_COST = 400;
 
-const int REVERSE_OVERSHOOT_DIST = 300;
+const int REVERSE_OVERSHOOT_DIST = 350;
 
 // we set directions for paths so that all trains
 // travel in the same direction if a train already has a path that goes
