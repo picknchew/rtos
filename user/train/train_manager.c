@@ -763,7 +763,58 @@ static int get_next_switch_index(struct Train *train) {
   return -1;
 }
 
-void reroute_train(int terminal, int train_planner, struct Train *train) {
+static void train_update_next_sensor(struct Train *train, int current_time) {
+  int terminal = WhoIs("terminal");
+
+  // lookahead one sensor
+  int next_sensor_index = get_next_sensor_index(train);
+  if (next_sensor_index != -1) {
+    train->next_sensor = train->plan.path.nodes[next_sensor_index];
+
+    TerminalLogPrint(terminal, "next sensor is %s", train->next_sensor->name);
+
+    // check if sensor is currently in the current simple path.
+    struct SimplePath *cur_path = &train->plan.paths[train->path_index];
+
+    TerminalLogPrint(
+        terminal,
+        "current path range %d -- %d, next sensor index: %d, next sensor: %s",
+        cur_path->start_index,
+        cur_path->end_index,
+        next_sensor_index,
+        train->next_sensor->name
+    );
+
+    if (next_sensor_index < cur_path->start_index || next_sensor_index > cur_path->end_index) {
+      // if it isn't in the current path, we can't provide an estimate yet
+      train->next_sensor_eta = 0;
+      return;
+    }
+
+    // struct TrackPosition next_sensor_pos = {.node = train->next_sensor, .offset = 0};
+
+    // TerminalLogPrint(terminal, "before dist between");
+    // int dist_to_sensor =
+    //     get_distance_between(&train->plan.path, &train->est_pos.position, &next_sensor_pos,
+    //     true);
+
+    // TerminalLogPrint(terminal, "after dist between");
+    // if (dist_to_sensor < 0) {
+    //   TerminalLogPrint(terminal, "error! distance to next sensor is negative!");
+    //   train->next_sensor_eta = 0;
+    //   return;
+    // }
+    // TerminalLogPrint(terminal, "before travel time");
+    // train->next_sensor_eta =
+    //     current_time + train_get_travel_time(train, dist_to_sensor, current_time);
+    // TerminalLogPrint(terminal, "after travel time");
+  } else {
+    train->next_sensor = NULL;
+    train->next_sensor_eta = 0;
+  }
+}
+
+void reroute_train(int terminal, int train_planner, struct Train *train, int time) {
   if (train->pf_state == RAND_ROUTE) {
     struct TrackPosition rand_dest = track_position_random(terminal);
     train->plan = CreatePlan(train_planner, &train->est_pos, &rand_dest);
@@ -855,70 +906,22 @@ void reroute_train(int terminal, int train_planner, struct Train *train) {
   }
 
   train->path_index = 0;
-  // if the train is currently at the first sensor in the path.
-  // position is known at this point
-  if (train->plan.path.nodes_len > 0 &&
-      train->plan.path.nodes[0] == train->last_known_pos.position.node) {
-    train->last_sensor_index = 0;
-  } else {
-    train->last_sensor_index = -1;
-  }
 
   train->last_switch_index = -1;
   train->state = PATH_BEGIN;
 
-  TerminalLogPrint(terminal, "Routing train %d to %s.", train->train, train->plan.dest.node->name);
-}
+  train->last_sensor_index = -1;
 
-static void train_update_next_sensor(struct Train *train, int current_time) {
-  int terminal = WhoIs("terminal");
+  train_update_next_sensor(train, time);
 
-  // lookahead one sensor
-  int next_sensor_index = get_next_sensor_index(train);
-  if (next_sensor_index != -1) {
-    train->next_sensor = train->plan.path.nodes[next_sensor_index];
-
-    TerminalLogPrint(terminal, "next sensor is %s", train->next_sensor->name);
-
-    // check if sensor is currently in the current simple path.
-    struct SimplePath *cur_path = &train->plan.paths[train->path_index];
-
-    TerminalLogPrint(
-        terminal,
-        "current path range %d -- %d, next sensor index: %d, next sensor: %s",
-        cur_path->start_index,
-        cur_path->end_index,
-        next_sensor_index,
-        train->next_sensor->name
-    );
-
-    if (next_sensor_index < cur_path->start_index || next_sensor_index > cur_path->end_index) {
-      // if it isn't in the current path, we can't provide an estimate yet
-      train->next_sensor_eta = 0;
-      return;
-    }
-
-    // struct TrackPosition next_sensor_pos = {.node = train->next_sensor, .offset = 0};
-
-    // TerminalLogPrint(terminal, "before dist between");
-    // int dist_to_sensor =
-    //     get_distance_between(&train->plan.path, &train->est_pos.position, &next_sensor_pos,
-    //     true);
-
-    // TerminalLogPrint(terminal, "after dist between");
-    // if (dist_to_sensor < 0) {
-    //   TerminalLogPrint(terminal, "error! distance to next sensor is negative!");
-    //   train->next_sensor_eta = 0;
-    //   return;
-    // }
-    // TerminalLogPrint(terminal, "before travel time");
-    // train->next_sensor_eta =
-    //     current_time + train_get_travel_time(train, dist_to_sensor, current_time);
-    // TerminalLogPrint(terminal, "after travel time");
-  } else {
-    train->next_sensor = NULL;
-    train->next_sensor_eta = 0;
+  // if the train is currently at the first sensor in the path.
+  // position is known at this point
+  if (train->next_sensor == train->est_pos.position.node ||
+      train->next_sensor == train->est_pos.position.node->reverse) {
+    train->last_sensor_index = get_next_sensor_index(train);
   }
+
+  TerminalLogPrint(terminal, "Routing train %d to %s.", train->train, train->plan.dest.node->name);
 }
 
 static const int FLIP_SWITCH_DIST = 300;
@@ -1224,7 +1227,7 @@ static void handle_tick(
             break;
           }
 
-          reroute_train(terminal, train_planner, train);
+          reroute_train(terminal, train_planner, train, time);
           break;
         }
 
@@ -1252,7 +1255,7 @@ static void handle_tick(
             train->state = PATH_BEGIN;
           } else {
             train->pf_state = ROUTE_TO_SELECTED_DEST;
-            reroute_train(terminal, train_planner, train);
+            reroute_train(terminal, train_planner, train, time);
           }
         }
 
@@ -1394,7 +1397,7 @@ static void handle_update_sensors_request(
       // stop train prior to routing since it may take a while
       TrainSetSpeed(train_tid, train->train, 0);
       set_train_active(train, train_speeds[train->train_index], time);
-      reroute_train(terminal, train_planner, train);
+      reroute_train(terminal, train_planner, train, time);
       TerminalLogPrint(terminal, "Train %d active", train->train);
       // train_log(terminal, train);
       continue;
@@ -1457,7 +1460,7 @@ void route_return(
   train_update_pos_from_sensor(train, initial_pos->reverse, time);
 
   set_train_active(train, train_speeds[train->train_index], time);
-  reroute_train(terminal, train_planner, train);
+  reroute_train(terminal, train_planner, train, time);
 }
 
 void handle_route_return_req(
@@ -1509,7 +1512,7 @@ void handle_rand_route_req(
 
   train1->pf_state = RAND_ROUTE;
   set_train_active(train1, train_speeds[train1->train_index], time);
-  reroute_train(terminal, train_planner, train1);
+  reroute_train(terminal, train_planner, train1, time);
 
   if (req->train2 != 0) {
     struct Train *train2 = &trains[trainset_get_train_index(req->train2)];
@@ -1521,7 +1524,7 @@ void handle_rand_route_req(
 
     train2->pf_state = RAND_ROUTE;
     set_train_active(train2, train_speeds[train2->train_index], time);
-    reroute_train(terminal, train_planner, train2);
+    reroute_train(terminal, train_planner, train2, time);
   }
 }
 
