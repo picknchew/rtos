@@ -1,9 +1,11 @@
 #include "track_reservations.h"
 
 #include <stdbool.h>
+// #include <stdio.h>
 
 #include "track_position.h"
 #include "train_manager.h"
+#include "train_planner.h"
 #include "user/server/name_server.h"
 #include "user/terminal/terminal_task.h"
 // static const char *color[6] = {"\033[0;31m",
@@ -16,35 +18,24 @@
 static struct Zone zones[ZONE_NUMBERS];
 
 // // 20rows 50 cols
-// static const char  *track =
-//   // 012345678901234567890123456789012345678901234567 8 9
-//     "****-*********-**********************-*****     \r\n"//0 0-49
-//     "     *     *                               *    \r\n"//1 50-99
-//     "***-*     *   -********-*******-*****-***   -   \r\n"//2 100
-//     "   *     *  *         *         *        *   *  \r\n"//3 150
-//     "*-*     *  *           -       -           -  * \r\n"//4 200
-//     "       * *              *     *             *  *\r\n"//5 250
-//     "      **                 -   -                **\r\n"//6 300
-//     "      -                   ***                  *\r\n"//7 350
-//     "      *                    *                   *\r\n"//8 400
-//     "      *                    *                   *\r\n"//9 450
-//     "      -                   ***                  *\r\n"//10 500
-//     "      **                 -   -                **\r\n"//11 550
-//     "       * *              *     *             -  *\r\n"//12 600
-//     "*-*     * *            -       -           *  - \r\n"//13 650
-//     "   *     * *          *         *        *   *  \r\n"//14 700
-//     "*-*-*     * ***-*********-***-*****-*****   *   \r\n"//15 750
-//     "     *     ****-*********-***-*****-*******     \r\n"//16 800
-//     "*-***-*               *         *               \r\n"//17 850
-//     "       *               *       *                \r\n"//18 900
-//     "*-*****-*************-**********-************** \r\n";//19 950
 
-void zones_init() {
+void zone_init(struct Zone *zone, int id) {
+  zone->id = id;
+  zone->reserved = false;
+  zone->reservedby = -1;
+  zone->release_counter = 0;
+  zone->len = 0;
+  zone->color = NULL;
+  
+  for (int i = 0; i < 30; ++i) {
+    zone->tracks[i] = 0;
+  }
+}
+
+void zones_a_init() {
   // *(*(track + 2) + 1) = ".";
   for (int i = 0; i < ZONE_NUMBERS; i++) {
-    zones[i].id = i;
-    zones[i].reserved = false;
-    zones[i].reservedby = -1;
+    zone_init(&zones[i], i);
   }
   zones[0].tracks[0] = 650;
   zones[0].len = 1;
@@ -78,14 +69,14 @@ void zones_init() {
   zones[4].tracks[12] = 100 + 10;
   zones[4].tracks[13] = 150 + 3;
   zones[4].tracks[14] = 150 + 9;
-  zones[4].tracks[15] = 200 + 2;
+  zones[4].tracks[22] = 200 + 2;
   zones[4].tracks[16] = 200 + 8;
   zones[4].tracks[17] = 150 + 12;
   zones[4].tracks[18] = 200 + 11;
   zones[4].tracks[19] = 250 + 7;
   zones[4].tracks[20] = 250 + 9;
   zones[4].tracks[21] = 300 + 6;
-  zones[4].tracks[22] = 300 + 7;
+  zones[4].tracks[15] = 300 + 7;
   zones[4].len = 23;
   zones[4].color = green;
   for (int i = 0; i < 22; i++) {
@@ -270,20 +261,90 @@ void zones_init() {
   zones[33].tracks[0] = 850;
   zones[33].len = 1;
   zones[33].color = red;
+  for (int i = 0; i < ZONE_NUMBERS; i++) {
+    for (int j = 0; j < zones[i].len; j++) {
+      zones[i].tracks[j] *= 2;
+    }
+  }
 }
 
-bool ReserveTrack(int zone_num, int train_index) {
-  int terminal = WhoIs("terminal");
+void zones_b_init() {
+  // zone 0 is not used.
+  zones_a_init();
+  for (int i = 0; i < ZONE_NUMBERS; i++) {
+    for (int j = 0; j < zones[i].len; j++) {
+      int row = zones[i].tracks[j] / 100;
+      int col = zones[i].tracks[j] % 100;
+      row = 19 - row;
+      col = 97 - col;
+      zones[i].tracks[j] = row * 100 + col - 1;
+    }
+  }
+  // modify zone[3]
+  for (int i = 0; i < 8; i++) {
+    zones[3].tracks[i] = (350 + 50 * i + 47) * 2 - 1;
+  }
+  zones[3].len = 8;
+  zones[4].len = zones[4].len - 1;
+  zones[26].len = zones[26].len - 1;
+}
 
-  if (zones[zone_num].reserved && zones->reservedby != train_index) {
-    TerminalLogPrint(terminal, "failed to reserve zone %d for %d", zone_num, train_index);
+bool ReserveTrack(int terminal, int zone_num, int train_index) {
+  if (zones[zone_num].reserved && zones[zone_num].reservedby != train_index) {
     return false;
   }
 
   zones[zone_num].reserved = true;
   zones[zone_num].reservedby = train_index;
   TerminalUpdateZoneReservation(terminal, zone_num, train_index, 0);
-  TerminalLogPrint(terminal, "successfuly reserved zone %d for %d", zone_num, train_index);
+
+  return true;
+}
+
+bool ReservableTrack(int zone_num, int train_index) {
+  if (zones[zone_num].reserved && zones[zone_num].reservedby != train_index) {
+    return false;
+  }
+
+  return true;
+}
+
+// reserve from start_node_index to the end of the path
+bool ReservePath(
+    int terminal,
+    struct RoutePlan *plan,
+    struct SimplePath *path,
+    int start_node_index,
+    int train_index
+) {
+  // check if zones are reservable
+  for (int i = start_node_index; i <= path->end_index; ++i) {
+    struct TrackNode *node = plan->path.nodes[i];
+    int zone = node->zone;
+
+    if ((node->type == NODE_SENSOR || node->type == NODE_BRANCH || node->type == NODE_MERGE) &&
+        !ReservableTrack(zone, train_index)) {
+            TerminalLogPrint(
+          terminal,
+          "failed to reserve zone %d for %d, occupied by %d",
+          zone,
+          train_index,
+          zones[zone].reservedby
+      );
+      return false;
+    }
+  }
+
+    for (int i = start_node_index; i <= path->end_index; ++i) {
+        struct TrackNode *node = plan->path.nodes[i];
+    int zone = node->zone;
+
+    if (node->type == NODE_SENSOR || node->type == NODE_BRANCH || node->type == NODE_MERGE) {
+      ReserveTrack(terminal, zone, train_index);
+      TerminalLogPrint(terminal, "reserve for node %s", node->name);
+    }
+  }
+
   return true;
 }
 
@@ -291,33 +352,16 @@ int ZoneOccupied(int zone) {
   return zones[zone].reservedby;
 }
 
-void ReleaseReservations(int zone) {
-  int terminal = WhoIs("terminal");
+void ReleaseReservations(int terminal, int zone) {
+  zones[zone].release_counter++;
+  // if (zones[zone].release_counter == 2) {
   zones[zone].reserved = false;
   zones[zone].reservedby = -1;
+  zones[zone].release_counter = 0;
   TerminalUpdateZoneReservation(terminal, zone, zones[zone].reservedby, 1);
+  // }
 }
 
-struct Zone getZone(int zone) {
-  return zones[zone];
+struct Zone *GetZone(int zone) {
+  return &zones[zone];
 }
-
-// int main(){
-//     int base_row = 2;
-//     int base_col = 2;
-//     zones_init();
-//     printf("\033[2J");
-//     printf(black);
-//     // printf(track);
-//     for(int i=0;i<ZONE_NUMBERS;i++){
-//         for(int j=0;j<zones[i].len;j++){
-//             int row = zones[i].tracks[j]/50;
-//             int col = zones[i].tracks[j]%50;
-
-//             printf(color[2]);
-//             printf("\033[%d;%dH",row+base_row,col+base_col);
-//             printf("*");
-//         }
-//     }
-//     printf("\033[25;50H");
-// }

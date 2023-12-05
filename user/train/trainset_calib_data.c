@@ -12,11 +12,35 @@ int TRAINSET_DECEL_TIMES[TRAINSET_NUM_TRAINS][TRAIN_SPEED_MAX + 1];
 static FixedPointInt train47_dists[] = {65, 122, 275, 560, 2438, 7000, 11100};
 static int train47_delays[] = {40, 50, 75, 100, 200, 300, 400};
 
-static FixedPointInt train58_dists[] = {105, 175, 528, 945, 4576};
-static int train58_delays[] = {40, 50, 75, 100, 200};
+// train 58 short move measurements
+// delay - measurement
+// 100 - 12.1
+// 150 - 25.4
+// 200 - 48
+// 250 - 64
+// 300 - 80.5
+// 350 - 95.6cm
+// 400 - 111
+static FixedPointInt train58_dists[] = {105, 190, 1210, 1730, 2540, 4800, 5470, 6400, 8050, 9560, 11100};
+static int train58_delays[] = {40, 50, 100, 136, 150, 200, 230, 250, 300, 350, 400};
 
-static FixedPointInt train54_dists[] = {51, 118, 283, 495, 5758, 7790, 9855, 11460, 12500, 17900};
-static int train54_delays[] = {40, 50, 75, 100, 300, 325, 350, 375, 400, 500};
+// we should use train 58, 
+
+// speed 10
+// static FixedPointInt train54_dists[] = {51, 118, 283, 495, 5758, 7790, 9855, 11460, 12500, 17900};
+// static int train54_delays[] = {40, 50, 75, 100, 300, 325, 350, 375, 400, 500};
+
+// speed 7,
+// 50 - 1.3cm
+// 100 - 5.7cm
+// 150 - 11.8cm
+// 200 - 21.5cm
+// 250 - 35cm
+// 300 - 56.6cm
+// 350 - 79.2cm
+// 400 - 103.7
+static FixedPointInt train54_dists[] = {130, 570, 1180, 2150, 3500, 5660, 7920, 10370};
+static int train54_delays[] = {50, 100, 150, 200, 250, 300, 350, 400};
 
 static void shortmove_dist_init(FixedPointInt *dists, int len);
 
@@ -29,7 +53,8 @@ void trainset_calib_data_init() {
     TRAINSET_ACCEL_TIMES[i][0] = 300;
     // default 5s
     TRAINSET_DECEL_TIMES[i][0] = 500;
-    TRAINSET_DECEL_TIMES[i][10] = 500;
+    TRAINSET_DECEL_TIMES[i][7] = 300;
+    TRAINSET_DECEL_TIMES[i][10] = 300;
   }
 
   TRAINSET_MEASURED_SPEEDS[trainset_get_train_index(77)][14] = 185;
@@ -39,10 +64,12 @@ void trainset_calib_data_init() {
   TRAINSET_MEASURED_SPEEDS[trainset_get_train_index(58)][13] = 510;
   TRAINSET_STOPPING_DISTANCES[trainset_get_train_index(58)][13] = 980;
 
-  TRAINSET_MEASURED_SPEEDS[trainset_get_train_index(58)][10] = 308;
-  TRAINSET_STOPPING_DISTANCES[trainset_get_train_index(58)][10] = 440;
-  TRAINSET_ACCEL_DISTANCES[trainset_get_train_index(58)][10] = 289;
-  TRAINSET_ACCEL_TIMES[trainset_get_train_index(58)][10] = 290;
+  // recommended speed
+  // accel time = 365
+  TRAINSET_MEASURED_SPEEDS[trainset_get_train_index(58)][10] = 293; // 304 on track b
+  TRAINSET_STOPPING_DISTANCES[trainset_get_train_index(58)][10] = 423; // 573, 423
+  TRAINSET_ACCEL_DISTANCES[trainset_get_train_index(58)][10] = 262; // missing by about 15cm
+  TRAINSET_ACCEL_TIMES[trainset_get_train_index(58)][10] = 260;
 
   TRAINSET_MEASURED_SPEEDS[trainset_get_train_index(58)][7] = 334;
   TRAINSET_STOPPING_DISTANCES[trainset_get_train_index(58)][7] = 145;
@@ -71,8 +98,11 @@ void trainset_calib_data_init() {
   TRAINSET_MEASURED_SPEEDS[trainset_get_train_index(54)][8] = 385;
   TRAINSET_STOPPING_DISTANCES[trainset_get_train_index(54)][8] = 558;
 
-  TRAINSET_MEASURED_SPEEDS[trainset_get_train_index(54)][7] = 315;
-  TRAINSET_STOPPING_DISTANCES[trainset_get_train_index(54)][7] = 490;
+  // recommended speed
+  TRAINSET_MEASURED_SPEEDS[trainset_get_train_index(54)][7] = 335;
+  TRAINSET_STOPPING_DISTANCES[trainset_get_train_index(54)][7] = 452;
+  TRAINSET_ACCEL_DISTANCES[trainset_get_train_index(54)][7] = 350;
+  TRAINSET_ACCEL_TIMES[trainset_get_train_index(54)][7] = 320;
 
   TRAINSET_MEASURED_SPEEDS[trainset_get_train_index(54)][6] = 285;
   TRAINSET_STOPPING_DISTANCES[trainset_get_train_index(54)][6] = 400;
@@ -108,8 +138,8 @@ void trainset_calib_data_init() {
     }
   }
 
-  shortmove_dist_init(train58_dists, 5);
-  shortmove_dist_init(train54_dists, 10);
+  shortmove_dist_init(train58_dists, 10);
+  shortmove_dist_init(train54_dists, 8);
   shortmove_dist_init(train47_dists, 7);
 }
 
@@ -161,10 +191,10 @@ int shortmove_get_duration(int train, int speed, int dist) {
   // assume train is speed 10 for now.
   switch (train) {
     case 58:
-      ret = interpolate(train58_dists, train58_delays, 5, dist);
+      ret = interpolate(train58_dists, train58_delays, 10, dist);
       break;
     case 54:
-      ret = interpolate(train54_dists, train54_delays, 10, dist);
+      ret = interpolate(train54_dists, train54_delays, 8, dist);
       break;
     case 47:
       ret = interpolate(train47_dists, train47_delays, 7, dist);

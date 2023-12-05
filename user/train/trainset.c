@@ -4,6 +4,7 @@
 
 #include "selected_track.h"
 #include "syscall.h"
+#include "track_reservations.h"
 #include "train_dispatcher.h"
 #include "trainset_calib_data.h"
 #include "trainset_task.h"
@@ -29,6 +30,8 @@ const int TRAINSET_TRAINS[] = {1, 2, 24, 47, 54, 58, 77, 78};
 
 struct TrackNode track[TRACK_MAX];
 
+static enum Track selected_track = TRACK_B;
+
 int marklin_tx_server;
 
 int trainset_get_train_index(uint8_t train) {
@@ -49,8 +52,8 @@ int trainset_get_sensor_index(char *sensor) {
 }
 
 void trainset_init(struct Trainset *trainset, int train_dispatcher_tid) {
-  tracka_init(track);
-  zones_init();
+  trainset_set_track(trainset, 'A');
+  // ! initial zones for trains init
   trainset_calib_data_init();
 
   trainset->last_track_switch_time = 0;
@@ -142,13 +145,21 @@ void trainset_set_track(struct Trainset *trainset, char track_type) {
   switch (track_type) {
     case 'A':
       tracka_init(track);
+      zones_a_init();
+      selected_track = TRACK_A;
       break;
     case 'B':
       trackb_init(track);
+      zones_b_init();
+      selected_track = TRACK_B;
       break;
     default:
       break;
   }
+}
+
+enum Track trainset_get_track() {
+  return selected_track;
 }
 
 void trainset_update_sensor_data(struct Trainset *trainset, bool *sensor_data) {

@@ -4,8 +4,11 @@
 #include <stdbool.h>
 
 #include "terminal_task.h"
+#include "user/server/clock_server.h"
 #include "user/server/io_server.h"
+#include "user/server/name_server.h"
 #include "user/train/train_calibrator.h"
+#include "user/train/train_manager.h"
 #include "user/train/trainset_task.h"
 #include "util.h"
 
@@ -16,6 +19,23 @@ static const char CHAR_BACKSPACE = 8;
 void terminal_init(struct Terminal *terminal, int screen_tid) {
   terminal->command_len = 0;
   terminal->screen_tid = screen_tid;
+}
+
+static inline int get_constant_velocity_travel_time(int train, int speed, int dist) {
+  // in ticks (per 10ms)
+  return fixed_point_int_from(dist) / TRAINSET_MEASURED_SPEEDS[trainset_get_train_index(train)][speed];
+}
+
+
+// returns time to move distance for a full acceleration to constant velocity move
+static int get_move_time(int train, int speed, int distance) {
+  distance -= TRAINSET_STOPPING_DISTANCES[trainset_get_train_index(train)][speed];
+
+  int constant_velocity_time = get_constant_velocity_travel_time(
+      train, speed, (distance - TRAINSET_ACCEL_DISTANCES[trainset_get_train_index(train)][speed])
+  );
+
+  return TRAINSET_ACCEL_TIMES[trainset_get_train_index(train)][speed] + constant_velocity_time;
 }
 
 // Executes a command and returns 1 if the quit command is executed,
@@ -147,7 +167,41 @@ bool terminal_execute_command(
     );
 
     TrainCalibratorBeginCalibration(train_calib_tid, train_number, train_speed);
-     } else if (strcmp("sm", command_name)) {
+  } else if (strcmp("caliba", command_name)) {
+    char *str_train_number = strtok_r(NULL, CHAR_DELIMITER, &saveptr);
+    if (!str_train_number || !is_number(str_train_number)) {
+      TerminalUpdateStatus(terminal->screen_tid, "Train provided is not a valid train!");
+      return false;
+    }
+
+    char *str_train_speed = strtok_r(NULL, CHAR_DELIMITER, &saveptr);
+    if (!str_train_speed || !is_number(str_train_speed)) {
+      TerminalUpdateStatus(terminal->screen_tid, "Must provide a valid speed!");
+      return false;
+    }
+
+    int train_number = atoi(str_train_number);
+    int train_speed = atoi(str_train_speed);
+
+    if (!trainset_is_valid_train(train_number)) {
+      TerminalUpdateStatus(terminal->screen_tid, "Train provided is not a valid train!");
+      return false;
+    }
+
+    if (train_speed < 0 || train_speed > 14) {
+      TerminalUpdateStatus(terminal->screen_tid, "Must provide a valid speed!");
+      return false;
+    }
+
+    TerminalUpdateStatus(
+        terminal->screen_tid,
+        "Beginning acceleration distance measurement of train %d at speed %d",
+        train_number,
+        train_speed
+    );
+
+    TrainCalibratorBeginAccelerationDistance(train_calib_tid, train_number, train_speed);
+  } else if (strcmp("sm", command_name)) {
     char *str_train_number = strtok_r(NULL, CHAR_DELIMITER, &saveptr);
     if (!str_train_number || !is_number(str_train_number)) {
       TerminalUpdateStatus(terminal->screen_tid, "Train provided is not a valid train!");
@@ -168,7 +222,7 @@ bool terminal_execute_command(
 
     int train_number = atoi(str_train_number);
     int train_speed = atoi(str_train_speed);
-    int train_timetostop = atoi(str_train_time);
+    int time_to_stop = atoi(str_train_time);
 
     if (!trainset_is_valid_train(train_number)) {
       TerminalUpdateStatus(terminal->screen_tid, "Train provided is not a valid train!");
@@ -185,10 +239,16 @@ bool terminal_execute_command(
         "Beginning short move of train %d at speed %d stop after %d",
         train_number,
         train_speed,
-        train_timetostop
+        time_to_stop
     );
 
-    TrainCalibratorBeginShortMove(train_calib_tid, train_number, train_speed, train_timetostop);
+    int clock_server = WhoIs("clock_server");
+    // TrainCalibratorBeginShortMove(train_calib_tid, train_number, train_speed, train_timetostop);
+    TrainSetSpeed(train_tid, train_number, train_speed);
+
+    Delay(clock_server, time_to_stop);
+    TrainSetSpeed(train_tid, train_number, 0);
+
   } else if (strcmp("rt1", command_name)) {
     char *str_train_number = strtok_r(NULL, CHAR_DELIMITER, &saveptr);
     if (!str_train_number || !is_number(str_train_number)) {
@@ -234,7 +294,7 @@ bool terminal_execute_command(
       TerminalUpdateStatus(terminal->screen_tid, "Must provide a valid sensor!");
       return false;
     }
-    
+
     char *str_dest_sensor2 = strtok_r(NULL, CHAR_DELIMITER, &saveptr);
     if (!str_dest_sensor2 || strlen(str_dest_sensor2) > 3) {
       TerminalUpdateStatus(terminal->screen_tid, "Must provide a valid sensor!");
@@ -262,7 +322,57 @@ bool terminal_execute_command(
         str_dest_sensor2
     );
 
-    TrainManagerRouteReturn(train_manager_tid, train_number, train_number2, str_dest_sensor, str_dest_sensor2);
+    TrainManagerRouteReturn(
+        train_manager_tid, train_number, train_number2, str_dest_sensor, str_dest_sensor2
+    );
+  } else if (strcmp("lm", command_name)) {
+        char *str_train_number = strtok_r(NULL, CHAR_DELIMITER, &saveptr);
+    if (!str_train_number || !is_number(str_train_number)) {
+      TerminalUpdateStatus(terminal->screen_tid, "Train provided is not a valid train!");
+      return false;
+    }
+
+    char *str_train_speed = strtok_r(NULL, CHAR_DELIMITER, &saveptr);
+    if (!str_train_speed || !is_number(str_train_speed)) {
+      TerminalUpdateStatus(terminal->screen_tid, "Must provide a valid speed!");
+      return false;
+    }
+
+    char *str_dist = strtok_r(NULL, CHAR_DELIMITER, &saveptr);
+    if (!is_number(str_train_speed)) {
+      TerminalUpdateStatus(terminal->screen_tid, "Must provide a valid distance!");
+      return false;
+    }
+
+    int train_number = atoi(str_train_number);
+    int train_speed = atoi(str_train_speed);
+    int dist = atoi(str_dist);
+
+    if (!trainset_is_valid_train(train_number)) {
+      TerminalUpdateStatus(terminal->screen_tid, "Train provided is not a valid train!");
+      return false;
+    }
+
+    if (train_speed < 0 || train_speed > 14) {
+      TerminalUpdateStatus(terminal->screen_tid, "Must provide a valid speed!");
+      return false;
+    }
+
+    int time_to_stop = get_move_time(train_number, train_speed, dist);
+
+    TerminalUpdateStatus(
+        terminal->screen_tid,
+        "Beginning max velocity move of train %d at speed %d stop after %d",
+        train_number,
+        train_speed,
+        time_to_stop
+    );
+
+    int clock_server = WhoIs("clock_server");
+    TrainSetSpeed(train_tid, train_number, train_speed);
+
+    Delay(clock_server, time_to_stop);
+    TrainSetSpeed(train_tid, train_number, 0);
   } else if (strcmp("track", command_name)) {
     char *str_track = strtok_r(NULL, CHAR_DELIMITER, &saveptr);
     if (!str_track || strlen(str_track) != 1) {

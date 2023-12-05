@@ -8,6 +8,7 @@
 
 struct TrackPosition track_position_random() {
   struct TrackNode *node = &track[rand() % TRACK_MAX];
+  // struct TrackNode *node = &track[8];
 
   while (node->type != NODE_SENSOR) {
     node = &track[rand() % TRACK_MAX];
@@ -28,7 +29,7 @@ struct TrainPosition train_position_add(struct TrainPosition pos, struct Path *p
   // index of node in path
   int node_index = -1;
 
-  for (int i = path->nodes_len - 1; i >= 0; --i) {
+  for (int i = 0; i < path->nodes_len; ++i) {
     if (path->nodes[i] == node) {
       node_index = i;
       break;
@@ -46,14 +47,16 @@ struct TrainPosition train_position_add(struct TrainPosition pos, struct Path *p
   int last_dir = DIR_AHEAD;
 
   // we need path to determine the next node that we'll be on.
-  while (node_index >= 0 && node->edge[path->directions[node_index]].dist <= new_offset) {
+  // TODO: the DIR_REVERSE check is not ideal. we should pass the SimplePath in.
+  while (node_index < path->nodes_len - 1 && path->directions[node_index] != DIR_REVERSE &&
+         node->edge[path->directions[node_index]].dist <= new_offset) {
     int dir = path->directions[node_index];
 
     new_offset -= node->edge[dir].dist;
     node = node->edge[dir].dest;
     last_dir = dir;
 
-    --node_index;
+    ++node_index;
   }
 
   struct TrainPosition new_pos = {

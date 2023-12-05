@@ -31,6 +31,7 @@ struct Trainset {
   // task tids
   int train_dispatcher;
 };
+enum Track { TRACK_A, TRACK_B };
 
 void trainset_init(struct Trainset *trainset, int train_dispatcher_tid);
 int trainset_get_train_index(uint8_t train);
@@ -54,5 +55,6 @@ void trainset_update_sensor_data(struct Trainset *trainset, bool *sensor_data);
 bool *trainset_get_sensor_data(struct Trainset *trainset);
 bool trainset_is_valid_train(uint8_t train);
 void trainset_set_track(struct Trainset *trainset, char track_type);
+enum Track trainset_get_track();
 enum SwitchDirection trainset_get_switch_state(struct Trainset *trainset, uint8_t switch_number);
 void train_task();

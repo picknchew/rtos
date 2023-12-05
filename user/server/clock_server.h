@@ -6,6 +6,8 @@ enum ClockServerRequestType {
   CLOCK_SERVER_TIME,
   CLOCK_SERVER_DELAY,
   CLOCK_SERVER_DELAY_UNTIL,
+  // clock notifier msg type, notify clock server on each tick
+  CLOCK_SERVER_NOTIFY
 };
 
 struct ClockServerRequest {

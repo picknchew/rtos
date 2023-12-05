@@ -19,28 +19,92 @@ static int log_offset = 0;
 #define ZONE_RESERVATION_BASE_LINE 37
 #define ZONE_RESERVATION_BASE_COL 1
 // 20rows 50 cols
-static const char *track =
+static const char track_a[] =
     // 012345678901234567890123456789012345678901234567 8 9
-    "****-*********-**********************-*****     \r\n"   // 0 0-49
-    "     *     *                               *    \r\n"   // 1 50-99
-    "***-*     *   -********-*******-*****-***   -   \r\n"   // 2 100
-    "   *     *  *         *         *        *   *  \r\n"   // 3 150
-    "*-*     *  *           -       -           -  * \r\n"   // 4 200
-    "       * *              *     *             *  *\r\n"   // 5 250
-    "      **                 -   -                **\r\n"   // 6 300
-    "      -                   ***                  *\r\n"   // 7 350
-    "      *                    *                   *\r\n"   // 8 400
-    "      *                    *                   *\r\n"   // 9 450
-    "      -                   ***                  *\r\n"   // 10 500
-    "      **                 -   -                **\r\n"   // 11 550
-    "       * *              *     *             -  *\r\n"   // 12 600
-    "*-*     * *            -       -           *  - \r\n"   // 13 650
-    "   *     * *          *         *        *   *  \r\n"   // 14 700
-    "*-*-*     * ***-*********-***-*****-*****   *   \r\n"   // 15 750
-    "     *     ****-*********-***-*****-*******     \r\n"   // 16 800
-    "*-***-*               *         *               \r\n"   // 17 850
-    "       *               *       *                \r\n"   // 18 900
-    "*-*****-*************-**********-************** \r\n";  // 19 950
+    "********__******************__********************************************__**********        "
+    "    \r\n"  // 0 0-49
+    "      A1.2**          ** C13.14             B5.6            D3.4         E7.8         **      "
+    "    \r\n"  // 1 50-99
+    "******__**          **      __****************__**************__**********__******      __ "
+    "D7.8   \r\n"  // 2 100
+    "A13.14**          **    ** C11.12           **                  **        E5.6    **      **  "
+    "    \r\n"  // 3 150
+    "**__**          **    **               E15.16 __              __ E3.4            D5.6 __    "
+    "**    \r\n"  // 4 200
+    "A15.16        **  **                            **          **                          **    "
+    "**  \r\n"  // 5 250
+    "            ****                             E1.2 __      __ D1.2                           "
+    "****  \r\n"  // 6 300
+    "            __ A3.4                                 ******                                    "
+    "**  \r\n"  // 7 350
+    "            **                                        **                                      "
+    "**  \r\n"  // 8 400
+    "            **                                        **                                      "
+    "**  \r\n"  // 9 450
+    "            __ B15.16                               ******                                    "
+    "**  \r\n"  // 10 500
+    "            ****                             C1.2 __      __ B13.14                   E9.10 "
+    "****  \r\n"  // 11 550
+    " A11.12       **  **                            **          **                          __    "
+    "**  \r\n"  // 12 600
+    "**__**          **  **                   B3.4 __              __ D15.16               **    "
+    "__    \r\n"  // 13 650
+    " B7.8 **          **  **     C9.10          **   B1.2   D13.14  ** E13.14         **      ** "
+    "D9.10\r\n"  // 14 700
+    "**__**__** A9.10    **  ******__******************__******__**********__**********      **    "
+    "    \r\n"  // 15 750
+    " B11.12   **          ********__******************__******__**********__**************        "
+    "    \r\n"  // 16 800
+    "**__******__** A7.8          C5.6           **  C15.16   D11.12 ** E11.12                     "
+    "    \r\n"  // 17 850
+    " B9.10        ** A5.6                    C7.8 **              ** C3.4                         "
+    "    \r\n"  // 18 900
+    "**__**********__**************************__********************__****************************"
+    "    \r\n";  // 19 950
+
+static const char track_b[] =
+    // 012345678901234567890123456789012345678901234567 8 9
+    "    "
+    "****************************__********************__**************************__**********__**"
+    "\r\n"  // 19 950
+    "                             C3.4 **              ** C7.8                    A5.6 **       "
+    "B9.10  \r\n"  // 18 900
+    "                        E11.12  **  D11.12   C15.16 **           C5.6          A7.8 "
+    "**__******__**\r\n"  // 17 850
+    "            **************__**********__******__******************__********          **   "
+    "B11.12 \r\n"  // 16 800
+    "        **      **********__**********__******__******************__******  **    A9.10 "
+    "**__**__**\r\n"  // 15 750
+    " D9.10**      **         E13.14 **  D13.14   B1.2   **           C9.10    **  **          ** "
+    "B7.8 \r\n"  // 14 700
+    "    __    **               D15.16 __              __ B3.4                   **  **   A11.12 "
+    "__    \r\n"  // 13 650
+    "  **    __ E9.10                    **          **                            **  **         "
+    "**   \r\n"  // 12 600
+    "  ****                         B13.14 __      __ C1.2                             ****       "
+    "**   \r\n"  // 11 550
+    "  **                                    ******                               B15.16 __       "
+    "**   \r\n"  // 10 500
+    "  **                                      **                                        **       "
+    "**   \r\n"  // 9 450
+    "  **                                      **                                        **       "
+    "**   \r\n"  // 8 400
+    "  **                                    ******                                 A3.4 __       "
+    "**   \r\n"  // 7 350
+    "  ****                           D1.2 __      __ E1.2                             ****       "
+    "**   \r\n"  // 6 300
+    "  **    **                          **          **                            **  **         "
+    "**   \r\n"  // 5 250
+    "    **    __ D5.6            E3.4 __              __ E15.16               **    **   A15.16 "
+    "__    \r\n"  // 4 200
+    "      **      **     E5,6       **                  **           C11.12 **    **          "
+    "**A13.14\r\n"  // 3 150
+    "   D7.8 __      ******__**********--**************--****************__      **          "
+    "**__******\r\n"  // 2 100
+    "          **         E7.8                                          C13.14 **          ** A1.2 "
+    "    \r\n"  // 1 50-99
+    "            "
+    "**********__********************************************__*****************__********\r\n";  // 0 0-49
 
 static const char *color[6] =
     {"\033[0;31m", "\033[0;32m", "\033[0;33m", "\033[0;34m", "\033[0;35m", "\033[0;36m"};
@@ -109,10 +173,16 @@ static void init_train_speeds(struct TerminalScreen *screen) {
   terminal_restore_cursor(screen);
 }
 
-static void init_train_zones(struct TerminalScreen *screen) {
+static void init_train_zones(struct TerminalScreen *screen, char track) {
   terminal_save_cursor(screen);
   terminal_move_cursor(screen, ZONE_RESERVATION_BASE_LINE, ZONE_RESERVATION_BASE_COL);
-  terminal_puts(screen, track);
+
+  if (track == 'A') {
+    terminal_printf(screen, track_a);
+  } else {
+    terminal_printf(screen, track_b);
+  }
+
   terminal_restore_cursor(screen);
 }
 
@@ -252,7 +322,7 @@ static void update_train_info(
   terminal_printf(screen, "%4s + %6d", pos_node, pos_offset);
   terminal_printf(screen, "%14s", dest);
   terminal_printf(screen, "%15d", speed);
-  terminal_printf(screen, "%d", accel);
+  terminal_printf(screen, "%15d", accel);
 
   terminal_restore_cursor(screen);
 }
@@ -269,23 +339,24 @@ static void update_selected_track(struct TerminalScreen *screen, char track) {
 
 static void update_zone_reservation(struct TerminalScreen *screen, int zone, int train, int type) {
   terminal_save_cursor(screen);
-  struct Zone zone_track = getZone(zone);
-  
-  for (int i = 0; i < zone_track.len; i++) {
-    int row = zone_track.tracks[i] / 50;
-    int col = zone_track.tracks[i] % 50;
+  struct Zone *zone_track = GetZone(zone);
+
+  if (type == 0) {
+    terminal_puts(screen, color[train % 6]);
+  } else if (type == 1) {
+    terminal_printf(screen, "\033[0;37m");
+  }
+
+  for (int i = 0; i < zone_track->len; i++) {
+    int row = zone_track->tracks[i] / 100;
+    int col = zone_track->tracks[i] % 100;
 
     terminal_move_cursor(screen, row + ZONE_RESERVATION_BASE_LINE, col + ZONE_RESERVATION_BASE_COL);
-    if (type == 0) {
-      terminal_puts(screen, color[train % 6]);
-    } else if (type == 1) {
-      terminal_printf(screen, "\033[0;37m");
-    }
-
+    terminal_putc(screen, '*');
     terminal_putc(screen, '*');
   }
 
-  terminal_printf(screen, "\033[0;37m");
+  terminal_puts(screen, "\033[0m");
   // terminal_move_cursor(screen, ZONE_RESERVATION_BASE_LINE + zone_offset,
   // ZONE_RESERVATION_BASE_COL);
   // ++zone_offset;
@@ -381,7 +452,7 @@ static void log_print_va(struct TerminalScreen *screen, char *fmt, va_list va) {
   // restart at the top and overwrite
   terminal_save_cursor(screen);
   if (log_offset == 81) {
-    for (int i = 0; i < 81; ++i) {
+    for (int i = 0; i < 100; ++i) {
       terminal_move_cursor(screen, LOG_BASE_LINE + i, THIRD_COL);
       terminal_cursor_delete_line(screen);
     }
@@ -404,7 +475,6 @@ static void screen_init(struct TerminalScreen *screen) {
 
   terminal_clear_screen(screen);
   terminal_hide_cursor(screen);
-  init_train_zones(screen);
   init_switch_states(screen);
   init_train_speeds(screen);
   init_train_info(screen);
@@ -413,6 +483,7 @@ static void screen_init(struct TerminalScreen *screen) {
   update_sensors(screen, NULL, 0);
   update_command(screen, "", 0);
   update_max_sensor_duration(screen, 0);
+  init_train_zones(screen, 'A');
 }
 
 struct TerminalView shell_view_create() {
@@ -431,7 +502,8 @@ struct TerminalView shell_view_create() {
       print_loop_time,
       update_train_info,
       update_zone_reservation,
-      update_selected_track
+      update_selected_track,
+      init_train_zones,
   };
 
   return view;

@@ -1,5 +1,6 @@
 #include "train_calibrator.h"
 
+#include "selected_track.h"
 #include "syscall.h"
 #include "trackdata/distance.h"
 #include "trackdata/track_data.h"
@@ -69,7 +70,6 @@ struct TrainCalibrationRequest {
 };
 
 static const int CALIBRATION_LOOPS = 10;
-static struct TrackNode track[TRACK_MAX];
 
 void train_calibrator_task() {
   RegisterAs("train_calib");
@@ -77,9 +77,6 @@ void train_calibrator_task() {
   int train_tid = WhoIs("train");
   int terminal_tid = WhoIs("terminal");
   int clock_server = WhoIs("clock_server");
-
-  tracka_init(track);
-  // trackb_init(track);
 
   bool calibrating = false;
 
@@ -90,8 +87,8 @@ void train_calibrator_task() {
   int sensor = trainset_get_sensor_index("A4");
   // int accd_sensor1 = trainset_get_sensor_index("D4");
   // int accd_sensor2 = trainset_get_sensor_index("B6");
-  int accd_sensor1 = trainset_get_sensor_index("B1");
-  int accd_sensor2 = trainset_get_sensor_index("D14");
+  int accd_sensor1 = trainset_get_sensor_index("B6");
+  int accd_sensor2 = trainset_get_sensor_index("C12");
   bool began_measurement = false;
   bool accd_measurement = false;
   bool stop = false;
@@ -140,34 +137,6 @@ void train_calibrator_task() {
         TrainSetSpeed(train_tid, train, speed);
         Reply(tid, NULL, 0);
         break;
-
-      case CALIBRATOR_BEGIN_SHORTMOVE:
-        train = req.short_move_req.train;
-        speed = req.short_move_req.speed;
-        delay = req.short_move_req.delay;
-
-        // for (int i = 0; i <= 30; i++) {
-        //   TrainSetSpeed(train_tid, train, speed);
-        //   Delay(clock_server, delay);
-        //   TrainSetSpeed(train_tid, train, 0);
-        //   Reply(tid, NULL, 0);
-        //   Delay(clock_server, 1500);
-        // }
-        shortmove = true;
-        // for (int i = 0; i <= 30; i++) {
-          TrainSetSpeed(train_tid, train, speed);
-          Delay(clock_server, delay);
-          TrainSetSpeed(train_tid, train, 0);
-          Reply(tid, NULL, 0);
-          // Delay(clock_server, 2000);
-          // info =
-          //     track_distance(track, track[short_move_start_sensor], track[short_move_end_sensor]);
-          // TerminalUpdateDistance(terminal_tid, info.begin, info.end, info.distance);
-        //   Delay(clock_server, 1000);
-        // }
-        shortmove = false;
-        break;
-
       case CALIBRATOR_ACCELERATION_DISTANCE:
         start = -1;
         stop = false;
@@ -176,9 +145,6 @@ void train_calibrator_task() {
         speed = req.short_move_req.speed;
 
         accd_measurement = true;
-        for (int i = 0; i < 8; i++) {
-          TrainSetSwitchDir(train_tid, loop_switches[i], loop_switch_dirs[i]);
-        }
 
         t_start = Time(clock_server);
         TrainSetSpeed(train_tid, train, speed);
@@ -186,12 +152,6 @@ void train_calibrator_task() {
         break;
 
       case CALIBRATOR_SENSOR_UPDATE:
-        if (!calibrating && !accd_measurement) {
-          Reply(tid, NULL, 0);
-          // do nothing
-          break;
-        }
-
         bool *sensors = req.update_sensor_req.sensors;
 
         // only respond to sensor triggers
@@ -234,44 +194,41 @@ void train_calibrator_task() {
           }
         }
 
-        if (shortmove) {
-          int s = 0;
-          for (int i = 0; i < 80; i++) {
-            if (sensors[i]) {
-              s = i;
-              break;
-            }
-          }
-          if (short_move_start_sensor == -1) {
-            short_move_start_sensor = s;
-          } else {
-            short_move_end_sensor = s;
-          }
-        }
+        // if (shortmove) {
+        //   int s = 0;
+        //   for (int i = 0; i < 80; i++) {
+        //     if (sensors[i]) {
+        //       s = i;
+        //       break;
+        //     }
+        //   }
+        //   if (short_move_start_sensor == -1) {
+        //     short_move_start_sensor = s;
+        //   } else {
+        //     short_move_end_sensor = s;
+        //   }
+        // }
 
-        if (accd_measurement) {
-          if (sensors[accd_sensor1]) {
-            t1 = Time(clock_server);
-            // if (start==-1) TerminalUpdateDistance(terminal_tid, accd_sensor1, accd_sensor1, 0);
-          } else if (sensors[accd_sensor2]) {
-            t2 = Time(clock_server);
-            int tdelta = t2 - t1;
-            TerminalUpdateVelocity(terminal_tid, train, speed, tdelta, (404 * 100) / (tdelta));
-            accd_measurement = false;
-            stop = true;
-            TrainSetSpeed(train_tid, train, 0);
-          }
-          if (start == -1) {
-            for (int i = 0; i < 80; i++) {
-              if (sensors[i]) {
-                start = i;
-                break;
-              }
-            }
-            info = track_distance(track, track[start], track[accd_sensor1]);
-            TerminalUpdateDistance(terminal_tid, info.begin, info.end, info.distance);
-          }
-        }
+        // if (accd_measurement) {
+        //   if (sensors[accd_sensor1]) {
+        //     t1 = Time(clock_server);
+        //   } else if (sensors[accd_sensor2]) {
+        //     t2 = Time(clock_server);
+        //     int tdelta = t2 - t1;
+        //     TerminalLogPrint(terminal_tid, "time between sensor triggers: %d", tdelta);
+        //     TerminalLogPrint(
+        //         terminal_tid,
+        //         "Measured acceleration for train %d at speed %d, measured speed: %d, time to
+        //         first " "sensor: %d", train, speed,
+        //         // distance from B6 to C12.
+        //         (351 * 1000) / (tdelta),
+        //         t1 - t_start
+        //     );
+        //     accd_measurement = false;
+        //     stop = true;
+        //     TrainSetSpeed(train_tid, train, 0);
+        //   }
+        // }
 
         Reply(tid, NULL, 0);
         break;

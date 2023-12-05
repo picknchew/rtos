@@ -138,8 +138,6 @@ void io_marklin_tx_task() {
     }
 
     if (!circular_buffer_empty(&tx_buffer) && marklin_state == MARKLIN_READY && done_reading) {
-      Delay(clock_server, 1);
-
       char ch = circular_buffer_read(&tx_buffer);
       uart_putc(line, ch);
 

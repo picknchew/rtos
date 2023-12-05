@@ -11,6 +11,7 @@ void track_node_queue_init(struct TrackNodeQueue *queue, struct TrackNode *track
     struct TrackNodeQueueNode *node = &queue->nodes[i];
 
     node->val = &track_nodes[i];
+    node->prev = NULL;
     node->next = NULL;
   }
 }
@@ -21,12 +22,30 @@ void track_node_queue_add(struct TrackNodeQueue *queue, struct TrackNode *track)
 
   if (queue->tail) {
     queue->tail->next = node;
+    node->prev = queue->tail;
   } else {
     queue->head = node;
+    node->prev = NULL;
   }
 
   queue->tail = node;
   ++queue->size;
+}
+
+struct TrackNode *track_node_queue_pop(struct TrackNodeQueue *queue) {
+  struct TrackNodeQueueNode *popped = queue->tail;
+  queue->tail = popped->prev;
+  --queue->size;
+
+  if (queue->size <= 1) {
+    queue->head = queue->head;
+  }
+
+  return popped->val;
+}
+
+struct TrackNode *track_node_queue_peek_tail(struct TrackNodeQueue *queue) {
+  return queue->tail->val;
 }
 
 struct TrackNode *track_node_queue_poll(struct TrackNodeQueue *queue) {

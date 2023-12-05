@@ -8,6 +8,7 @@
 enum TrainRequestType {
   SET_SPEED,
   SET_TRACK,
+  GET_SELECTED_TRACK,
   REVERSE_TRAIN,
   REVERSE_TRAIN_INSTANT,
   SET_SWITCH_DIR,
@@ -59,6 +60,7 @@ struct TrainResponse {
   union {
     bool is_valid_train;
     enum SwitchDirection switch_state;
+    enum Track selected_track;
   };
 };
 
@@ -86,6 +88,7 @@ void TrainReverse(int tid, uint8_t train);
 void TrainReverseInstant(int tid, uint8_t train);
 void TrainSetSpeed(int tid, uint8_t train, uint8_t speed);
 void TrainSetTrack(int tid, char track);
+enum Track TrainGetSelectedTrack(int tid);
 void TrainSetSwitchDir(int tid, int switch_num, int dir);
 bool TrainIsValidTrain(int tid, uint8_t train);
 enum SwitchDirection TrainGetSwitchState(int tid, uint8_t switch_num);

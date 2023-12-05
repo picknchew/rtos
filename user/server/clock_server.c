@@ -23,6 +23,17 @@ void delay_queues_init() {
   }
 }
 
+void clock_notifier_task() {
+  struct ClockServerRequest msg = {.req_type = CLOCK_SERVER_NOTIFY};
+
+  while (true) {
+    AwaitEvent(EVENT_TIMER);
+    Send(clock_server_tid, (const char *) &msg, sizeof(msg), NULL, 0);
+  }
+
+  Exit();
+}
+
 void delay_queue_init() {
   queue.head = NULL;
   queue.tail = NULL;
@@ -83,28 +94,6 @@ struct DelayQueueNode *delay_queue_peek() {
   return queue.head;
 }
 
-static int time = 0;
-
-void clock_notifier_task() {
-  time = 0;
-
-  while (true) {
-    AwaitEvent(EVENT_TIMER);
-
-    // update timer
-    ++time;
-
-    // reply to all scheduled tasks whose delays that have passed
-    while (queue.size > 0 && delay_queue_peek()->delay <= time) {
-      // reply here instead of notifying clock server to save a context switch
-      // and send-receive-reply
-      Reply(delay_queue_pop()->tid, (const char *) &time, sizeof(time));
-    }
-  }
-
-  Exit();
-}
-
 void clock_server_task() {
   clock_server_tid = MyTid();
 
@@ -116,6 +105,8 @@ void clock_server_task() {
   RegisterAs("clock_server");
   printf("clock_server: started with id %d\r\n", MyTid());
 
+  int time = 0;
+
   int tid;
   struct ClockServerRequest req;
 
@@ -125,6 +116,16 @@ void clock_server_task() {
     switch (req.req_type) {
       case CLOCK_SERVER_TIME:
         Reply(tid, (const char *) &time, sizeof(time));
+        break;
+      case CLOCK_SERVER_NOTIFY:
+        // update timer
+        ++time;
+
+        Reply(tid, (const char *) &time, sizeof(time));  // unblock notifier
+        // reply to all scheduled tasks whose delays that have passed
+        while (queue.size > 0 && delay_queue_peek()->delay <= time) {
+          Reply(delay_queue_pop()->tid, (const char *) &time, sizeof(time));
+        }
         break;
       case CLOCK_SERVER_DELAY:
         // turn delay to delay until

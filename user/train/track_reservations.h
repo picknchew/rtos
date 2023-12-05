@@ -2,6 +2,8 @@
 
 #include <stdbool.h>
 
+#include "train_planner.h"
+
 #define ZONE_NUMBERS 34
 
 static const char red[] = "\033[0;31m";
@@ -20,10 +22,22 @@ struct Zone {
   int tracks[30];
   int len;
   const char *color;
+  int release_counter;
 };
 
+void zones_a_init();
+void zones_b_init();
+
 // returns false if track could not be reserved.
-bool ReserveTrack(int zone_num, int train_index);
-void ReleaseReservations(int zone);
-struct Zone getZone(int zone);
+bool ReserveTrack(int terminal, int zone_num, int train_index);
+bool ReservePath(
+    int terminal,
+    struct RoutePlan *plan,
+    struct SimplePath *path,
+    int start_node_index,
+    int train_index
+);
+bool ReservableTrack(int zone_num, int train_index);
+void ReleaseReservations(int terminal, int zone);
+struct Zone *GetZone(int zone);
 int ZoneOccupied(int zone);
