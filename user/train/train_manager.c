@@ -1219,6 +1219,28 @@ static void handle_tick(
         // 1. the train has reached it's final destination.
         // 2. the train has reached the end of the simple path that it's currently on.
         if (train->path_index == train->plan.paths_len - 1) {
+          // release all previous nodes in our path
+          for (int i = 0; i < train->plan.path.nodes_len; ++i) {
+            struct TrackNode *node = train->plan.path.nodes[i];
+
+            if (!(node->type == NODE_SENSOR || node->type == NODE_BRANCH || node->type == NODE_MERGE
+                )) {
+              continue;
+            }
+
+            int zone = node->zone;
+
+            if (ZoneOccupied(zone) == train->train_index) {
+              ReleaseReservations(terminal, zone);
+            }
+          }
+
+          if (train->last_sensor_index != -1) {
+            struct TrackNode *sensor = train->plan.path.nodes[train->last_sensor_index];
+            // rereserve the node that we're currently on
+            ReserveTrack(terminal, sensor->zone, train->train_index);
+          }
+
           // check if we're on the last simple path in path and the next node is our final
           // destination
           // if so, we're done.
@@ -1382,6 +1404,21 @@ static void handle_update_sensors_request(
       int zone = last_node->zone;
       TerminalLogPrint(terminal, "last_known_pos node %s", last_node->name);
 
+      // release all previous nodes in our path before the last sensor node
+      for (int i = 0; i <= train->last_sensor_index; ++i) {
+        struct TrackNode *node = train->plan.path.nodes[i];
+
+        if (!(node->type == NODE_SENSOR || node->type == NODE_BRANCH || node->type == NODE_MERGE)) {
+          continue;
+        }
+
+        int zone = node->zone;
+
+        if (ZoneOccupied(zone) == train->train_index) {
+          ReleaseReservations(terminal, zone);
+        }
+      }
+
       if (ZoneOccupied(zone) == train->train_index) {
         ReleaseReservations(terminal, zone);
       }
@@ -1477,7 +1514,7 @@ void handle_route_return_req(
   struct TrackNode *dest1 = &track[trainset_get_sensor_index(req->dest1)];
   struct Train *train1 = &trains[trainset_get_train_index(req->train1)];
   struct TrackNode *sensor1 = selected_track == TRACK_A ? &track[trainset_get_sensor_index("A5")]
-                                                        : &track[trainset_get_sensor_index("E8")];
+                                                        : &track[trainset_get_sensor_index("A2")];
 
   route_return(terminal, train_planner, time, train1, sensor1, dest1);
 
@@ -1485,7 +1522,7 @@ void handle_route_return_req(
     struct TrackNode *dest2 = &track[trainset_get_sensor_index(req->dest2)];
     struct Train *train2 = &trains[trainset_get_train_index(req->train2)];
     struct TrackNode *sensor2 = selected_track == TRACK_A ? &track[trainset_get_sensor_index("C3")]
-                                                          : &track[trainset_get_sensor_index("A1")];
+                                                          : &track[trainset_get_sensor_index("A9")];
 
     route_return(terminal, train_planner, time, train2, sensor2, dest2);
   }
@@ -1504,7 +1541,7 @@ void handle_rand_route_req(
 
   struct Train *train1 = &trains[trainset_get_train_index(req->train1)];
   struct TrackNode *sensor1 = selected_track == TRACK_A ? &track[trainset_get_sensor_index("A5")]
-                                                        : &track[trainset_get_sensor_index("E8")];
+                                                        : &track[trainset_get_sensor_index("A2")];
 
   // destination is a sensor. we reverse it to fake entering our next zone.
   ReserveTrack(terminal, sensor1->reverse->zone, train1->train_index);
